@@ -8,6 +8,7 @@ import { Authenticated, type AuthUser, CurrentUser, Public } from '../common/aut
 import { AppError, forbidden, unauthorized, ZodPipe } from '../common/errors.js';
 import { PRISMA } from '../common/infra.module.js';
 import { ENV, type Env } from '../config/env.js';
+import { SmsAdminController } from '../notifications/sms.controller.js';
 import { SmsService } from '../notifications/sms.service.js';
 import { AuthService, DEMO_PHONES, type Session } from './auth.service.js';
 
@@ -144,5 +145,5 @@ export class AuthController {
   }
 }
 
-@Module({ controllers: [AuthController], providers: [AuthService, SmsService], exports: [AuthService, SmsService] })
+@Module({ controllers: [AuthController, SmsAdminController], providers: [AuthService, SmsService], exports: [AuthService, SmsService] })
 export class AuthModule {}

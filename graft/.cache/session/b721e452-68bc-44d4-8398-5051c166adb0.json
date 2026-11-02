@@ -12,5 +12,6 @@
   "host": "claude-code",
   "turnUsedGraft": false,
   "graftTurns": 1,
-  "lastTallyUuid": "ea5960fe-c117-4566-92e2-0f4a0d2e7b91"
+  "lastTallyUuid": "ea5960fe-c117-4566-92e2-0f4a0d2e7b91",
+  "summarized": true
 }

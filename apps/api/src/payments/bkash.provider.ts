@@ -18,7 +18,7 @@ const BASE = {
 };
 const taka = (poisha: number) => (poisha / 100).toFixed(2);
 
-/** bKash Tokenized Checkout. Not yet exercised against a real account: that needs merchant credentials. */
+/** bKash Tokenized Checkout. Tested against the sandbox; live needs merchant credentials. */
 export class BkashProvider implements PaymentProvider {
   private token?: { value: string; expiresAt: number };
   private readonly base: string;

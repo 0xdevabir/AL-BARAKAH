@@ -17,13 +17,15 @@ Clone the repo, `cp .env.example .env`, and change these:
 | `PUBLIC_API_BASE` | `https://<store domain>/api` |
 | `S3_PUBLIC_URL` | `https://<files domain>` |
 | `CORS_ORIGINS` | `https://<store domain>,https://<staff domain>,capacitor://localhost,https://localhost` |
-| `SMS_PROVIDER`, `SMS_HTTP_URL`, `SMS_HTTP_TOKEN` | `http` plus your provider's details |
+| `SMS_PROVIDER`, `SMS_API_KEY`, `SMS_SENDER_ID` | `alphasms`, your key from portal.sms.net.bd, and an approved sender ID if you have one |
 | `BKASH_MODE` and `BKASH_*` | `sandbox` while testing, `live` with your merchant account |
 | `FIRST_ADMIN_PHONE` | Your phone, as `+8801XXXXXXXXX` |
 
 The compose file sets `NODE_ENV`, `DATABASE_URL`, `REDIS_URL` and the `S3_ENDPOINT` settings itself. The API refuses to start in production with the fake bKash or console SMS provider, or with `DEMO_LOGIN=true`, so remove that line from your `.env`.
 
-The HTTP SMS provider's request format must match your provider: see `apps/api/src/notifications/sms.service.ts`.
+Alpha SMS only delivers to your registered number until the account's first balance recharge (gateway error 421), so recharge before going live. Failed sends appear in the worker log with the gateway's reason. Admins can check credit at `GET /admin/sms/balance` and delivery at `GET /admin/sms/reports/<request ID>`, using the request ID from the worker log.
+
+To test bKash with `BKASH_MODE=sandbox`, pay on bKash's page with wallet `01770618575`, OTP `123456` and PIN `12121`. Wallet `01823074817` fails with insufficient balance and `01823074818` with a debit block. bKash sends the customer's browser back to `PUBLIC_API_BASE`, so testing from a phone needs an address the phone can reach, not `localhost`. Sandbox credentials are rejected by the live service.
 
 ## 3. Get a certificate
 Get one certificate covering all three names, stored under the store domain's name, before starting nginx in TLS mode:
