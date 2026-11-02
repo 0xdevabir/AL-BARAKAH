@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
+import type { IncomingMessage } from 'node:http';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import cookie from '@fastify/cookie';
@@ -12,12 +13,13 @@ import type { Env } from './config/env.js';
 
 export async function createApp(env: Env, opts: { rateLimit?: boolean } = {}): Promise<NestFastifyApplication> {
   const adapter = new FastifyAdapter({
-    trustProxy: env.NODE_ENV === 'production' ? 1 : false,
+    // Trust exactly one proxy (nginx), so clients cannot spoof their IP past the rate limits.
+    trustProxy: env.NODE_ENV === 'production' ? (_address: string, hop: number) => hop < 1 : false,
     bodyLimit: 256 * 1024,
     // A short deadline, so one stuck request cannot pile up on low server resources.
     requestTimeout: 30_000,
     logger: env.NODE_ENV === 'test' ? false : { level: env.NODE_ENV === 'production' ? 'info' : 'warn' },
-    genReqId: (req) => (req.headers['x-request-id'] as string | undefined)?.slice(0, 64) || randomUUID(),
+    genReqId: (req: IncomingMessage) => (req.headers['x-request-id'] as string | undefined)?.slice(0, 64) || randomUUID(),
   });
   const app = await NestFactory.create<NestFastifyApplication>(AppModule.forRole(env.SERVICE_ROLE), adapter, {
     logger: env.NODE_ENV === 'test' ? false : ['log', 'warn', 'error'],
