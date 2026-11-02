@@ -3,7 +3,9 @@ import { check, sleep } from 'k6';
 import crypto from 'k6/crypto';
 import encoding from 'k6/encoding';
 import http from 'k6/http';
+import { Rate } from 'k6/metrics';
 
+const orderFailed = new Rate('order_failed');
 const BASE = __ENV.BASE ?? 'http://edge';
 const PEAK = Number(__ENV.PEAK ?? 1000);
 const HOLD = __ENV.HOLD ?? '3m';
@@ -17,6 +19,8 @@ export const options = {
   },
   thresholds: {
     http_req_failed: ['rate<0.01'],
+    // Orders are a small share of traffic, so the overall rate above could hide them all failing.
+    order_failed: ['rate<0.01'],
     'http_req_duration{kind:api}': ['p(95)<500'],
     'http_req_duration{kind:page}': ['p(95)<800'],
     'http_req_duration{kind:order}': ['p(95)<1000'],
@@ -42,9 +46,8 @@ function get(path, kind) {
 
 export function setup() {
   const meds = http.get(`${BASE}/api/medicines?page=1`).json();
-  const slots = http.get(`${BASE}/api/delivery-slots`).json();
   const items = meds.items ?? meds.data ?? meds;
-  return { medicine: items[0], slots };
+  return { medicine: items[0] };
 }
 
 export default function (data) {
@@ -59,20 +62,22 @@ export default function (data) {
   sleep(1 + Math.random() * 2);
 
   if (Math.random() < 0.1) {
-    const slotList = data.slots.slots ?? data.slots;
-    const slot = slotList[0];
+    // Slots expire as the clock moves, so this must not be fetched once at the start of the run.
+    const { slots } = get('/api/delivery-slots', 'api').json();
     const res = http.post(`${BASE}/api/orders`, JSON.stringify({
-      idempotencyKey: crypto.randomBytes ? encoding.b64encode(crypto.randomBytes(18), 'rawurl') : `${__VU}-${__ITER}-${Date.now()}`,
+      idempotencyKey: encoding.b64encode(crypto.randomBytes(18), 'rawurl'),
       addressId: __ENV.ADDRESS_ID,
       type: 'NORMAL',
-      slotStart: slot.start,
+      slotStart: slots[0].start,
       paymentMethod: 'COD',
       items: [{ medicineId: data.medicine.id, qty: 1 }],
     }), {
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token()}` },
       tags: { kind: 'order', name: '/api/orders' },
     });
-    check(res, { 'order ok': (r) => r.status === 200 || r.status === 201 });
+    const placed = res.status === 201;
+    orderFailed.add(!placed);
+    check(res, { 'order ok': () => placed });
     sleep(1);
   }
 }

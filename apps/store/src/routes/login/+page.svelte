@@ -20,7 +20,7 @@
   <OtpLogin
     {api}
     labels={{ phone: m.phone(), phoneHint: m.phone_hint(), send: m.send_code(), code: m.code(), codeHint: m.code_hint(), verify: m.verify(), change: m.change_number(), invalidPhone: m.invalid_phone() }}
-    ondone={() => goto(next(), { replaceState: true })}
+    ondone={() => goto(next(), { replace: true })}
   />
 </div>
 

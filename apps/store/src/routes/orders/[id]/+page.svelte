@@ -58,7 +58,7 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!api.user) { await goto(`/login?next=/orders/${id}`, { replaceState: true }); return; }
+    if (!api.user) { await goto(`/login?next=/orders/${id}`, { replace: true }); return; }
     await load();
     timer = setInterval(() => (now = Date.now()), 1000);
     void listen();

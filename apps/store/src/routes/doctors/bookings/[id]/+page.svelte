@@ -16,7 +16,7 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!api.user) { await goto(`/login?next=/doctors/bookings/${id}`, { replaceState: true }); return; }
+    if (!api.user) { await goto(`/login?next=/doctors/bookings/${id}`, { replace: true }); return; }
     try { b = await api.get<Booking>(`/consultations/${id}`); } catch (err) { error = (err as Error).message; }
   });
 

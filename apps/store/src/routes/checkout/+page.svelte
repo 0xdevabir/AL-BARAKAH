@@ -37,8 +37,8 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!api.user) { await goto('/login?next=/checkout', { replaceState: true }); return; }
-    if (cart.lines.length === 0) { await goto('/cart', { replaceState: true }); return; }
+    if (!api.user) { await goto('/login?next=/checkout', { replace: true }); return; }
+    if (cart.lines.length === 0) { await goto('/cart', { replace: true }); return; }
     try {
       const [a, z, s] = await Promise.all([
         api.get<Address[]>('/addresses'),
@@ -94,7 +94,7 @@
         const { redirectUrl } = await api.post<{ redirectUrl: string }>('/payments/start', { purpose: 'ORDER', refId: order.id });
         await openPayment(redirectUrl);
       } else {
-        await goto(`/orders/${order.id}?placed=1`, { replaceState: true });
+        await goto(`/orders/${order.id}?placed=1`, { replace: true });
       }
     } catch (err) { error = (err as Error).message; } finally { busy = false; }
   }

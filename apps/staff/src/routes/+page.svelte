@@ -14,7 +14,7 @@
 
   async function route() {
     if (!api.user || notStaff) return;
-    if (!needsTotp) { await goto(homeFor(api.user.role), { replaceState: true }); return; }
+    if (!needsTotp) { await goto(homeFor(api.user.role), { replace: true }); return; }
     if (!api.user.totpEnabled && !setup) {
       try { setup = await api.post('/auth/totp/setup'); } catch (err) { error = message(err); }
     }

@@ -11,11 +11,11 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!allowed) await goto(api.user && !(api.user.role === 'ADMIN' && !api.user.mfa) ? homeFor(api.user.role) : '/', { replaceState: true });
+    if (!allowed) await goto(api.user && !(api.user.role === 'ADMIN' && !api.user.mfa) ? homeFor(api.user.role) : '/', { replace: true });
   });
   async function signOut() {
     await api.logout();
-    await goto('/', { replaceState: true });
+    await goto('/', { replace: true });
   }
   const on = (href: string) => (tabs[0].href === href ? page.url.pathname === href : page.url.pathname.startsWith(href));
 </script>

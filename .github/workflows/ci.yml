@@ -1,0 +1,68 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env: { POSTGRES_USER: albarakah, POSTGRES_PASSWORD: change-me-local, POSTGRES_DB: albarakah }
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U albarakah" --health-interval 3s --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7.4-alpine
+        ports: ["56379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 3s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: cp .env.example .env
+      - name: Object storage
+        run: >-
+          docker run -d --name objectstore -p 59000:8333
+          -e AWS_ACCESS_KEY_ID=albarakah -e AWS_SECRET_ACCESS_KEY=change-me-minio
+          --entrypoint /usr/bin/weed chrislusf/seaweedfs:4.50
+          server -dir=/data -s3 -s3.port=8333 -volume.max=10
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm db:migrate
+      - run: pnpm test
+      - name: Browser flows
+        working-directory: apps/e2e
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test
+      - name: Bundle budget
+        run: |
+          pnpm db:seed
+          (cd apps/api && node --env-file=../../.env dist/main.js) &
+          (cd apps/store && PORT=3000 API_INTERNAL_URL=http://localhost:4000 node build/index.js) &
+          curl --retry 30 --retry-delay 1 --retry-all-errors -fsS http://localhost:3000/login > /dev/null
+          pnpm --filter @albarakah/store budget
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-logs
+          path: apps/e2e/.run
+          retention-days: 7
+
+  images:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -f infra/Dockerfile --target app -t albarakah-app .
+      - run: docker build -f infra/Dockerfile --target edge -t albarakah-edge .

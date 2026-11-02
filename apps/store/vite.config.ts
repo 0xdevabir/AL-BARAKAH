@@ -12,7 +12,7 @@ export default defineConfig({
       // The website renders on the server for speed and search engines; the app ships as static files.
       adapter: mobile ? staticAdapter({ pages: 'build-mobile', fallback: 'index.html' }) : nodeAdapter({ precompress: true }),
       // Small stylesheets go inside the HTML, so they don't block the first paint on slow networks.
-      inlineStyleThreshold: 4096,
+      inlineStyleThreshold: 16384,
     }),
     paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide', strategy: ['cookie', 'baseLocale'] }),
   ],

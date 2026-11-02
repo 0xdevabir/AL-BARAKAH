@@ -12,7 +12,7 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!api.user) { await goto('/login?next=/orders', { replaceState: true }); return; }
+    if (!api.user) { await goto('/login?next=/orders', { replace: true }); return; }
     try { orders = await api.get<Row[]>('/orders'); } catch (err) { error = (err as Error).message; }
   });
   const statusLabel = (s: string) => (m as unknown as Record<string, () => string>)[`status_${s}`]?.() ?? s;

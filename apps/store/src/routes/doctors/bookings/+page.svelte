@@ -12,7 +12,7 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!api.user) { await goto('/login?next=/doctors/bookings', { replaceState: true }); return; }
+    if (!api.user) { await goto('/login?next=/doctors/bookings', { replace: true }); return; }
     try { rows = await api.get<Row[]>('/consultations'); } catch (err) { error = (err as Error).message; }
   });
 </script>
