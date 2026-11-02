@@ -1,0 +1,17 @@
+{
+  "name": "al-barakah",
+  "private": true,
+  "packageManager": "pnpm@11.1.2",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "infra:up": "docker compose -p albarakah -f infra/compose.storage.yml --env-file .env up -d --wait",
+    "infra:down": "docker compose -p albarakah -f infra/compose.storage.yml down",
+    "db:migrate": "pnpm --filter @albarakah/database migrate:deploy",
+    "db:seed": "pnpm --filter @albarakah/database seed"
+  },
+  "devDependencies": { "turbo": "2.11.10", "typescript": "5.9.3" }
+}

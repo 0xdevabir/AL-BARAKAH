@@ -1,0 +1,383 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  RIDER
+  DOCTOR
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PACKED
+  ASSIGNED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum OrderType {
+  NORMAL
+  EMERGENCY
+}
+
+enum PaymentMethod {
+  COD
+  BKASH
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentPurpose {
+  ORDER
+  CONSULTATION
+}
+
+enum ConsultationChannel {
+  GOOGLE_MEET
+  WHATSAPP
+  IN_APP
+}
+
+enum ConsultationStatus {
+  HOLD
+  CONFIRMED
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+  REFUNDED
+}
+
+enum LedgerType {
+  EARNING
+  COD_COLLECTED
+  SETTLEMENT
+}
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  name        String   @default("")
+  role        Role     @default(CUSTOMER)
+  isActive    Boolean  @default(true)
+  /// AES-GCM encrypted; never stored in plain text.
+  totpSecret  String?
+  totpEnabled Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  refreshTokens     RefreshToken[]
+  addresses         Address[]
+  orders            Order[]        @relation("CustomerOrders")
+  deliveries        Order[]        @relation("RiderOrders")
+  doctor            Doctor?
+  consultations     Consultation[]
+  ledger            RiderLedgerEntry[]
+  auditLogs         AuditLog[]
+}
+
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  /// Every rotation of one login shares a family, so reuse of an old token revokes them all.
+  familyId  String
+  mfa       Boolean   @default(false)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([familyId])
+  @@index([userId])
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  sortOrder Int        @default(0)
+  medicines Medicine[]
+}
+
+model Medicine {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  genericName  String
+  manufacturer String   @default("")
+  form         String
+  strength     String   @default("")
+  packSize     String   @default("")
+  pricePoisha  Int
+  isRx         Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  description  String   @default("")
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  batches    Batch[]
+  orderItems OrderItem[]
+
+  @@index([categoryId, isActive])
+}
+
+model Batch {
+  id           String    @id @default(cuid())
+  medicineId   String
+  medicine     Medicine  @relation(fields: [medicineId], references: [id])
+  batchNo      String
+  expiresAt    DateTime  @db.Date
+  qtyRemaining Int
+  createdAt    DateTime  @default(now())
+
+  allocations OrderAllocation[]
+
+  @@unique([medicineId, batchNo])
+  @@index([medicineId, expiresAt])
+}
+
+model Zone {
+  id                String    @id @default(cuid())
+  name              String    @unique
+  deliveryFeePoisha Int
+  isActive          Boolean   @default(true)
+  addresses         Address[]
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String
+  line      String
+  phone     String
+  notes     String?
+  zoneId    String
+  zone      Zone     @relation(fields: [zoneId], references: [id])
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Order {
+  id                 String        @id @default(cuid())
+  code               String        @unique
+  customerId         String
+  customer           User          @relation("CustomerOrders", fields: [customerId], references: [id])
+  type               OrderType
+  status             OrderStatus   @default(PLACED)
+  slotStart          DateTime?
+  slotEnd            DateTime?
+  promisedBy         DateTime
+  /// Copied at order time, so later address edits never rewrite history.
+  addressSnapshot    Json
+  zoneId             String
+  subtotalPoisha     Int
+  deliveryFeePoisha  Int
+  emergencyFeePoisha Int
+  totalPoisha        Int
+  riderPayoutPoisha  Int
+  paymentMethod      PaymentMethod
+  paymentStatus      PaymentStatus @default(UNPAID)
+  riderId            String?
+  rider              User?         @relation("RiderOrders", fields: [riderId], references: [id])
+  prescriptionKey    String?
+  notes              String?
+  idempotencyKey     String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  items    OrderItem[]
+  events   OrderEvent[]
+  payments Payment[]
+  ledger   RiderLedgerEntry[]
+
+  @@unique([customerId, idempotencyKey])
+  @@index([customerId, createdAt(sort: Desc)])
+  @@index([status, promisedBy])
+  @@index([riderId, status])
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicineId      String
+  medicine        Medicine @relation(fields: [medicineId], references: [id])
+  nameSnapshot    String
+  unitPricePoisha Int
+  qty             Int
+
+  allocations OrderAllocation[]
+
+  @@index([orderId])
+}
+
+/// Which batch each unit came from: needed for recalls and to restock on cancel.
+model OrderAllocation {
+  id          String    @id @default(cuid())
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  batchId     String
+  batch       Batch     @relation(fields: [batchId], references: [id])
+  qty         Int
+
+  @@index([orderItemId])
+  @@index([batchId])
+}
+
+model OrderEvent {
+  id         String       @id @default(cuid())
+  orderId    String
+  order      Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  actorId    String?
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model Payment {
+  id                String         @id @default(cuid())
+  purpose           PaymentPurpose
+  orderId           String?
+  order             Order?         @relation(fields: [orderId], references: [id])
+  consultationId    String?
+  consultation      Consultation?  @relation(fields: [consultationId], references: [id])
+  userId            String
+  amountPoisha      Int
+  status            PaymentStatus  @default(PENDING)
+  providerPaymentId String?        @unique
+  trxId             String?        @unique
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@index([consultationId])
+}
+
+model Doctor {
+  id         String                @id @default(cuid())
+  userId     String                @unique
+  user       User                  @relation(fields: [userId], references: [id])
+  bmdcNo     String                @unique
+  specialty  String
+  bio        String                @default("")
+  /// Null means the platform-wide booking fee applies.
+  feePoisha  Int?
+  channels   ConsultationChannel[]
+  meetLink   String?
+  whatsapp   String?
+  isActive   Boolean               @default(true)
+  createdAt  DateTime              @default(now())
+
+  availability  Availability[]
+  consultations Consultation[]
+}
+
+model Availability {
+  id          String @id @default(cuid())
+  doctorId    String
+  doctor      Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  weekday     Int
+  startMinute Int
+  endMinute   Int
+  slotMinutes Int
+
+  @@index([doctorId])
+}
+
+/// A partial unique index in the migration stops two active bookings sharing a doctor's slot.
+model Consultation {
+  id            String              @id @default(cuid())
+  code          String              @unique
+  doctorId      String
+  doctor        Doctor              @relation(fields: [doctorId], references: [id])
+  customerId    String
+  customer      User                @relation(fields: [customerId], references: [id])
+  startsAt      DateTime
+  endsAt        DateTime
+  status        ConsultationStatus  @default(HOLD)
+  channel       ConsultationChannel
+  feePoisha     Int
+  holdExpiresAt DateTime?
+  reason        String?
+  patientPhone  String
+  notes         String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  payments Payment[]
+
+  @@index([customerId, startsAt(sort: Desc)])
+  @@index([doctorId, startsAt])
+  @@index([status, holdExpiresAt])
+}
+
+model RiderLedgerEntry {
+  id           String     @id @default(cuid())
+  riderId      String
+  rider        User       @relation(fields: [riderId], references: [id])
+  orderId      String?
+  order        Order?     @relation(fields: [orderId], references: [id])
+  type         LedgerType
+  amountPoisha Int
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@unique([orderId, type])
+  @@index([riderId, createdAt(sort: Desc)])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
