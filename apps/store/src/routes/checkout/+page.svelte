@@ -99,7 +99,6 @@
     } catch (err) { error = (err as Error).message; } finally { busy = false; }
   }
 </script>
-
 <svelte:head><title>{m.checkout()} · AL-BARAKAH</title></svelte:head>
 
 <div class="page stack">
@@ -114,7 +113,7 @@
       <div class="group" role="radiogroup" aria-label={m.step_address()}>
         {#each addresses as a (a.id)}
           <button role="radio" aria-checked={addressId === a.id} onclick={() => (addressId = a.id)}>
-            <span class="radio" class:on={addressId === a.id}></span>
+            <span class="mark" class:on={addressId === a.id}></span>
             <span class="grow"><strong>{a.label}</strong><span class="muted small block">{a.line} · {a.zone.name}</span></span>
           </button>
         {/each}
@@ -138,8 +137,8 @@
       <div class="group" role="radiogroup" aria-label={m.time_choose()}>
         {#each slots as s (s.start)}
           <button role="radio" aria-checked={slotStart === s.start} onclick={() => (slotStart = s.start)}>
-            <span class="radio" class:on={slotStart === s.start}></span>
-            <span>{fmtWindow(s.start, s.end)}</span>
+            <span class="grow">{fmtWindow(s.start, s.end)}</span>
+            <span class="mark" class:on={slotStart === s.start}></span>
           </button>
         {/each}
       </div>
@@ -167,11 +166,14 @@
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
-  {#if step < 2}
-    <button class="btn primary block" disabled={!canNext} onclick={() => step++}>{m.next()}</button>
-  {:else}
-    <button class="btn primary block" disabled={busy || uploading} onclick={place}>{paymentMethod === 'BKASH' ? m.pay_now() : m.place_order()}</button>
-  {/if}
+  <div class="dock">
+    {#if step < 2}
+      <button class="btn primary block" disabled={!canNext} onclick={() => step++}>{m.next()}</button>
+    {:else}
+      <span class="grow"><span class="muted small">{m.total()}</span><strong class="mono sum">{formatTk(total)}</strong></span>
+      <button class="btn primary" disabled={busy || uploading} onclick={place}>{paymentMethod === 'BKASH' ? m.pay_now() : m.place_order()}</button>
+    {/if}
+  </div>
 </div>
 
 <Sheet bind:open={sheet} title={m.add_address()}>
@@ -192,12 +194,13 @@
 <style>
   .back { padding-left: 0; }
   .dots { display: flex; gap: 6px; margin: 0 0 0 auto; padding: 0; list-style: none; }
-  .dots li { width: 24px; height: 4px; border-radius: 2px; background: var(--line); }
+  .dots li { width: 22px; height: 4px; border-radius: 2px; background: var(--line); }
   .dots li.on { background: var(--accent); }
   .title { margin-bottom: 0; }
   .block { display: block; }
   .between { justify-content: space-between; }
-  .radio { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); }
-  .radio.on { border: 6px solid var(--accent); }
+  .mark { flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); }
+  .mark.on { background: var(--accent); box-shadow: none; }
+  .sum { display: block; font-size: 1.15rem; }
   .file { padding-top: 11px; }
 </style>

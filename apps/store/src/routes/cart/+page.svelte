@@ -24,13 +24,15 @@
           <Stepper qty={l.qty} label={l.name} onchange={(q) => cart.setQty(l.id, q)} />
         </div>
       {/each}
-      <div class="between"><span>{m.subtotal()}</span><strong class="mono">{formatTk(cart.subtotal)}</strong></div>
     </div>
-    <a class="btn primary block go" href="/checkout">{m.checkout()}</a>
+    <div class="dock">
+      <span class="grow"><span class="muted small">{m.subtotal()}</span><strong class="mono sum">{formatTk(cart.subtotal)}</strong></span>
+      <a class="btn primary" href="/checkout">{m.checkout()}</a>
+    </div>
   {/if}
 </div>
 
 <style>
-  .between { justify-content: space-between; }
-  .go { margin-top: 16px; }
+  .sum { display: block; font-size: 1.15rem; }
 </style>
+

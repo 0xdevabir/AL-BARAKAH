@@ -112,9 +112,9 @@
       <button class="btn primary block" disabled={busy} onclick={pay}>{m.pay_now()}</button>
     {/if}
 
-    <ol class="timeline">
-      {#each order.events as e (e.id)}
-        <li><span>{statusLabel(e.toStatus)}</span><span class="muted small">{fmtWhen(e.createdAt)}</span></li>
+    <ol class="group trail">
+      {#each order.events as e, i (e.id)}
+        <li><span class="dot" class:now={i === order.events.length - 1}></span><span class="grow">{statusLabel(e.toStatus)}</span><span class="muted small">{fmtWhen(e.createdAt)}</span></li>
       {/each}
     </ol>
 
@@ -143,6 +143,7 @@
   .ok { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
   .between { justify-content: space-between; }
   .timer { font-size: 1.5rem; }
-  .timeline { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0; padding: 0 0 0 16px; list-style: none; border-left: 2px solid var(--sage); }
-  .timeline li { display: flex; flex-direction: column; }
+  .trail { margin: 0; padding: 0; list-style: none; }
+  .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--sage); }
+  .dot.now { background: var(--accent); box-shadow: 0 0 0 4px var(--sage-soft); }
 </style>

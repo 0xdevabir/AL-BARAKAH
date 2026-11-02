@@ -110,6 +110,7 @@
   "verify": "Verify and continue",
   "change_number": "Use a different number",
   "addresses": "Saved addresses",
+  "addresses_empty": "Addresses you save at checkout show up here.",
   "language": "Language",
   "sign_out": "Sign out",
   "remove": "Remove",
@@ -128,4 +129,5 @@
   "ios_app": "Download on the App Store",
   "ios_app_pending": "The iPhone app is not on the App Store yet"
 }
+
 

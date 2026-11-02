@@ -58,23 +58,22 @@
 
 <div class="page">
   <h1 class="title">{m.doctors_title()}</h1>
-  <a class="btn small mine" href="/doctors/bookings">{m.my_bookings()}</a>
+  <div class="group">
+    <a class="chev" href="/doctors/bookings">{m.my_bookings()}</a>
+  </div>
   {#if data.doctors.length === 0}
     <p class="empty">{m.doctors_empty()}</p>
   {:else}
-    <div class="stack">
+    <div class="group list">
       {#each data.doctors as d (d.id)}
-        <article class="card stack">
-          <div>
-            <h2 class="name">{d.name}</h2>
-            <p class="muted small">{d.specialty} · {m.bmdc()} <span class="mono">{d.bmdcNo}</span></p>
-          </div>
-          {#if d.bio}<p class="small">{d.bio}</p>{/if}
-          <div class="row between">
-            <span class="mono">{formatTk(feeOf(d))}</span>
-            <button class="btn primary small" onclick={() => choose(d)}>{m.book()}</button>
-          </div>
-        </article>
+        <button onclick={() => choose(d)}>
+          <span class="grow">
+            <strong>{d.name}</strong>
+            <span class="muted small line">{d.specialty} · {m.bmdc()} <span class="mono">{d.bmdcNo}</span></span>
+            {#if d.bio}<span class="muted small line">{d.bio}</span>{/if}
+          </span>
+          <span class="mono small">{formatTk(feeOf(d))}</span>
+        </button>
       {/each}
     </div>
   {/if}
@@ -106,6 +105,6 @@
 </Sheet>
 
 <style>
-  .mine { margin-bottom: 16px; background: var(--raised); }
-  .name { font-size: 1.1rem; }
+  .list { margin-top: 16px; }
+  .line { display: block; }
 </style>

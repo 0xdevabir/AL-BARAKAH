@@ -30,9 +30,8 @@
       {#each orders as o (o.id)}
         <a href="/orders/{o.id}" class="chev">
           <span class="grow">
-            <span class="row between"><strong class="mono small">{o.code}</strong><span class="chip" class:off={o.status === 'CANCELLED' || o.status === 'FAILED'}>{statusLabel(o.status)}</span></span>
-            <span class="muted small line">{o.items.map((i) => `${i.nameSnapshot} × ${i.qty}`).join(', ')}</span>
-            <span class="muted small line">{fmtWhen(o.promisedBy)} · <span class="mono">{formatTk(o.totalPoisha)}</span></span>
+            <span class="row between"><strong>{o.items[0] ? `${o.items[0].nameSnapshot}` : o.code}</strong><span class="mono small">{formatTk(o.totalPoisha)}</span></span>
+            <span class="muted small line">{statusLabel(o.status)} · {fmtWhen(o.promisedBy)}</span>
           </span>
         </a>
       {/each}
@@ -43,3 +42,4 @@
 <style>
   .line { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 </style>
+

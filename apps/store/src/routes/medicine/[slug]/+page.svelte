@@ -39,16 +39,16 @@
   </div>
   {#if med.description}<p>{med.description}</p>{/if}
 
-  {#if !med.inStock}
-    <button class="btn block" disabled>{m.out_of_stock()}</button>
-  {:else if qty}
-    <div class="row between">
+  <div class="dock">
+    {#if !med.inStock}
+      <button class="btn block" disabled>{m.out_of_stock()}</button>
+    {:else if qty}
       <Stepper {qty} label={med.name} onchange={(q) => cart.setQty(med.id, q)} />
       <a class="btn primary grow" href="/cart">{m.view_cart()}</a>
-    </div>
-  {:else}
-    <button class="btn primary block" onclick={() => cart.add(med)}>{m.add_to_cart()}</button>
-  {/if}
+    {:else}
+      <button class="btn primary block" onclick={() => cart.add(med)}>{m.add_to_cart()}</button>
+    {/if}
+  </div>
 </div>
 
 <style>

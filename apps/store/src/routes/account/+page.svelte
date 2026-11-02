@@ -10,6 +10,8 @@
   let error = $state('');
   let locale = $state(getLocale());
 
+  const initial = $derived((api.user?.name?.trim()?.[0] || api.user?.phone.slice(-2) || '').toUpperCase());
+
   $effect(() => {
     if (locale !== getLocale()) setLocale(locale);
   });
@@ -31,20 +33,32 @@
 <div class="page">
   <h1 class="title">{m.tab_account()}</h1>
   {#if api.user}
-    <div class="card"><strong class="mono">{api.user.phone}</strong></div>
+    <div class="group">
+      <div class="who">
+        <span class="avatar" aria-hidden="true">{initial}</span>
+        <span class="grow">
+          {#if api.user.name?.trim()}<strong>{api.user.name}</strong>{/if}
+          <span class="mono" class:muted={!!api.user.name?.trim()}>{api.user.phone}</span>
+        </span>
+      </div>
+    </div>
+
     <h2 class="section">{m.addresses()}</h2>
     {#if addresses.length}
       <div class="group">
         {#each addresses as a (a.id)}
           <div>
             <span class="grow"><strong>{a.label}</strong><span class="muted small line">{a.line} · {a.zone.name}</span></span>
-            <button class="btn small danger" onclick={() => remove(a.id)}>{m.remove()}</button>
+            <button class="remove" onclick={() => remove(a.id)}>{m.remove()}</button>
           </div>
         {/each}
       </div>
+    {:else}
+      <p class="foot">{m.addresses_empty()}</p>
     {/if}
   {:else if api.ready}
-    <a class="btn primary block" href="/login?next=/account">{m.sign_in()}</a>
+    <div class="card"><p>{m.sign_in_body()}</p></div>
+    <a class="btn primary block sign" href="/login?next=/account">{m.sign_in()}</a>
   {/if}
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
@@ -52,12 +66,20 @@
   <Segmented label={m.language()} bind:value={locale} options={[{ value: 'en', label: 'English' }, { value: 'bn', label: 'বাংলা' }]} />
 
   {#if api.user}
-    <button class="btn danger block out" onclick={() => api.logout()}>{m.sign_out()}</button>
+    <div class="group out">
+      <button class="leave" onclick={() => api.logout()}>{m.sign_out()}</button>
+    </div>
   {/if}
 </div>
 
 <style>
+  .who { align-items: center; }
+  .avatar { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 50%; background: var(--sage-soft); color: var(--accent-ink); font-size: 1.25rem; font-weight: 700; }
+  .who .grow { display: flex; flex-direction: column; gap: 2px; }
   .line { display: block; }
-  .block { width: 100%; }
-  .out { margin-top: 24px; }
+  .foot { margin: 0 16px; color: var(--muted); font-size: 0.82rem; }
+  .remove { flex: none; padding: 0; border: 0; background: none; color: var(--danger); font: inherit; font-weight: 600; cursor: pointer; }
+  .sign { margin-top: 12px; }
+  .out { margin-top: 28px; }
+  .leave { justify-content: center; color: var(--danger); font-weight: 600; }
 </style>

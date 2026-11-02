@@ -26,6 +26,7 @@
 </div>
 
 <style>
-  .narrow { max-width: 420px; padding-top: 12vh; }
+  .narrow { max-width: 420px; }
   .intro { margin-bottom: 20px; }
 </style>
+

@@ -36,7 +36,7 @@
 
 <div class="page wide">
   <h1 class="title">{m.tab_search()}</h1>
-  <input class="input" type="search" bind:value={q} placeholder={m.search_placeholder()} aria-label={m.tab_search()} autocomplete="off" enterkeyhint="search" />
+  <input class="input find" type="search" bind:value={q} placeholder={m.search_placeholder()} aria-label={m.tab_search()} autocomplete="off" enterkeyhint="search" />
   {#if categories.length}
     <div class="chips">
       <a class="btn small" class:primary={!category} href={chipHref('')} data-sveltekit-replacestate data-sveltekit-noscroll>{m.all_categories()}</a>
@@ -50,6 +50,7 @@
 
 <style>
   .wide { max-width: 1320px; }
+  .find { border: 0; background: rgb(118 118 128 / 0.12); box-shadow: none; border-radius: 12px; }
   .results { margin-top: 16px; }
   .chips { display: flex; gap: 8px; margin: 12px -16px 0; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
   .chips a { flex: none; }
