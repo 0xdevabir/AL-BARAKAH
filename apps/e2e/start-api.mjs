@@ -4,6 +4,7 @@ import { execSync, spawn } from 'node:child_process';
 import { mkdirSync, openSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createPrisma } from '@albarakah/database';
+import { Redis } from 'ioredis';
 
 const root = resolve(import.meta.dirname, '../..');
 process.loadEnvFile(resolve(root, '.env'));
@@ -17,6 +18,10 @@ url.pathname = '/albarakah_e2e';
 
 const redis = new URL(process.env.REDIS_URL);
 redis.pathname = '/5';
+const r = new Redis(redis.toString());
+await r.flushdb();
+r.disconnect();
+
 const env = { ...process.env, DATABASE_URL: url.toString(), REDIS_URL: redis.toString(), SMS_PROVIDER: 'console', BKASH_MODE: 'fake' };
 
 const run = (cmd, cwd) => execSync(cmd, { cwd: resolve(root, cwd), env, stdio: 'inherit' });

@@ -62,7 +62,7 @@
     {/if}
     <form class="stack" onsubmit={verify}>
       <label class="field"><span>Authenticator code</span>
-        <input class="input mono" bind:value={code} inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" maxlength="6" required />
+        <input class="input mono" bind:value={code} inputmode="numeric" autocomplete="one-time-code" pattern={'[0-9]{6}'} maxlength="6" required />
       </label>
       <button class="btn primary" disabled={busy}>Verify</button>
     </form>

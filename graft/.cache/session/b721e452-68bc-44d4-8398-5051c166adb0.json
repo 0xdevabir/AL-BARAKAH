@@ -2,7 +2,7 @@
   "lastQuery": "<task-notification>\n<task-id>bxtbt4n4e</task-id>\n<tool-use-id>toolu_01AebAuugv3X9Agaws52Y7d7</tool-use-id>\n<output-file>/private/tmp/claude-501/-Users-mdabirhossain-Documents-WebDevelopment-AL-BARAKAH/b721e452-68bc-44d4-8398-5051c166adb0/tasks/bxtbt4n4e.output</output-file>\n<status>failed</status>\n<summary>Background command \"Build and run the API server\" failed with exit code 144</summary>\n</task-notification>",
   "perAgentQuery": {},
   "graftReads": 0,
-  "sourceReads": 35,
+  "sourceReads": 41,
   "savedTokens": 0,
   "injectedPointers": [],
   "nudges": 0,

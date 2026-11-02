@@ -26,7 +26,7 @@
     {#if ledger.entries.length === 0}<p class="empty">Nothing yet</p>{/if}
     <div class="group small">
       {#each ledger.entries as e (e.id)}
-        <div class="row between"><span>{statusLabel(e.type)}<span class="muted line">{fmtWhen(e.createdAt)}</span></span><span class="mono">{formatTk(e.amountPoisha)}</span></div>
+        <div class="row between"><span>{e.type === "COD_COLLECTED" ? "Cash collected" : statusLabel(e.type)}<span class="muted line">{fmtWhen(e.createdAt)}</span></span><span class="mono">{formatTk(e.amountPoisha)}</span></div>
       {/each}
     </div>
   {/if}

@@ -13,3 +13,5 @@ playwright-report
 packages/database/src/generated
 apps/store/src/lib/paraglide
 .DS_Store
+build-mobile
+apps/e2e/.run

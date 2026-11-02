@@ -87,6 +87,7 @@
           <span class="row wrap"><strong class="mono small">{o.code}</strong>
             {#if o.type === 'EMERGENCY'}<span class="chip warn">Emergency</span>{/if}
             <span class="chip">{statusLabel(o.status)}</span>
+            {#if ['CANCELLED', 'FAILED'].includes(o.status) && o.payments.length}<span class="chip warn">Refund due</span>{/if}
           </span>
           <span class="muted small line">{o.customer.name || o.customer.phone} · {o.addressSnapshot.zone} · due {fmtWhen(o.promisedBy)}</span>
         </span>

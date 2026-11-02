@@ -15,6 +15,8 @@ const COOKIE = 'albarakah_refresh';
 const THIRTY_DAYS = 30 * 24 * 3600;
 /** Per IP, on top of the per-phone limits in AuthService. */
 const StrictLimit = () => RouteConfig({ rateLimit: { max: 10, timeWindow: '10 minutes' } });
+/** Higher, because Bangladeshi mobile carriers put many customers behind one shared IP. Per-phone limits still apply. */
+const OtpLimit = () => RouteConfig({ rateLimit: { max: 60, timeWindow: '10 minutes' } });
 
 /**
  * Web keeps the refresh token in an httpOnly cookie that scripts cannot read. The Capacitor app has
@@ -49,7 +51,7 @@ export class AuthController {
   }
 
   @Public()
-  @StrictLimit()
+  @OtpLimit()
   @Post('otp/request')
   async request(@Body(new ZodPipe(otpRequestSchema)) body: z.output<typeof otpRequestSchema>) {
     await this.auth.requestOtp(body.phone);
@@ -57,7 +59,7 @@ export class AuthController {
   }
 
   @Public()
-  @StrictLimit()
+  @OtpLimit()
   @Post('otp/verify')
   @HttpCode(200)
   async verify(

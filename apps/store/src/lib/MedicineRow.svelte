@@ -28,6 +28,6 @@
 </div>
 
 <style>
-  .name, .line { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .name, .line { display: block; overflow-wrap: anywhere; }
   .name { font-weight: 600; }
 </style>

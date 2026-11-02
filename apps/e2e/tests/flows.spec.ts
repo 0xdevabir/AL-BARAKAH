@@ -27,6 +27,8 @@ function totp(secret: string) {
   return String((h.readUInt32BE(o) & 0x7fffffff) % 1_000_000).padStart(6, '0');
 }
 
+const open = async (page: Page, url: string) => { await page.goto(url); await page.waitForLoadState("networkidle"); };
+
 const problems: string[] = [];
 function watch(page: Page) {
   page.on('pageerror', (e) => problems.push(`${page.url()} ${e.message}`));
@@ -53,15 +55,15 @@ async function signIn(page: Page, phone: string) {
 }
 
 async function addAndCheckout(page: Page) {
-  await page.goto(`${STORE}/`);
+  await open(page, `${STORE}/`);
   await page.getByRole('button', { name: /^Add / }).first().click();
-  await page.goto(`${STORE}/cart`);
+  await open(page, `${STORE}/cart`);
   await page.getByRole('link', { name: 'Checkout' }).or(page.getByRole('button', { name: 'Checkout' })).click();
   await expect(page.getByRole('heading', { name: 'Address' })).toBeVisible();
 }
 
 async function moveOrder(page: Page, filter: string, code: string, action: string) {
-  await page.goto(`${STAFF}/admin`);
+  await open(page, `${STAFF}/admin`);
   await page.getByLabel('Status').selectOption({ label: filter });
   await page.getByRole('button', { name: new RegExp(code) }).click();
   if (action === 'Assigned') await page.getByLabel('Delivery person').selectOption({ index: 1 });
@@ -75,7 +77,7 @@ test.describe.serial('all roles', () => {
 
   test('customer signs in and places a scheduled cash order', async ({ browser }) => {
     const page = await session(browser, 'customer');
-    await page.goto(`${STORE}/login`);
+    await open(page, `${STORE}/login`);
     await signIn(page, PHONE.customer);
     await expect(page).toHaveURL(`${STORE}/`);
     await addAndCheckout(page);
@@ -95,7 +97,7 @@ test.describe.serial('all roles', () => {
 
     await expect(page).toHaveURL(/\/orders\/[a-z0-9]+/);
     await expect(page.getByText('Order placed').first()).toBeVisible();
-    await page.goto(`${STORE}/orders`);
+    await open(page, `${STORE}/orders`);
     code = (await page.locator('.mono').filter({ hasText: /-|[A-Z]{2}/ }).first().innerText()).trim();
     expect(code).not.toBe('');
     await page.close();
@@ -103,7 +105,7 @@ test.describe.serial('all roles', () => {
 
   test('admin turns on two-factor and moves the order to a rider', async ({ browser }) => {
     const page = await session(browser, 'admin');
-    await page.goto(STAFF);
+    await open(page, STAFF);
     await signIn(page, PHONE.admin);
     adminSecret = (await page.locator('code.key').innerText()).trim();
     await page.getByLabel('Authenticator code').fill(totp(adminSecret));
@@ -122,7 +124,7 @@ test.describe.serial('all roles', () => {
 
   test('rider sees only the job, delivers it, and cash is tracked', async ({ browser }) => {
     const page = await session(browser, 'rider');
-    await page.goto(STAFF);
+    await open(page, STAFF);
     await signIn(page, PHONE.rider);
     await expect(page.getByRole('heading', { name: 'Jobs' })).toBeVisible();
     await expect(page.getByText(code)).toBeVisible();
@@ -131,23 +133,23 @@ test.describe.serial('all roles', () => {
     await page.getByRole('button', { name: 'Start delivery' }).click();
     await page.getByRole('button', { name: 'Delivered' }).click();
     await expect(page.getByText('No deliveries assigned')).toBeVisible();
-    await page.goto(`${STAFF}/delivery/earnings`);
+    await open(page, `${STAFF}/delivery/earnings`);
     await expect(page.getByText('Cash to hand over')).toBeVisible();
     await expect(page.locator('.mono').first()).not.toHaveText(/NaN/);
     // A rider has no business in the admin portal.
-    await page.goto(`${STAFF}/admin`);
+    await open(page, `${STAFF}/admin`);
     await expect(page).toHaveURL(`${STAFF}/delivery`);
     await page.close();
   });
 
   test('customer sees the delivered status; admin records the cash handover', async ({ browser }) => {
     const customer = await session(browser, 'customer');
-    await customer.goto(`${STORE}/orders`);
+    await open(customer, `${STORE}/orders`);
     await expect(customer.getByText('Delivered').first()).toBeVisible();
     await customer.close();
 
     const page = await session(browser, 'admin');
-    await page.goto(`${STAFF}/admin/people`);
+    await open(page, `${STAFF}/admin/people`);
     await page.getByRole('button', { name: 'Cash' }).first().click();
     await expect(page.getByText('Cash held')).toBeVisible();
     const held = page.locator('.group.small strong.mono');
@@ -169,15 +171,20 @@ test.describe.serial('all roles', () => {
     await page.getByRole('button', { name: 'Pay with bKash' }).click();
     await page.locator('#pay').click();
     await expect(page).toHaveURL(new RegExp(`^${STORE}`));
-    await expect(page.getByText('Paid', { exact: true }).first()).toBeVisible();
-    await page.goto(`${STORE}/orders`);
+    await expect(page.getByText(/bKash · Paid/)).toBeVisible();
+    await open(page, `${STORE}/orders`);
     const bkashCode = (await page.locator('.mono').filter({ hasText: /-|[A-Z]{2}/ }).first().innerText()).trim();
     await page.close();
 
     const admin = await session(browser, 'admin');
     await moveOrder(admin, 'Placed', bkashCode, 'Cancelled');
     await admin.getByLabel('Status').selectOption({ label: 'Cancelled' });
-    await admin.getByRole('button', { name: new RegExp(bkashCode) }).click();
+    const row = admin.getByRole('button', { name: new RegExp(bkashCode) });
+    await expect(row).toContainText('Refund due');
+    await row.click();
+    await admin.getByRole('button', { name: 'Refund bKash payment' }).click();
+    await expect(row).not.toContainText('Refund due');
+    await row.click();
     await expect(admin.getByText(/Refunded/)).toBeVisible();
     await expect(admin.getByRole('button', { name: 'Refund bKash payment' })).toHaveCount(0);
     await admin.close();
@@ -201,26 +208,26 @@ test.describe.serial('all roles', () => {
 
   test('customer pays for a doctor; the doctor completes the call', async ({ browser }) => {
     const page = await session(browser, 'customer');
-    await page.goto(`${STORE}/doctors`);
+    await open(page, `${STORE}/doctors`);
     await page.getByRole('button', { name: 'Book a call' }).first().click();
     await page.getByLabel('Choose a time').selectOption({ index: 1 });
     await page.getByLabel(/What would you like/).fill('Fever for three days');
     await page.getByRole('button', { name: /Pay .* with bKash/ }).click();
     await page.locator('#pay').click();
     await expect(page).toHaveURL(new RegExp(`^${STORE}`));
-    await page.goto(`${STORE}/doctors/bookings`);
+    await open(page, `${STORE}/doctors/bookings`);
     await expect(page.getByText('Confirmed').first()).toBeVisible();
     await page.close();
 
     const doctor = await session(browser, 'doctor');
-    await doctor.goto(STAFF);
+    await open(doctor, STAFF);
     await signIn(doctor, PHONE.doctor);
     await expect(doctor.getByText('Fever for three days')).toBeVisible();
     await doctor.getByLabel('Private notes (optional)').fill('Advised rest');
     await doctor.getByRole('button', { name: 'Mark completed' }).click();
     await expect(doctor.getByText('Completed')).toBeVisible();
 
-    await doctor.goto(`${STAFF}/doctor/availability`);
+    await open(doctor, `${STAFF}/doctor/availability`);
     const before = await doctor.getByRole('button', { name: 'Remove' }).count();
     await doctor.getByRole('button', { name: 'Add hours' }).click();
     await doctor.getByRole('button', { name: 'Save' }).click();
@@ -232,7 +239,7 @@ test.describe.serial('all roles', () => {
 
   test('admin manages medicines, stock, zones, fees, staff and doctors', async ({ browser }) => {
     const page = await session(browser, 'admin');
-    await page.goto(`${STAFF}/admin/medicines`);
+    await open(page, `${STAFF}/admin/medicines`);
     await expect(page.getByText(/\d+ in stock/).first()).toBeVisible();
     await page.getByRole('button', { name: 'Add medicine' }).click();
     await page.getByLabel('Brand name').fill('Testamol');
@@ -249,7 +256,7 @@ test.describe.serial('all roles', () => {
     await page.getByRole('button', { name: 'Add stock' }).click();
     await expect(page.getByRole('button', { name: /Testamol.*25 in stock/ })).toBeVisible();
 
-    await page.goto(`${STAFF}/admin/settings`);
+    await open(page, `${STAFF}/admin/settings`);
     await page.getByLabel('Zone name').fill('Test Zone');
     await page.getByLabel('Delivery fee in taka').fill('55');
     await page.getByRole('button', { name: 'Add zone' }).click();
@@ -260,7 +267,7 @@ test.describe.serial('all roles', () => {
     await page.reload();
     await expect(page.getByLabel('Emergency fee (tk)')).toHaveValue('120');
 
-    await page.goto(`${STAFF}/admin/people`);
+    await open(page, `${STAFF}/admin/people`);
     await page.getByRole('button', { name: 'Add staff' }).click();
     await page.getByLabel('Name').fill('Second Rider');
     await page.getByLabel('Mobile number').fill('01722222222');
@@ -275,7 +282,7 @@ test.describe.serial('all roles', () => {
     await page.getByLabel('Meet link').fill('https://meet.google.com/abc-defg-hij');
     await page.getByRole('button', { name: 'Onboard', exact: true }).click();
     await expect(page.getByText('Dr Test Onboard')).toBeVisible();
-    await page.goto(`${STAFF}/admin/consultations`);
+    await open(page, `${STAFF}/admin/consultations`);
     await expect(page.getByText('Completed').first()).toBeVisible();
     await page.close();
   });
@@ -295,7 +302,7 @@ test.describe.serial('all roles', () => {
         const page = await session(browser, who);
         await page.setViewportSize({ width, height: 800 });
         for (const url of urls) {
-          await page.goto(url);
+          await open(page, url);
           await page.waitForLoadState('networkidle');
           const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
           if (over > 0) wide.push(`${url} by ${over}px`);

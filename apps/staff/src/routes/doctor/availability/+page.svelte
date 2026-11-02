@@ -55,5 +55,6 @@
 
 <style>
   .intro { margin-bottom: 16px; }
-  .win { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+  .win { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
+  .win :global(.input) { width: 100%; min-width: 0; }
 </style>

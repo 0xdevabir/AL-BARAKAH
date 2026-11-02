@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { ApiClient } from './api.svelte.js';
 
   interface Labels { phone: string; phoneHint: string; send: string; code: string; codeHint: string; verify: string; change: string; invalidPhone: string }
@@ -7,7 +8,9 @@
   let phone = $state('');
   let code = $state('');
   let sent = $state(false);
-  let busy = $state(false);
+  // Until the page is interactive a tap would submit natively, reloading and wiping the number.
+  let busy = $state(true);
+  onMount(() => { busy = false; });
   let error = $state('');
 
   const validPhone = $derived(/^(\+?88)?01[3-9]\d{8}$/.test(phone.replace(/[\s-]/g, '')));
@@ -44,7 +47,7 @@
   {:else}
     <label class="field">
       <span>{labels.code}</span>
-      <input class="input mono" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" bind:value={code} required />
+      <input class="input mono" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern={'[0-9]{6}'} bind:value={code} required />
       <small class="muted">{labels.codeHint}</small>
     </label>
     <button class="btn primary" disabled={busy || code.length !== 6}>{labels.verify}</button>
