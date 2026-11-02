@@ -99,7 +99,7 @@
       <div class="field">
         <span>{m.choose_slot()}</span>
         {#if loadingSlots}
-          <p class="muted">{m.choose_slot()}…</p>
+          <p class="muted small">…</p>
         {:else if slots.length === 0}
           <div class="empty slots"><p>{m.no_slots()}</p></div>
         {:else}
