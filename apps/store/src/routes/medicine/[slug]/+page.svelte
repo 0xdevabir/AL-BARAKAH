@@ -43,9 +43,9 @@
   </div>
   {#if med.description}<p>{med.description}</p>{/if}
 
-  <div class="dock">
+  <div class="dock" class:gone={!med.inStock}>
     {#if !med.inStock}
-      <button class="btn block" disabled>{m.out_of_stock()}</button>
+      <span class="muted stock">{m.out_of_stock()}</span>
     {:else if qty}
       <Stepper {qty} label={med.name} onchange={(q) => cart.setQty(med.id, q)} />
       <a class="btn primary grow" href="/cart">{m.view_cart()}</a>
@@ -66,4 +66,6 @@
   .photo { flex: none; width: 112px; height: 112px; padding: 8px; border-radius: 20px; object-fit: contain; background: var(--sage-soft); }
   .between { justify-content: space-between; gap: 16px; }
   .between span:last-child { text-align: right; }
+  .gone { justify-content: center; background: var(--surface); }
+  .stock { font-weight: 600; }
 </style>

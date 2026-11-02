@@ -2,6 +2,7 @@
   import { OtpLogin } from '@albarakah/ui';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import BrandLockup from '#lib/BrandLockup.svelte';
   import { api } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
 
@@ -15,18 +16,25 @@
 <svelte:head><title>{m.sign_in()} · AL-BARAKAH</title></svelte:head>
 
 <div class="page narrow">
+  <div class="brand"><BrandLockup size={30} /></div>
   <h1 class="title">{m.sign_in()}</h1>
   <p class="muted intro">{m.sign_in_body()}</p>
-  <OtpLogin
-    {api}
-    demoRoles={['CUSTOMER']}
-    labels={{ phone: m.phone(), phoneHint: m.phone_hint(), send: m.send_code(), code: m.code(), codeHint: m.code_hint(), verify: m.verify(), change: m.change_number(), invalidPhone: m.invalid_phone() }}
-    ondone={() => goto(next(), { replace: true })}
-  />
+  <div class="card form">
+    <OtpLogin
+      {api}
+      demoRoles={['CUSTOMER']}
+      labels={{ phone: m.phone(), phoneHint: m.phone_hint(), send: m.send_code(), code: m.code(), codeHint: m.code_hint(), verify: m.verify(), change: m.change_number(), invalidPhone: m.invalid_phone() }}
+      ondone={() => goto(next(), { replace: true })}
+    />
+  </div>
 </div>
 
 <style>
   .narrow { max-width: 420px; }
-  .intro { margin-bottom: 20px; }
+  .brand { margin: 8px 0 20px; }
+  .title { margin-top: 0; }
+  .intro { margin-bottom: 20px; max-width: 32ch; }
+  .form { padding: 22px 20px; }
+  .form :global(.btn.primary) { width: 100%; }
+  .form :global(.demo) { margin-top: 20px; }
 </style>
-

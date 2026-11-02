@@ -86,9 +86,9 @@
 
 <div class="page stack">
   <a class="btn ghost small back" href="/orders">‹ {m.tab_orders()}</a>
-  {#if placed}<p class="card ok" role="status">{m.order_placed()}</p>{/if}
-  {#if payment === 'success'}<p class="card ok" role="status">{m.pay_success()}</p>{/if}
-  {#if payment === 'failed'}<p class="error" role="alert">{m.pay_failed()}</p>{/if}
+  {#if placed}<p class="notice ok" role="status">{m.order_placed()}</p>{/if}
+  {#if payment === 'success'}<p class="notice ok" role="status">{m.pay_success()}</p>{/if}
+  {#if payment === 'failed'}<p class="notice bad" role="alert">{m.pay_failed()}</p>{/if}
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
   {#if order}
@@ -142,7 +142,7 @@
 <style>
   .back { align-self: flex-start; padding-left: 0; }
   .st { margin-bottom: 2px; }
-  .ok, .when { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
+  .when { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
   .where { display: flex; flex-direction: column; gap: 4px; font-weight: 400; color: var(--ink); }
   .where strong { font-weight: 700; }
   .between { justify-content: space-between; }

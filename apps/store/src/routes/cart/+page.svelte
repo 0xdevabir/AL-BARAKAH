@@ -11,7 +11,7 @@
 <div class="page">
   <h1 class="title">{m.cart()}</h1>
   {#if cart.lines.length === 0}
-    <div class="empty stack"><p>{m.cart_empty()}</p><a class="btn" href="/search">{m.browse()}</a></div>
+    <div class="empty stack"><p>{m.cart_empty()}</p><a class="btn primary" href="/search">{m.browse()}</a></div>
   {:else}
     <div class="group">
       {#each cart.lines as l (l.id)}

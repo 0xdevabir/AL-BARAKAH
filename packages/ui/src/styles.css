@@ -77,7 +77,11 @@ textarea.input { padding: 14px 16px; min-height: 104px; resize: vertical; }
 .chip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; background: var(--sage-soft); color: var(--accent-ink); font-size: 0.9rem; font-weight: 600; white-space: nowrap; }
 .chip.warn { background: var(--warn-soft); color: var(--warn); }
 .chip.off { background: var(--surface); color: var(--muted); }
-.empty { padding: 56px 20px; text-align: center; color: var(--muted); }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 48px 24px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); text-align: center; color: var(--muted); }
+.empty p { max-width: 30ch; margin: 0; }
+.notice { padding: 16px 18px; border-radius: var(--r); box-shadow: var(--shadow); font-weight: 600; }
+.notice.ok { background: var(--sage-soft); color: var(--accent-ink); }
+.notice.bad { background: #f3e4e1; color: var(--danger); }
 .dock { position: fixed; z-index: 8; left: 20px; right: 20px; bottom: calc(88px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 16px; width: auto; max-width: 600px; margin-inline: auto; padding: 12px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow), 0 10px 28px rgb(40 36 24 / 0.08); }
 .page:has(.dock) { padding-bottom: calc(168px + env(safe-area-inset-bottom)); }
 .shell.bare .dock { bottom: calc(16px + env(safe-area-inset-bottom)); }

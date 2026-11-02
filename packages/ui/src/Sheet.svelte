@@ -31,11 +31,11 @@
     position: fixed; inset: auto 0 0; width: 100%; max-width: 560px; max-height: 88dvh; margin: 0 auto; padding: 0; border: 0;
     border-radius: var(--r-lg) var(--r-lg) 0 0; background: var(--bg); color: var(--ink);
   }
-  .sheet[open] { animation: rise 0.28s var(--ease); }
+  .sheet[open] { animation: settle 0.22s ease; }
   .sheet::backdrop { background: rgb(0 0 0 / 0.4); }
-  .sheet-body { padding: 8px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
+  .sheet-body { padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); overflow-y: auto; }
   .grab { width: 36px; height: 5px; margin: 0 auto 12px; border-radius: 3px; background: var(--line); }
-  h2 { margin: 0 0 16px; font-size: 1.15rem; }
+  h2 { margin: 0 0 18px; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
   @keyframes settle { from { opacity: 0; } }
   @media (min-width: 720px) {
     .sheet { inset: 0; margin: auto; height: fit-content; border-radius: var(--r-lg); }

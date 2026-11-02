@@ -77,7 +77,7 @@
   {:else if !loaded}
     <div class="grid" aria-hidden="true">{#each { length: 10 } as _, n (n)}<div class="ghost"></div>{/each}</div>
   {:else if items.length === 0}
-    <div class="none"><p>{m.no_results()}</p></div>
+    <div class="empty"><p>{m.no_results()}</p></div>
   {:else}
     <div class="grid">{#each items as med (med.id)}<ProductCard medicine={med} />{/each}</div>
     <div class="foot">
@@ -98,7 +98,6 @@
 <style>
   .grid { display: flex; flex-direction: column; gap: 10px; }
   .ghost { height: 88px; border-radius: var(--r); background: var(--raised); animation: pulse 1.2s ease-in-out infinite; }
-  .none { padding: 36px 20px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); text-align: center; color: var(--muted); }
   .foot { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px; }
   .sentinel { width: 1px; height: 1px; }
   @keyframes pulse { 50% { opacity: 0.5; } }

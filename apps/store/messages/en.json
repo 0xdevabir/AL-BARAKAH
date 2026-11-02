@@ -91,6 +91,7 @@
   "pay_and_book": "Pay {fee} with bKash",
   "hold_note": "This time is held for you for 10 minutes while you pay.",
   "my_bookings": "My bookings",
+  "bookings_empty": "No doctor calls booked yet",
   "booking_status_HOLD": "Waiting for payment",
   "booking_status_CONFIRMED": "Confirmed",
   "booking_status_COMPLETED": "Completed",
@@ -129,5 +130,3 @@
   "ios_app": "Download on the App Store",
   "ios_app_pending": "The iPhone app is not on the App Store yet"
 }
-
-

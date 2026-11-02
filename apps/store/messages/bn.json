@@ -91,6 +91,7 @@
   "pay_and_book": "বিকাশে {fee} পেমেন্ট করুন",
   "hold_note": "পেমেন্টের জন্য এই সময়টি ১০ মিনিট আপনার জন্য রাখা হবে।",
   "my_bookings": "আমার বুকিং",
+  "bookings_empty": "এখনো কোনো ডাক্তার কল বুক করা হয়নি",
   "booking_status_HOLD": "পেমেন্টের অপেক্ষায়",
   "booking_status_CONFIRMED": "নিশ্চিত",
   "booking_status_COMPLETED": "সম্পন্ন",
@@ -129,5 +130,3 @@
   "ios_app": "অ্যাপ স্টোর থেকে নিন",
   "ios_app_pending": "আইফোন অ্যাপ এখনো অ্যাপ স্টোরে নেই"
 }
-
-

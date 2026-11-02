@@ -9,8 +9,8 @@
   "totalCount": 487,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-02T14:50:48.137Z",
-  "lastFile": "ProductCard.svelte"
+  "lastFile": "+page.svelte"
 }

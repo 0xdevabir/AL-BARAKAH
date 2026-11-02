@@ -48,16 +48,22 @@
       <div class="group">
         {#each addresses as a (a.id)}
           <div>
-            <span class="grow"><strong>{a.label}</strong><span class="muted small line">{a.line} · {a.zone.name}</span></span>
+            <span class="grow">
+              <strong>{a.label}</strong>
+              <span class="muted small line">{a.line}</span>
+              <span class="muted small line">{a.zone.name}</span>
+            </span>
             <button class="remove" onclick={() => remove(a.id)}>{m.remove()}</button>
           </div>
         {/each}
       </div>
     {:else}
-      <p class="foot">{m.addresses_empty()}</p>
+      <div class="empty soft"><p>{m.addresses_empty()}</p></div>
     {/if}
   {:else if api.ready}
-    <div class="card"><p>{m.sign_in_body()}</p></div>
+    <div class="card guest">
+      <p>{m.sign_in_body()}</p>
+    </div>
     <a class="btn primary block sign" href="/login?next=/account">{m.sign_in()}</a>
   {/if}
   {#if error}<p class="error" role="alert">{error}</p>{/if}
@@ -77,7 +83,8 @@
   .avatar { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 50%; background: var(--sage-soft); color: var(--accent-ink); font-size: 1.25rem; font-weight: 700; }
   .who .grow { display: flex; flex-direction: column; gap: 2px; }
   .line { display: block; }
-  .foot { margin: 0 16px; color: var(--muted); font-size: 0.82rem; }
+  .soft { padding: 28px 20px; }
+  .guest p { margin: 0; color: var(--muted); }
   .remove { flex: none; padding: 0; border: 0; background: none; color: var(--danger); font: inherit; font-weight: 600; cursor: pointer; }
   .sign { margin-top: 12px; }
   .out { margin-top: 28px; }

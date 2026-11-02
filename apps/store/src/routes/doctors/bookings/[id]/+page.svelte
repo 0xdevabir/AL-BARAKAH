@@ -33,18 +33,23 @@
 
 <div class="page stack">
   <a class="btn ghost small back" href="/doctors/bookings">‹ {m.my_bookings()}</a>
-  {#if payment === 'success'}<p class="card ok" role="status">{m.pay_success()}</p>{/if}
-  {#if payment === 'failed'}<p class="error" role="alert">{m.pay_failed()}</p>{/if}
+  {#if payment === 'success'}<p class="notice ok" role="status">{m.pay_success()}</p>{/if}
+  {#if payment === 'failed'}<p class="notice bad" role="alert">{m.pay_failed()}</p>{/if}
   {#if error}<p class="error" role="alert">{error}</p>{/if}
   {#if b}
     <div>
-      <h1 class="title st">{b.doctor.name}</h1>
+      <span class="chip st" class:off={b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REFUNDED'} class:warn={b.status === 'HOLD' || b.status === 'NO_SHOW'}>{label(b.status)}</span>
+      <h1 class="title name">{b.doctor.name}</h1>
       <p class="muted">{b.doctor.specialty}</p>
     </div>
+
+    <div class="card when">{fmtWhen(b.startsAt)}</div>
+
     <div class="group">
-      <div class="between"><span>{fmtWhen(b.startsAt)}</span><span class="chip">{label(b.status)}</span></div>
       <div class="between"><span class="muted">{m.call_type()}</span><span>{b.channel === 'GOOGLE_MEET' ? m.ch_GOOGLE_MEET() : m.ch_WHATSAPP()}</span></div>
+      <div class="between"><span class="muted">{m.my_bookings()}</span><span class="mono small">{b.code}</span></div>
     </div>
+
     {#if b.doctor.meetLink}<a class="btn primary block" href={b.doctor.meetLink} rel="noopener" target="_blank">{m.join_meet()}</a>{/if}
     {#if b.doctor.whatsapp}<a class="btn primary block" href="https://wa.me/{b.doctor.whatsapp.replace('+', '')}" rel="noopener" target="_blank">{m.open_whatsapp()}</a>{/if}
     {#if b.status === 'HOLD'}<button class="btn primary block" disabled={busy} onclick={pay}>{m.pay_now()}</button>{/if}
@@ -53,7 +58,8 @@
 
 <style>
   .back { align-self: flex-start; padding-left: 0; }
-  .st { margin-bottom: 2px; }
-  .ok { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
-  .between { justify-content: space-between; }
+  .st { margin-bottom: 10px; }
+  .name { margin: 0 0 6px; }
+  .when { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
+  .between { justify-content: space-between; gap: 16px; }
 </style>
