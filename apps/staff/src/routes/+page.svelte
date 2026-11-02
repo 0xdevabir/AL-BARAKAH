@@ -39,7 +39,7 @@
 </script>
 
 <div class="page narrow stack">
-  <h1 class="title">AL-BARAKAH Staff</h1>
+  <h1 class="title staff-mark"><img src="/favicon.svg" alt="" width="28" height="28" />AL-BARAKAH Staff</h1>
   {#if !api.ready}
     <span class="muted">Loading…</span>
   {:else if !api.user}
@@ -72,6 +72,8 @@
 </div>
 
 <style>
+  .staff-mark { display: flex; align-items: center; gap: 10px; }
+  .staff-mark img { display: block; }
   .narrow { max-width: 420px; padding-top: 12vh; }
   .key { overflow-wrap: anywhere; user-select: all; }
 </style>

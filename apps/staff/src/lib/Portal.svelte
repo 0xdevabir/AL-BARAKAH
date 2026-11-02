@@ -23,7 +23,7 @@
 {#if allowed}
   <div class="shell">
     <nav aria-label="Sections">
-      <strong class="brand">AL-BARAKAH</strong>
+      <strong class="brand"><img src="/favicon.svg" alt="" width="22" height="22" />AL-BARAKAH</strong>
       <div class="links">
         {#each tabs as t (t.href)}
           <a href={t.href} class:on={on(t.href)} aria-current={on(t.href) ? 'page' : undefined}>{t.label}</a>
@@ -37,7 +37,8 @@
 
 <style>
   nav { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
-  .brand { color: var(--accent-ink); }
+  .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-ink); }
+  .brand img { display: block; }
   .links { order: 3; display: flex; gap: 4px; width: 100%; overflow-x: auto; scrollbar-width: none; }
   .links a { flex: none; display: flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 10px; color: var(--muted); font-weight: 500; }
   .links a.on { background: var(--surface); color: var(--ink); }

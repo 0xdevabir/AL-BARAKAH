@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import { cart } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
+  import BrandLockup from './BrandLockup.svelte';
   import CategoryIcon from './CategoryIcon.svelte';
   import SearchBox from './SearchBox.svelte';
 
@@ -23,7 +24,7 @@
 
 <header class="bar">
   <div class="inner">
-    <a class="brand" href="/">AL-BARAKAH</a>
+    <a class="brand" href="/"><BrandLockup /></a>
     {#if page.url.pathname !== '/search'}<div class="search"><SearchBox /></div>{/if}
     <nav class="links" aria-label="Main">
       {#each links as l (l.href)}
@@ -73,7 +74,7 @@
   @media (min-width: 900px) {
     .bar { display: block; position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--line); background: var(--raised); }
     .bar .inner { gap: 24px; min-height: 72px; }
-    .brand { flex: none; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; color: var(--accent-ink); }
+    .brand { flex: none; display: flex; align-items: center; font-size: 1.15rem; }
     .search { flex: 1; min-width: 0; max-width: 620px; }
     .links { display: flex; gap: 2px; margin-left: auto; }
     .links a { display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 12px; border-radius: var(--r-sm); font-size: 0.925rem; font-weight: 500; white-space: nowrap; transition: background 0.15s; }
@@ -96,3 +97,4 @@
     .icon { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 11px; background: var(--sage-soft); color: var(--accent-ink); }
   }
 </style>
+

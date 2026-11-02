@@ -1,5 +1,6 @@
 <script lang="ts">
   import { formatTk } from '@albarakah/domain';
+  import BrandLockup from '#lib/BrandLockup.svelte';
   import CategoryIcon from '#lib/CategoryIcon.svelte';
   import ProductGrid from '#lib/ProductGrid.svelte';
   import SearchBox from '#lib/SearchBox.svelte';
@@ -20,7 +21,7 @@
 
 <div class="home">
   <div class="phone-top">
-    <span class="logo">AL-BARAKAH</span>
+    <span class="logo"><BrandLockup size={26} /></span>
     <SearchBox />
   </div>
 
@@ -87,7 +88,7 @@
   </section>
 
   <footer class="foot">
-    <strong>AL-BARAKAH</strong>
+    <strong class="sign"><BrandLockup size={22} /></strong>
     <nav aria-label="Footer">
       <a href="/search">{m.tab_search()}</a>
       <a href="/doctors">{m.tab_doctors()}</a>
@@ -103,7 +104,8 @@
   section { scroll-margin-top: 88px; }
 
   .phone-top { display: flex; flex-direction: column; gap: 10px; }
-  .logo { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; color: var(--accent-ink); }
+  .logo { font-size: 1.12rem; }
+  .sign { font-size: 1rem; font-weight: 700; }
 
   .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .lead { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 20px; overflow: hidden; border-radius: var(--r-lg); background: var(--forest); color: #fff; }
@@ -161,3 +163,4 @@
     .packs img:nth-child(2) { transform: translateY(-14px); }
   }
 </style>
+

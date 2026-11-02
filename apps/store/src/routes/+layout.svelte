@@ -5,6 +5,7 @@
   import { page } from '$app/state';
   import { api, cart, MOBILE } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
+  import Intro from '#lib/Intro.svelte';
   import StoreHeader from '#lib/StoreHeader.svelte';
 
   let { children, data }: { children: Snippet; data: { categories: { id: string; name: string; slug: string; count: number }[] } } = $props();
@@ -56,7 +57,8 @@
   });
 </script>
 
-<div class="shell" class:bare={hideBar}>
+<Intro />
+<div class="shell" class:bare={hideBar} class:held={true}>
   {#if !hideBar}
     <StoreHeader links={tabs.slice(2)} categories={data.categories} />
     <nav class="tabs" aria-label="Main">
@@ -81,6 +83,8 @@
 
 <style>
   .shell { min-height: 100dvh; }
+  :global(html[data-intro='1']) .held { pointer-events: none; }
+  :global(html[data-intro='1']) { overflow: hidden; }
   .content { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
   .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--bg); }
