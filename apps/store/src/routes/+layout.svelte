@@ -18,12 +18,13 @@
     account: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-8 9a8 8 0 0 1 16 0',
   };
   const tabs = $derived([
-    { href: '/', label: m.tab_home(), icon: ICONS.home },
     { href: '/search', label: m.tab_search(), icon: ICONS.search },
     { href: '/doctors', label: m.tab_doctors(), icon: ICONS.doctors },
+    { href: '/', label: m.tab_home(), icon: ICONS.home },
     { href: '/orders', label: m.tab_orders(), icon: ICONS.orders },
     { href: '/account', label: m.tab_account(), icon: ICONS.account },
   ]);
+  const headerLinks = $derived(tabs.filter((t) => t.href !== '/' && t.href !== '/search'));
   const active = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
   const hideBar = $derived(page.url.pathname.startsWith('/checkout') || page.url.pathname.startsWith('/login'));
   const showCart = $derived(cart.count > 0 && !hideBar && !page.url.pathname.startsWith('/cart'));
@@ -60,11 +61,13 @@
 <Intro />
 <div class="shell" class:bare={hideBar} class:held={true}>
   {#if !hideBar}
-    <StoreHeader links={tabs.slice(2)} categories={data.categories} />
+    <StoreHeader links={headerLinks} categories={data.categories} />
     <nav class="tabs" aria-label="Main">
       {#each tabs as t (t.href)}
         <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined}>
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
+          <span class="glyph">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
+          </span>
           <span>{t.label}</span>
         </a>
       {/each}
@@ -87,10 +90,13 @@
   :global(html[data-intro='1']) { overflow: hidden; }
   .content { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
-  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--bg); }
-  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; color: var(--muted); font-size: 0.68rem; font-weight: 500; transition: color 0.15s; }
+  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 0.5px solid rgb(60 60 67 / 0.22); background: rgb(249 249 249 / 0.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 49px; justify-content: flex-end; color: #8e8e93; font-size: 10px; font-weight: 500; letter-spacing: 0.01em; }
+  .glyph { display: grid; place-items: center; width: 54px; height: 32px; border-radius: 16px; }
   .tabs a.on { color: var(--accent-ink); }
-  .cartbar { position: fixed; z-index: 9; inset: auto 12px calc(72px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
+  .tabs a.on .glyph { background: var(--sage-soft); }
+  .tabs a.on svg { stroke-width: 2.2; }
+  .cartbar { position: fixed; z-index: 9; inset: auto 12px calc(78px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
   .count { display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 8px; background: rgb(255 255 255 / 0.22); font-size: 0.85rem; }
 
   @media (min-width: 900px) {
