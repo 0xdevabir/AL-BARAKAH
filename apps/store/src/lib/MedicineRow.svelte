@@ -7,11 +7,16 @@
 
   let { medicine }: { medicine: Medicine } = $props();
   const qty = $derived(cart.qtyOf(medicine.id));
+  let photoFailed = $state(false);
 </script>
 
 <div class="med">
   <a href="/medicine/{medicine.slug}" class="row grow">
-    <FormGlyph form={medicine.form} />
+    {#if medicine.imageUrl && !photoFailed}
+      <img class="photo" src={medicine.imageUrl} alt="" width="48" height="48" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror={() => (photoFailed = true)} />
+    {:else}
+      <FormGlyph form={medicine.form} />
+    {/if}
     <span class="grow">
       <strong class="name">{medicine.name} {medicine.strength}</strong>
       <span class="muted small line">{medicine.genericName} · {medicine.form}</span>
@@ -30,4 +35,5 @@
 <style>
   .name, .line { display: block; overflow-wrap: anywhere; }
   .name { font-weight: 600; }
+  .photo { flex: none; width: 48px; height: 48px; border-radius: 14px; object-fit: contain; background: var(--sage-soft); }
 </style>

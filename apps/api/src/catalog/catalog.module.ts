@@ -11,7 +11,7 @@ const PAGE = 20;
 interface MedicineRow {
   id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string;
   strength: string; packSize: string; pricePoisha: number; isRx: boolean; description: string;
-  categoryId: string; stock: bigint | number | null;
+  imageUrl: string; categoryId: string; stock: bigint | number | null;
 }
 const toDto = (m: MedicineRow) => ({ ...m, stock: undefined, inStock: Number(m.stock ?? 0) > 0 });
 
@@ -23,19 +23,27 @@ export class CatalogService {
   async search(q: string | undefined, categorySlug: string | undefined, page: number) {
     const offset = (Math.max(page, 1) - 1) * PAGE;
     const term = q?.trim().slice(0, 80) || null;
+    const like = term?.replace(/[\\%_]/g, '\\$&') ?? null;
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
-             m."pricePoisha", m."isRx", m.description, m."categoryId",
+             m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
              (SELECT COALESCE(SUM(b."qtyRemaining"), 0) FROM "Batch" b WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE) AS stock
       FROM "Medicine" m
       JOIN "Category" c ON c.id = m."categoryId"
       WHERE m."isActive"
         AND (${categorySlug ?? null}::text IS NULL OR c.slug = ${categorySlug ?? null})
         AND (${term}::text IS NULL
-             OR m.name ILIKE '%' || ${term} || '%' OR m."genericName" ILIKE '%' || ${term} || '%'
-             OR similarity(m.name, ${term}) > 0.3 OR similarity(m."genericName", ${term}) > 0.3)
+             OR m.name ILIKE '%' || ${like} || '%' OR m."genericName" ILIKE '%' || ${like} || '%'
+             OR m.manufacturer ILIKE '%' || ${like} || '%'
+             OR m.name % ${term}::text OR m."genericName" % ${term}::text)
       ORDER BY CASE WHEN ${term}::text IS NULL THEN 0
-                    ELSE 1 - GREATEST(similarity(m.name, COALESCE(${term}, '')), similarity(m."genericName", COALESCE(${term}, ''))) END, m.name
+                    WHEN m.name ILIKE ${like} THEN 0
+                    WHEN m.name ILIKE ${like} || '%' THEN 1
+                    WHEN m."genericName" ILIKE ${like} || '%' THEN 2
+                    ELSE 3 END,
+               CASE WHEN ${term}::text IS NULL THEN 0
+                    ELSE round((1 - GREATEST(similarity(m.name, COALESCE(${term}, '')), similarity(m."genericName", COALESCE(${term}, ''))))::numeric, 1) END,
+               m.popularity DESC, m.name, m.strength
       LIMIT ${PAGE + 1} OFFSET ${offset}`;
     return { items: rows.slice(0, PAGE).map(toDto), hasMore: rows.length > PAGE };
   }
@@ -43,7 +51,7 @@ export class CatalogService {
   async bySlug(slug: string) {
     const [row] = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
-             m."pricePoisha", m."isRx", m.description, m."categoryId",
+             m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
              (SELECT COALESCE(SUM(b."qtyRemaining"), 0) FROM "Batch" b WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE) AS stock
       FROM "Medicine" m WHERE m.slug = ${slug} AND m."isActive" LIMIT 1`;
     if (!row) throw notFound('Medicine not found');
@@ -74,8 +82,12 @@ export class CatalogController {
   @Public()
   @Get('categories')
   @Header('Cache-Control', 'public, max-age=300')
-  categories() {
-    return this.prisma.category.findMany({ orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, slug: true } });
+  async categories() {
+    const rows = await this.prisma.category.findMany({
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, name: true, slug: true, _count: { select: { medicines: { where: { isActive: true } } } } },
+    });
+    return rows.map(({ _count, ...c }) => ({ ...c, count: _count.medicines }));
   }
 
   @Public()

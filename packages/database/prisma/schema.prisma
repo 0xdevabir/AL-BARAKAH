@@ -139,6 +139,8 @@ model Medicine {
   isRx         Boolean  @default(false)
   isActive     Boolean  @default(true)
   description  String   @default("")
+  imageUrl     String   @default("")
+  popularity   Int      @default(0)
   categoryId   String
   category     Category @relation(fields: [categoryId], references: [id])
   createdAt    DateTime @default(now())

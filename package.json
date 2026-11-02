@@ -11,7 +11,9 @@
     "infra:up": "docker compose -p albarakah -f infra/compose.storage.yml --env-file .env up -d --wait",
     "infra:down": "docker compose -p albarakah -f infra/compose.storage.yml down",
     "db:migrate": "pnpm --filter @albarakah/database migrate:deploy",
-    "db:seed": "pnpm --filter @albarakah/database seed"
+    "db:seed": "pnpm --filter @albarakah/database seed",
+    "catalog:crawl": "node packages/database/scripts/crawl-catalog.mjs",
+    "catalog:load": "node --env-file=.env packages/database/scripts/load-catalog.mjs"
   },
   "devDependencies": { "turbo": "2.11.10", "typescript": "5.9.3" }
 }

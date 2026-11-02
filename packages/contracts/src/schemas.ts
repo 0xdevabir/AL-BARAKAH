@@ -34,12 +34,12 @@ export const placeOrderSchema = z.object({
 }).refine((o) => o.type === 'EMERGENCY' || !!o.slotStart, { message: 'Choose a delivery time', path: ['slotStart'] });
 
 export const medicineSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  genericName: z.string().trim().min(1).max(160),
-  manufacturer: z.string().trim().max(120).default(''),
-  form: z.string().trim().min(1).max(40),
-  strength: z.string().trim().max(40).default(''),
-  packSize: z.string().trim().max(40).default(''),
+  name: z.string().trim().min(1).max(160),
+  genericName: z.string().trim().min(1).max(200),
+  manufacturer: z.string().trim().max(160).default(''),
+  form: z.string().trim().min(1).max(60),
+  strength: z.string().trim().max(80).default(''),
+  packSize: z.string().trim().max(80).default(''),
   pricePoisha: z.number().int().min(0).max(100_000_000),
   isRx: z.boolean().default(false),
   isActive: z.boolean().default(true),
@@ -129,3 +129,4 @@ export const prescriptionUploadSchema = z.object({
   contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
 });
 export const settleSchema = z.object({ amountPoisha: z.number().int().min(1), note: z.string().trim().max(200).optional() });
+

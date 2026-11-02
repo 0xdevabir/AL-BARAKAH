@@ -79,4 +79,4 @@ class Cart {
 }
 export const cart = new Cart();
 
-export interface Medicine { id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string; strength: string; packSize: string; pricePoisha: number; isRx: boolean; description: string; inStock: boolean }
+export interface Medicine { id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string; strength: string; packSize: string; pricePoisha: number; isRx: boolean; description: string; imageUrl: string; inStock: boolean }

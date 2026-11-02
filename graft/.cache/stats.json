@@ -8,9 +8,9 @@
   ],
   "totalCount": 392,
   "readyCount": 0,
-  "staleCount": 0,
-  "dirty": false,
+  "staleCount": 44,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-02T07:42:47.657Z",
-  "lastFile": "api.test.ts"
+  "lastFile": "load-catalog.mjs"
 }

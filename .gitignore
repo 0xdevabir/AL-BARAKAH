@@ -11,6 +11,7 @@ coverage
 test-results
 playwright-report
 packages/database/src/generated
+packages/database/data/
 apps/store/src/lib/paraglide
 .DS_Store
 build-mobile
@@ -18,3 +19,4 @@ apps/e2e/.run
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+

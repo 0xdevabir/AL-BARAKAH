@@ -8,6 +8,7 @@
   let { data } = $props();
   const med = $derived(data.medicine);
   const qty = $derived(cart.qtyOf(med.id));
+  let photoFailed = $state(false);
 </script>
 
 <svelte:head>
@@ -18,7 +19,11 @@
 <div class="page stack">
   <button class="btn ghost small back" onclick={() => history.back()}>‹ {m.back()}</button>
   <div class="row">
-    <FormGlyph form={med.form} />
+    {#if med.imageUrl && !photoFailed}
+      <img class="photo" src={med.imageUrl} alt="" width="96" height="96" referrerpolicy="no-referrer" onerror={() => (photoFailed = true)} />
+    {:else}
+      <FormGlyph form={med.form} />
+    {/if}
     <div class="grow">
       <h1 class="name">{med.name} {med.strength}</h1>
       <p class="muted">{med.form}</p>
@@ -50,6 +55,7 @@
   .back { align-self: flex-start; padding-left: 0; }
   .name { font-size: 1.5rem; line-height: 1.2; }
   .price { font-size: 1.4rem; }
+  .photo { flex: none; width: 96px; height: 96px; border-radius: 18px; object-fit: contain; background: var(--sage-soft); }
   .between { justify-content: space-between; }
   .between span:last-child { text-align: right; }
 </style>

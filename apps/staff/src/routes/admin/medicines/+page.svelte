@@ -5,7 +5,7 @@
   import { api, message, poishaToTk, tkToPoisha } from '#lib/app.ts';
 
   interface Batch { id: string; batchNo: string; expiresAt: string; qtyRemaining: number }
-  interface Med { id: string; name: string; genericName: string; manufacturer: string; form: string; strength: string; packSize: string; pricePoisha: number; isRx: boolean; isActive: boolean; categoryId: string; description: string; batches: Batch[] }
+  interface Med { id: string; name: string; genericName: string; manufacturer: string; form: string; strength: string; packSize: string; pricePoisha: number; isRx: boolean; isActive: boolean; categoryId: string; description: string; imageUrl?: string; batches: Batch[] }
   interface Category { id: string; name: string }
 
   const blank = { name: '', genericName: '', manufacturer: '', form: 'Tablet', strength: '', packSize: '', price: '', isRx: false, isActive: true, categoryId: '', description: '' };
@@ -80,6 +80,7 @@
   <div class="group">
     {#each meds as m (m.id)}
       <button onclick={() => edit(m)}>
+        {#if m.imageUrl}<img class="photo" src={m.imageUrl} alt="" width="40" height="40" referrerpolicy="no-referrer" />{/if}
         <span class="grow"><strong>{m.name} {m.strength}</strong>
           <span class="muted small line">{m.genericName} · <span class="mono">{formatTk(m.pricePoisha)}</span></span>
         </span>
@@ -92,13 +93,13 @@
 
 <Sheet bind:open title={editing ? editing.name : 'Add medicine'}>
   <form class="stack" onsubmit={save}>
-    <label class="field"><span>Brand name</span><input class="input" bind:value={form.name} required maxlength="120" /></label>
-    <label class="field"><span>Generic name</span><input class="input" bind:value={form.genericName} required maxlength="160" /></label>
-    <label class="field"><span>Manufacturer</span><input class="input" bind:value={form.manufacturer} maxlength="120" /></label>
+    <label class="field"><span>Brand name</span><input class="input" bind:value={form.name} required maxlength="160" /></label>
+    <label class="field"><span>Generic name</span><input class="input" bind:value={form.genericName} required maxlength="200" /></label>
+    <label class="field"><span>Manufacturer</span><input class="input" bind:value={form.manufacturer} maxlength="160" /></label>
     <div class="two">
-      <label class="field"><span>Form</span><input class="input" bind:value={form.form} required maxlength="40" /></label>
-      <label class="field"><span>Strength</span><input class="input" bind:value={form.strength} maxlength="40" /></label>
-      <label class="field"><span>Pack</span><input class="input" bind:value={form.packSize} maxlength="40" /></label>
+      <label class="field"><span>Form</span><input class="input" bind:value={form.form} required maxlength="60" /></label>
+      <label class="field"><span>Strength</span><input class="input" bind:value={form.strength} maxlength="80" /></label>
+      <label class="field"><span>Pack</span><input class="input" bind:value={form.packSize} maxlength="80" /></label>
       <label class="field"><span>Price (tk)</span><input class="input mono" bind:value={form.price} inputmode="decimal" required /></label>
     </div>
     <label class="field"><span>Category</span>
@@ -135,4 +136,5 @@
   .line { display: block; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .add { margin-top: 12px; }
+  .photo { flex: none; width: 40px; height: 40px; border-radius: 10px; object-fit: cover; background: var(--sage-soft); }
 </style>
