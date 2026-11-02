@@ -1,0 +1,23 @@
+# Plain HTTP, for checking the whole stack on one machine. Never expose this mode publicly.
+map $http_origin $files_cors_origin {
+  default "";
+  "http://${STORE_DOMAIN}:8080" $http_origin;
+  "http://${STAFF_DOMAIN}:8080" $http_origin;
+}
+include /etc/nginx/shared/upstreams.conf;
+
+server {
+  listen 80 default_server;
+  server_name ${STORE_DOMAIN};
+  include /etc/nginx/shared/store-site.conf;
+}
+server {
+  listen 80;
+  server_name ${STAFF_DOMAIN};
+  include /etc/nginx/shared/staff-site.conf;
+}
+server {
+  listen 80;
+  server_name ${FILES_DOMAIN};
+  include /etc/nginx/shared/files-site.conf;
+}

@@ -5,6 +5,8 @@ const secret = z.string().min(32);
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   SERVICE_ROLE: z.enum(['api', 'worker', 'all']).default('all'),
+  // Per address. Generous because many Bangladeshi mobile users share one carrier address.
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(1200),
   PORT: z.coerce.number().int().default(4000),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),

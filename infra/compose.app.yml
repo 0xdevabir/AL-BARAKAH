@@ -1,0 +1,103 @@
+# Application stack. Use together with compose.storage.yml (see docs/runbook.md).
+x-backend: &backend
+  image: albarakah-app:${APP_VERSION:-local}
+  restart: unless-stopped
+  env_file: ${ENV_FILE:-../.env}
+  environment: &backend-env
+    NODE_ENV: production
+    DATABASE_URL: postgresql://albarakah:${POSTGRES_PASSWORD}@pgbouncer:5432/albarakah
+    REDIS_URL: redis://redis:6379
+    S3_ENDPOINT: objectstore
+    S3_PORT: "8333"
+    S3_USE_SSL: "false"
+    PORT: "4000"
+
+services:
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.24.1-p1
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_USER: albarakah
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      DB_NAME: albarakah
+      AUTH_TYPE: scram-sha-256
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: "1000"
+      DEFAULT_POOL_SIZE: "40"
+      LISTEN_PORT: "5432"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # Runs once per deploy, straight to Postgres because migrations need a session of their own.
+  migrate:
+    <<: *backend
+    restart: "no"
+    working_dir: /app/packages/database
+    command: ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/bootstrap.js"]
+    environment:
+      <<: *backend-env
+      DATABASE_URL: postgresql://albarakah:${POSTGRES_PASSWORD}@postgres:5432/albarakah
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      SERVICE_ROLE: api
+    healthcheck: &health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    depends_on: &ready
+      migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_started }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      SERVICE_ROLE: worker
+    healthcheck: *health
+    depends_on: *ready
+
+  store:
+    image: albarakah-app:${APP_VERSION:-local}
+    restart: unless-stopped
+    command: ["node", "apps/store/build/index.js"]
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      API_INTERNAL_URL: http://api:4000
+      ORIGIN: ${STORE_URL:?set in .env}
+      # nginx overwrites this header, so it holds the visitor's real address.
+      ADDRESS_HEADER: X-Forwarded-For
+      XFF_DEPTH: "1"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    depends_on:
+      api: { condition: service_healthy }
+
+  edge:
+    image: albarakah-edge:${APP_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      STORE_DOMAIN: ${STORE_DOMAIN:?set in .env}
+      STAFF_DOMAIN: ${STAFF_DOMAIN:?set in .env}
+      FILES_DOMAIN: ${FILES_DOMAIN:?set in .env}
+    volumes:
+      - ./nginx/shared:/etc/nginx/shared:ro
+      - ./nginx/${EDGE_MODE:-tls}:/etc/nginx/templates:ro
+      - ${CERT_DIR:-/etc/letsencrypt}:/etc/letsencrypt:ro
+      - ${ACME_DIR:-/var/www/acme}:/var/www/acme:ro
+    ports: ["${EDGE_HTTP_PORT:-80}:80", "${EDGE_HTTPS_PORT:-443}:443"]
+    depends_on:
+      store: { condition: service_healthy }

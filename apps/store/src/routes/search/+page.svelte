@@ -38,7 +38,10 @@
   });
 </script>
 
-<svelte:head><title>{m.tab_search()} · AL-BARAKAH</title></svelte:head>
+<svelte:head>
+  <title>{m.tab_search()} · AL-BARAKAH</title>
+  <meta name="description" content="Search medicines by brand or generic name and order for delivery in Bangladesh." />
+</svelte:head>
 
 <div class="page">
   <h1 class="title">{m.tab_search()}</h1>

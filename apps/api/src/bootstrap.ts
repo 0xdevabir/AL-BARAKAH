@@ -35,7 +35,7 @@ export async function createApp(env: Env, opts: { rateLimit?: boolean } = {}): P
   if (opts.rateLimit !== false) {
     await app.register(rateLimit, {
       global: true,
-      max: 300,
+      max: env.RATE_LIMIT_PER_MINUTE,
       timeWindow: '1 minute',
       redis: new Redis(env.REDIS_URL, { maxRetriesPerRequest: 1, enableOfflineQueue: false }),
       // Rate limiting must not take the shop down if Redis blips.

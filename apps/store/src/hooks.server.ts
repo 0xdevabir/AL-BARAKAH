@@ -12,7 +12,10 @@ export const handle: Handle = ({ event, resolve }) =>
 export const handleFetch: HandleFetch = ({ event, request, fetch }) => {
   const url = new URL(request.url);
   if (url.origin === event.url.origin && url.pathname.startsWith('/api/')) {
-    return fetch(new Request(`${INTERNAL}${url.pathname.slice(4)}${url.search}`, request));
+    const proxied = new Request(`${INTERNAL}${url.pathname.slice(4)}${url.search}`, request);
+    // Otherwise every visitor would share this server's address, and one rate limit with it.
+    proxied.headers.set('x-forwarded-for', event.getClientAddress());
+    return fetch(proxied);
   }
   return fetch(request);
 };

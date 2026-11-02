@@ -1,0 +1,39 @@
+map $http_origin $files_cors_origin {
+  default "";
+  "https://${STORE_DOMAIN}" $http_origin;
+  "https://${STAFF_DOMAIN}" $http_origin;
+  "capacitor://localhost" $http_origin;
+  "https://localhost" $http_origin;
+}
+include /etc/nginx/shared/upstreams.conf;
+
+server {
+  listen 80 default_server;
+  location /.well-known/acme-challenge/ { root /var/www/acme; }
+  location / { return 301 https://$host$request_uri; }
+}
+
+ssl_certificate /etc/letsencrypt/live/${STORE_DOMAIN}/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/${STORE_DOMAIN}/privkey.pem;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_session_cache shared:SSL:10m;
+add_header Strict-Transport-Security "max-age=31536000" always;
+
+server {
+  listen 443 ssl default_server;
+  http2 on;
+  server_name ${STORE_DOMAIN};
+  include /etc/nginx/shared/store-site.conf;
+}
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name ${STAFF_DOMAIN};
+  include /etc/nginx/shared/staff-site.conf;
+}
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name ${FILES_DOMAIN};
+  include /etc/nginx/shared/files-site.conf;
+}
