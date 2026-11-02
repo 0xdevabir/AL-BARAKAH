@@ -1,0 +1,14 @@
+{
+  "name": "@albarakah/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@albarakah/database": "workspace:*",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.19.1"
+  }
+}
