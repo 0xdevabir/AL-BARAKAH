@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Inject, Injectable, Logger, Module, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, Inject, Injectable, Logger, Module, Param, Post, Query, Res } from '@nestjs/common';
 import { paymentStartSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { FastifyReply } from 'fastify';
@@ -21,7 +21,7 @@ export class PaymentsService {
     @Inject(ENV) private readonly env: Env,
   ) {}
 
-  async start(userId: string, phone: string, purpose: 'ORDER' | 'CONSULTATION', refId: string) {
+  async start(userId: string, phone: string, purpose: 'ORDER' | 'CONSULTATION', refId: string, native = false) {
     let amountPoisha: number;
     let invoice: string;
     if (purpose === 'ORDER') {
@@ -44,7 +44,7 @@ export class PaymentsService {
       data: { purpose, userId, amountPoisha, orderId: purpose === 'ORDER' ? refId : null, consultationId: purpose === 'CONSULTATION' ? refId : null },
     });
     const created = await this.provider.create({
-      amountPoisha, invoice, payerRef: phone.slice(-11), callbackUrl: `${this.env.PUBLIC_API_BASE}/payments/bkash/callback`,
+      amountPoisha, invoice, payerRef: phone.slice(-11), callbackUrl: `${this.env.PUBLIC_API_BASE}/payments/bkash/${native ? 'app-callback' : 'callback'}`,
     });
     await this.prisma.payment.update({ where: { id: payment.id }, data: { providerPaymentId: created.providerPaymentId } });
     return { paymentId: payment.id, redirectUrl: created.redirectUrl };
@@ -146,17 +146,28 @@ export class PaymentsController {
 
   @RequirePermission('payment:create')
   @Post('start')
-  async start(@CurrentUser() u: AuthUser, @Body(new ZodPipe(paymentStartSchema)) body: z.output<typeof paymentStartSchema>) {
+  async start(@CurrentUser() u: AuthUser, @Body(new ZodPipe(paymentStartSchema)) body: z.output<typeof paymentStartSchema>, @Headers('x-client') client?: string) {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: u.id } });
-    return this.payments.start(u.id, user.phone, body.purpose, body.refId);
+    return this.payments.start(u.id, user.phone, body.purpose, body.refId, client === 'native');
+  }
+
+  private async finish(id: string | undefined, status: string | undefined, base: string, res: FastifyReply) {
+    const r = id ? await this.payments.handleCallback(id, status ?? '') : { paid: false as const };
+    const path = r.purpose === 'CONSULTATION' ? `/doctors/bookings/${r.refId}` : r.refId ? `/orders/${r.refId}` : '/orders';
+    return res.redirect(`${base}${path}?payment=${r.paid ? 'success' : 'failed'}`, 302);
   }
 
   @Public()
   @Get('bkash/callback')
-  async callback(@Query('paymentID') id: string | undefined, @Query('status') status: string | undefined, @Res() res: FastifyReply) {
-    const r = id ? await this.payments.handleCallback(id, status ?? '') : { paid: false as const };
-    const path = r.purpose === 'CONSULTATION' ? `/doctors/bookings/${r.refId}` : r.refId ? `/orders/${r.refId}` : '/orders';
-    return res.redirect(`${this.env.STORE_URL}${path}?payment=${r.paid ? 'success' : 'failed'}`, 302);
+  callback(@Query('paymentID') id: string | undefined, @Query('status') status: string | undefined, @Res() res: FastifyReply) {
+    return this.finish(id, status, this.env.STORE_URL, res);
+  }
+
+  /** The same, but returns to the installed app, where the customer's session lives. */
+  @Public()
+  @Get('bkash/app-callback')
+  appCallback(@Query('paymentID') id: string | undefined, @Query('status') status: string | undefined, @Res() res: FastifyReply) {
+    return this.finish(id, status, 'albarakah://app', res);
   }
 
   /** A stand-in for bKash's hosted page. It answers 404 unless BKASH_MODE=fake, which production refuses. */
@@ -165,9 +176,9 @@ export class PaymentsController {
   @Header('content-type', 'text/html; charset=utf-8')
   fake(@Query('paymentID') id = '', @Query('callback') cb = '', @Query('amount') amount = '') {
     if (this.env.BKASH_MODE !== 'fake') throw notFound();
-    const base = `${this.env.PUBLIC_API_BASE}/payments/bkash/callback`;
-    if (cb !== base) throw badRequest('BAD_CALLBACK', 'Invalid callback');
-    const link = (s: string) => `${base}?paymentID=${encodeURIComponent(id)}&status=${s}`;
+    const allowed = ['callback', 'app-callback'].map((p) => `${this.env.PUBLIC_API_BASE}/payments/bkash/${p}`);
+    if (!allowed.includes(cb)) throw badRequest('BAD_CALLBACK', 'Invalid callback');
+    const link = (s: string) => `${cb}?paymentID=${encodeURIComponent(id)}&status=${s}`;
     return `<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><title>Test bKash</title>
 <body style="font:16px system-ui;padding:32px;text-align:center"><h2>Test payment: ৳${esc(amount)}</h2><p>Development only. No money moves.</p>
 <p><a id=pay href="${esc(link('success'))}">Pay</a> &nbsp; <a id=cancel href="${esc(link('cancel'))}">Cancel</a></p>`;

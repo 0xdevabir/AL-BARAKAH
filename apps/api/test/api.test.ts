@@ -90,7 +90,7 @@ describe('route access', () => {
     'HealthController.health', 'SettingsController.publicSettings',
     'CatalogController.list', 'CatalogController.one', 'CatalogController.categories', 'CatalogController.zones',
     'OrdersController.slots', 'OrdersController.stream',
-    'PaymentsController.callback', 'PaymentsController.fake',
+    'PaymentsController.callback', 'PaymentsController.appCallback', 'PaymentsController.fake',
     'ConsultationsController.doctors', 'ConsultationsController.slots',
   ]);
 
