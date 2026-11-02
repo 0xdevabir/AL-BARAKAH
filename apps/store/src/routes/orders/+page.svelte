@@ -2,7 +2,6 @@
   import { formatTk } from '@albarakah/domain';
   import { fmtWhen } from '@albarakah/ui';
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
   import { api } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
 
@@ -16,7 +15,8 @@
 
   onMount(async () => {
     if (!api.ready) await api.restore();
-    if (!api.user) { await goto('/login?next=/orders', { replace: true }); return; }
+    // Guests stay on this page and see the empty state — sign-in is only needed to place an order.
+    if (!api.user) { orders = []; return; }
     try { orders = await api.get<Row[]>('/orders'); } catch (err) { error = (err as Error).message; }
   });
   const statusLabel = (s: string) => (m as unknown as Record<string, () => string>)[`status_${s}`]?.() ?? s;
