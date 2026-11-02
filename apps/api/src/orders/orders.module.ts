@@ -134,7 +134,10 @@ export class OrdersController {
       orderBy: [{ promisedBy: 'asc' }],
       skip: (Math.max(Number(page) || 1, 1) - 1) * PAGE,
       take: PAGE,
-      include: { items: true, customer: { select: { name: true, phone: true } }, rider: { select: { id: true, name: true } } },
+      include: {
+        items: true, customer: { select: { name: true, phone: true } }, rider: { select: { id: true, name: true } },
+        payments: { where: { status: 'PAID' }, select: { id: true } },
+      },
     });
   }
 
