@@ -8,9 +8,12 @@
   let { medicine }: { medicine: Medicine } = $props();
   const qty = $derived(cart.qtyOf(medicine.id));
   let photoFailed = $state(false);
+  // Size / strength first; form as a quiet second line so the card stays scannable.
+  const size = $derived([medicine.packSize, medicine.strength].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · '));
+  const form = $derived(medicine.form?.trim() || '');
 </script>
 
-<article class="row-item">
+<article class="card">
   <a href="/medicine/{medicine.slug}" class="link">
     <span class="shot">
       {#if medicine.imageUrl && !photoFailed}
@@ -21,7 +24,8 @@
     </span>
     <span class="text">
       <strong class="name">{medicine.name}</strong>
-      {#if medicine.strength}<span class="muted meta">{medicine.strength}</span>{/if}
+      {#if size}<span class="muted meta">{size}</span>{/if}
+      {#if form}<span class="muted small meta">{form}</span>{/if}
       {#if medicine.isRx}<span class="chip warn">{m.rx_tag()}</span>{/if}
     </span>
   </a>
@@ -38,15 +42,44 @@
 </article>
 
 <style>
-  /* Long lists stay smooth: the browser skips drawing rows that are off screen. */
-  .row-item { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 14px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); content-visibility: auto; contain-intrinsic-size: auto 88px; }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+    border-radius: var(--r);
+    background: var(--raised);
+    box-shadow: var(--shadow);
+    content-visibility: auto;
+    contain-intrinsic-size: auto 96px;
+  }
   .link { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-  .shot { display: grid; place-items: center; flex: none; width: 64px; height: 64px; border-radius: 16px; background: var(--bg); overflow: hidden; }
+  .shot {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
   .shot img { width: 100%; height: 100%; padding: 6px; object-fit: contain; }
-  .text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
-  .name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font-weight: 650; line-height: 1.25; }
+  .text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+  .name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
   .link:hover .name { color: var(--accent-ink); }
   .meta { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .end { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: none; }
-  .price { font-size: 1.2rem; font-weight: 700; }
+  .price { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
 </style>

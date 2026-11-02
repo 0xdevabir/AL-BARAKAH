@@ -97,10 +97,10 @@
 </div>
 
 <style>
-  .grid { display: flex; flex-direction: column; gap: 10px; }
-  .ghost { height: 88px; border-radius: var(--r); background: var(--raised); animation: pulse 1.2s ease-in-out infinite; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .ghost { height: 100px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); animation: pulse 1.2s ease-in-out infinite; }
   .foot { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px; }
   .sentinel { width: 1px; height: 1px; }
   @keyframes pulse { 50% { opacity: 0.5; } }
-  @media (min-width: 900px) { .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
 </style>
