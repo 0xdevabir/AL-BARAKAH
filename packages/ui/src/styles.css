@@ -3,7 +3,8 @@
 @font-face { font-family: 'Noto Sans Bengali'; src: url('/fonts/noto-bengali.woff2') format('woff2'); font-weight: 400; font-display: swap; unicode-range: U+0951-0952, U+0964-0965, U+0980-09FE, U+200C-200D, U+25CC; }
 
 :root {
-  color-scheme: light dark;
+  /* Always light, even on phones set to dark mode. Green is the accent, for buttons and primary actions. */
+  color-scheme: light only;
   --bg: #f1f1f1; --surface: #e6e7e7; --raised: #fbfbfa; --ink: #2f3737; --muted: #566060; --line: #cfd2d0;
   /* The webnest accent is slightly too light for small text, so text uses a darker shade of it. */
   --accent: #5f7a57; --accent-ink: #4a6343; --on-accent: #fff; --sage: #a8bca1; --sage-soft: #dbe3d7;
@@ -12,13 +13,6 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --font: Geist, 'Noto Sans Bengali', system-ui, sans-serif;
   --mono: 'Geist Mono', ui-monospace, Menlo, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141919; --surface: #1e2525; --raised: #1e2525; --ink: #e7eae5; --muted: #a3ada8; --line: #333c3b;
-    --accent: #a8bca1; --accent-ink: #a8bca1; --on-accent: #141919; --sage: #a8bca1; --sage-soft: #2a352a;
-    --danger: #f19a92; --warn: #eec36f; --warn-soft: #3a3020;
-  }
 }
 
 *, *::before, *::after { box-sizing: border-box; }

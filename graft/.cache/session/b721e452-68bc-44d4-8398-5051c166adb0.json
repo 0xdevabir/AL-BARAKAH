@@ -1,13 +1,16 @@
 {
-  "lastQuery": "<task-notification>\n<task-id>bxtbt4n4e</task-id>\n<tool-use-id>toolu_01AebAuugv3X9Agaws52Y7d7</tool-use-id>\n<output-file>/private/tmp/claude-501/-Users-mdabirhossain-Documents-WebDevelopment-AL-BARAKAH/b721e452-68bc-44d4-8398-5051c166adb0/tasks/bxtbt4n4e.output</output-file>\n<status>failed</status>\n<summary>Background command \"Build and run the API server\" failed with exit code 144</summary>\n</task-notification>",
+  "lastQuery": "in login pagae there should be now demo login btns, for quick login because we have to test it right",
   "perAgentQuery": {},
-  "graftReads": 0,
+  "graftReads": 1,
   "sourceReads": 42,
   "savedTokens": 0,
   "injectedPointers": [],
-  "nudges": 0,
-  "inputCostMicros": 291828,
-  "inputTokensBilled": 278777,
-  "lastBillingUuid": "028a36ce-8e57-454d-b8a1-70cf993602e3",
-  "host": "claude-code"
+  "nudges": 2,
+  "inputCostMicros": 2311099,
+  "inputTokensBilled": 3322147,
+  "lastBillingUuid": "06653d7b-c653-4041-a1c9-db8500ef09e4",
+  "host": "claude-code",
+  "turnUsedGraft": false,
+  "graftTurns": 1,
+  "lastTallyUuid": "ea5960fe-c117-4566-92e2-0f4a0d2e7b91"
 }
