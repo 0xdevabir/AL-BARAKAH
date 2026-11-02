@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from '@nestjs/common';
 import { Queue, UnrecoverableError } from 'bullmq';
 import { ENV, type Env } from '../config/env.js';
-import { AlphaSmsError, sendAlphaSms } from './alpha-sms.js';
+import { BulkSmsBdError, sendBulkSmsBd } from './bulksmsbd.js';
 
 export const SMS_QUEUE = 'sms';
 export interface SmsJob { to: string; text: string }
@@ -41,10 +41,10 @@ export async function deliverSms(env: Env, job: SmsJob, log: Logger): Promise<vo
     return;
   }
   try {
-    const requestId = await sendAlphaSms({ apiKey: env.SMS_API_KEY!, senderId: env.SMS_SENDER_ID, to: job.to, message: job.text });
-    log.log(`SMS accepted by gateway, request ${requestId}`);
+    const messageId = await sendBulkSmsBd({ apiKey: env.SMS_API_KEY!, senderId: env.SMS_SENDER_ID!, to: job.to, message: job.text });
+    log.log(`SMS accepted by gateway, message ${messageId ?? 'without ID'}`);
   } catch (err) {
-    if (err instanceof AlphaSmsError && !err.retryable) throw new UnrecoverableError(err.message);
+    if (err instanceof BulkSmsBdError && !err.retryable) throw new UnrecoverableError(err.message);
     throw err;
   }
 }

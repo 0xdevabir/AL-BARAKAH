@@ -56,7 +56,8 @@ export class AuthService {
     await this.prisma.otpCode.create({
       data: { phone, codeHash: this.hashOtp(phone, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) },
     });
-    await this.sms.send(phone, `Your AL-BARAKAH code is ${code}. It expires in 5 minutes. Never share this code.`);
+    // BulkSMSBD requires exactly this wording for OTP messages.
+    await this.sms.send(phone, `Your AL-BARAKAH OTP is ${code}`);
   }
 
   async verifyOtp(phone: string, code: string, name?: string): Promise<Session> {

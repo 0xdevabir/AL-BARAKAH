@@ -26,9 +26,9 @@ const schema = z.object({
   CORS_ORIGINS: z.string().transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
   PUBLIC_API_BASE: z.url(),
   STORE_URL: z.url(),
-  SMS_PROVIDER: z.enum(['console', 'alphasms']).default('console'),
+  SMS_PROVIDER: z.enum(['console', 'bulksmsbd']).default('console'),
   SMS_API_KEY: z.string().optional(),
-  /** Only if Alpha SMS has approved one; otherwise leave empty and their default is used. */
+  /** The sender ID approved on the BulkSMSBD account. */
   SMS_SENDER_ID: z.string().optional(),
   BKASH_MODE: z.enum(['fake', 'sandbox', 'live']).default('fake'),
   BKASH_APP_KEY: z.string().optional(),
@@ -47,7 +47,7 @@ const schema = z.object({
   if (e.BKASH_MODE !== 'fake' && !(e.BKASH_APP_KEY && e.BKASH_APP_SECRET && e.BKASH_USERNAME && e.BKASH_PASSWORD)) {
     fail('bKash credentials are required unless BKASH_MODE=fake');
   }
-  if (e.SMS_PROVIDER === 'alphasms' && !e.SMS_API_KEY) fail('SMS_API_KEY is required when SMS_PROVIDER=alphasms');
+  if (e.SMS_PROVIDER === 'bulksmsbd' && !(e.SMS_API_KEY && e.SMS_SENDER_ID)) fail('SMS_API_KEY and SMS_SENDER_ID are required when SMS_PROVIDER=bulksmsbd');
 });
 
 export type Env = z.infer<typeof schema>;
