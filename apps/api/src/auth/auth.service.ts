@@ -1,0 +1,158 @@
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import { Inject, Injectable } from '@nestjs/common';
+import type { PrismaClient } from '@albarakah/database';
+import type { Role } from '@albarakah/contracts';
+import { authenticator } from 'otplib';
+import { AppError, badRequest, unauthorized } from '../common/errors.js';
+import { PRISMA } from '../common/infra.module.js';
+import { type AuthUser, TokenService } from '../common/auth.js';
+import { ENV, type Env } from '../config/env.js';
+import { SmsService } from '../notifications/sms.service.js';
+
+const OTP_TTL_MS = 5 * 60_000;
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_MAX_PER_WINDOW = 3;
+const OTP_WINDOW_MS = 10 * 60_000;
+const REFRESH_TTL_MS = 30 * 24 * 3_600_000;
+
+const sha256 = (v: string) => createHash('sha256').update(v).digest('hex');
+
+export interface Session {
+  accessToken: string;
+  refreshToken: string;
+  user: { id: string; phone: string; name: string; role: Role; totpEnabled: boolean; mfa: boolean };
+}
+
+@Injectable()
+export class AuthService {
+  private readonly totpKey: Buffer;
+
+  constructor(
+    @Inject(PRISMA) private readonly prisma: PrismaClient,
+    @Inject(ENV) private readonly env: Env,
+    private readonly tokens: TokenService,
+    private readonly sms: SmsService,
+  ) {
+    this.totpKey = createHash('sha256').update(env.TOTP_ENCRYPTION_KEY).digest();
+  }
+
+  private hashOtp(phone: string, code: string) {
+    return createHmac('sha256', this.env.OTP_PEPPER).update(`${phone}:${code}`).digest('hex');
+  }
+
+  async requestOtp(phone: string): Promise<void> {
+    const since = new Date(Date.now() - OTP_WINDOW_MS);
+    const recent = await this.prisma.otpCode.count({ where: { phone, createdAt: { gte: since } } });
+    if (recent >= OTP_MAX_PER_WINDOW) throw new AppError(429, 'OTP_RATE_LIMITED', 'Too many codes requested. Please try again in a few minutes.');
+    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    await this.prisma.otpCode.create({
+      data: { phone, codeHash: this.hashOtp(phone, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) },
+    });
+    await this.sms.send(phone, `Your AL-BARAKAH code is ${code}. It expires in 5 minutes. Never share this code.`);
+  }
+
+  async verifyOtp(phone: string, code: string, name?: string): Promise<Session> {
+    const otp = await this.prisma.otpCode.findFirst({
+      where: { phone, consumedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+    const invalid = () => badRequest('OTP_INVALID', 'That code is incorrect or has expired');
+    if (!otp) throw invalid();
+    // The attempt is counted atomically first, so parallel guesses cannot exceed the limit.
+    const counted = await this.prisma.otpCode.updateMany({
+      where: { id: otp.id, attempts: { lt: OTP_MAX_ATTEMPTS }, consumedAt: null },
+      data: { attempts: { increment: 1 } },
+    });
+    if (counted.count === 0) throw invalid();
+    const a = Buffer.from(otp.codeHash, 'hex');
+    const b = Buffer.from(this.hashOtp(phone, code), 'hex');
+    if (!timingSafeEqual(a, b)) throw invalid();
+    const consumed = await this.prisma.otpCode.updateMany({ where: { id: otp.id, consumedAt: null }, data: { consumedAt: new Date() } });
+    if (consumed.count === 0) throw invalid();
+
+    const user = await this.prisma.user.upsert({
+      where: { phone },
+      update: {},
+      create: { phone, name: name ?? '', role: 'CUSTOMER' },
+    });
+    if (!user.isActive) throw new AppError(403, 'ACCOUNT_DISABLED', 'This account has been disabled');
+    if (name && !user.name) await this.prisma.user.update({ where: { id: user.id }, data: { name } });
+    return this.issue(user.id, false, randomBytes(16).toString('hex'));
+  }
+
+  private async issue(userId: string, mfa: boolean, familyId: string): Promise<Session> {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const refreshToken = randomBytes(48).toString('base64url');
+    await this.prisma.refreshToken.create({
+      data: { userId, tokenHash: sha256(refreshToken), familyId, mfa, expiresAt: new Date(Date.now() + REFRESH_TTL_MS) },
+    });
+    const auth: AuthUser = { id: user.id, role: user.role, mfa };
+    return {
+      accessToken: await this.tokens.sign(auth),
+      refreshToken,
+      user: { id: user.id, phone: user.phone, name: user.name, role: user.role, totpEnabled: user.totpEnabled, mfa },
+    };
+  }
+
+  /** Rotates the token. Presenting an already-used token means theft, so that whole login is revoked. */
+  async refresh(token: string): Promise<Session> {
+    const row = await this.prisma.refreshToken.findUnique({ where: { tokenHash: sha256(token) }, include: { user: true } });
+    if (!row || row.expiresAt < new Date()) throw unauthorized('Your session has expired');
+    const claimed = await this.prisma.refreshToken.updateMany({ where: { id: row.id, revokedAt: null }, data: { revokedAt: new Date() } });
+    if (claimed.count === 0) {
+      await this.prisma.refreshToken.updateMany({ where: { familyId: row.familyId, revokedAt: null }, data: { revokedAt: new Date() } });
+      throw unauthorized('Your session has expired');
+    }
+    if (!row.user.isActive) throw new AppError(403, 'ACCOUNT_DISABLED', 'This account has been disabled');
+    return this.issue(row.userId, row.mfa, row.familyId);
+  }
+
+  async logout(token: string): Promise<void> {
+    const row = await this.prisma.refreshToken.findUnique({ where: { tokenHash: sha256(token) } });
+    if (row) await this.prisma.refreshToken.updateMany({ where: { familyId: row.familyId, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
+
+  async revokeAllForUser(userId: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
+
+  private encrypt(plain: string): string {
+    const iv = randomBytes(12);
+    const c = createCipheriv('aes-256-gcm', this.totpKey, iv);
+    const data = Buffer.concat([c.update(plain, 'utf8'), c.final()]);
+    return [iv, c.getAuthTag(), data].map((b) => b.toString('base64')).join('.');
+  }
+
+  private decrypt(blob: string): string {
+    const [iv, tag, data] = blob.split('.').map((s) => Buffer.from(s, 'base64')) as [Buffer, Buffer, Buffer];
+    const d = createDecipheriv('aes-256-gcm', this.totpKey, iv);
+    d.setAuthTag(tag);
+    return Buffer.concat([d.update(data), d.final()]).toString('utf8');
+  }
+
+  async totpSetup(user: AuthUser) {
+    const row = await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    if (row.totpEnabled) throw badRequest('TOTP_ALREADY_ENABLED', 'Two-factor authentication is already on');
+    const secret = authenticator.generateSecret();
+    await this.prisma.user.update({ where: { id: user.id }, data: { totpSecret: this.encrypt(secret) } });
+    return { secret, otpauthUrl: authenticator.keyuri(row.phone, 'AL-BARAKAH', secret) };
+  }
+
+  /** Confirms a code from the authenticator app and upgrades this login to a 2FA session. */
+  async totpVerify(user: AuthUser, code: string, refreshToken: string | undefined): Promise<Session> {
+    const row = await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    if (!row.totpSecret || !authenticator.check(code, this.decrypt(row.totpSecret))) {
+      throw badRequest('TOTP_INVALID', 'That code is incorrect');
+    }
+    if (!row.totpEnabled) await this.prisma.user.update({ where: { id: user.id }, data: { totpEnabled: true } });
+    let familyId = randomBytes(16).toString('hex');
+    if (refreshToken) {
+      const old = await this.prisma.refreshToken.findUnique({ where: { tokenHash: sha256(refreshToken) } });
+      if (old?.userId === user.id) {
+        familyId = old.familyId;
+        await this.prisma.refreshToken.updateMany({ where: { id: old.id, revokedAt: null }, data: { revokedAt: new Date() } });
+      }
+    }
+    return this.issue(user.id, true, familyId);
+  }
+}
