@@ -6,7 +6,9 @@ import { type AuthUser, CurrentUser, Public, RequirePermission } from '../common
 import { conflict, notFound, ZodPipe } from '../common/errors.js';
 import { PRISMA } from '../common/infra.module.js';
 
-const PAGE = 20;
+/** Full result pages only when searching; browse is a small popular preview. */
+const SEARCH_PAGE = 20;
+const BROWSE_PAGE = 12;
 
 interface MedicineRow {
   id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string;
@@ -19,11 +21,17 @@ const toDto = (m: MedicineRow) => ({ ...m, stock: undefined, inStock: Number(m.s
 export class CatalogService {
   constructor(@Inject(PRISMA) private readonly prisma: PrismaClient) {}
 
-  /** Search matches anywhere in brand or generic name and tolerates typos through trigram similarity. */
+  /**
+   * Without a query: a short popularity-ranked preview (home / category chips) — not the full catalogue.
+   * With a query: ranked search with pagination; typos tolerated via trigram similarity.
+   */
   async search(q: string | undefined, categorySlug: string | undefined, page: number) {
-    const offset = (Math.max(page, 1) - 1) * PAGE;
     const term = q?.trim().slice(0, 80) || null;
     const like = term?.replace(/[\\%_]/g, '\\$&') ?? null;
+    const browsing = !term;
+    const size = browsing ? BROWSE_PAGE : SEARCH_PAGE;
+    // Browse is intentionally page 1 only — the rest of the catalogue is reached by searching.
+    const offset = browsing ? 0 : (Math.max(page, 1) - 1) * size;
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
              m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
@@ -44,8 +52,11 @@ export class CatalogService {
                CASE WHEN ${term}::text IS NULL THEN 0
                     ELSE round((1 - GREATEST(similarity(m.name, COALESCE(${term}, '')), similarity(m."genericName", COALESCE(${term}, ''))))::numeric, 1) END,
                m.popularity DESC, m.name, m.strength
-      LIMIT ${PAGE + 1} OFFSET ${offset}`;
-    return { items: rows.slice(0, PAGE).map(toDto), hasMore: rows.length > PAGE };
+      LIMIT ${browsing ? size : size + 1} OFFSET ${offset}`;
+    return {
+      items: rows.slice(0, size).map(toDto),
+      hasMore: browsing ? false : rows.length > size,
+    };
   }
 
   async bySlug(slug: string) {

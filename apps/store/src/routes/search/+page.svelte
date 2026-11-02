@@ -9,8 +9,8 @@
   let appliedQ = $state(q); // Follows the input after a short pause, so each keystroke isn't a request.
   const category = $derived(page.url.searchParams.get('category') ?? '');
   const categories = $derived(page.data.categories as { id: string; name: string; slug: string; count: number }[]);
-  // A text search has no known total, because it also matches similar spellings.
-  const total = $derived(appliedQ.trim() ? undefined : category ? categories.find((c) => c.slug === category)?.count : categories.reduce((n, c) => n + c.count, 0));
+  // Browse (no query) is a short popular preview; only typed search paginates the catalogue.
+  const searching = $derived(!!appliedQ.trim());
   const chipHref = (slug: string) => {
     const params = new URLSearchParams({ ...(q.trim() ? { q: q.trim() } : {}), ...(slug ? { category: slug } : {}) });
     return `/search${params.size ? `?${params}` : ''}`;
@@ -45,12 +45,16 @@
       {/each}
     </div>
   {/if}
-  <div class="results"><ProductGrid q={appliedQ} {category} {total} /></div>
+  {#if !searching}
+    <p class="hint muted">{m.search_hint()}</p>
+  {/if}
+  <div class="results"><ProductGrid q={appliedQ} {category} /></div>
 </div>
 
 <style>
   .wide { max-width: 1320px; }
   .find { background: var(--raised); box-shadow: var(--shadow); border-radius: var(--r-sm); }
+  .hint { margin: 4px 0 0; font-size: 0.95rem; }
   .results { margin-top: 16px; }
   .wide .title { margin-bottom: 12px; }
   .chips { display: flex; gap: 10px; margin: 14px -20px 0; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; }

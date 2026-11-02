@@ -84,9 +84,9 @@
   <section id="medicines">
     <div class="head">
       <h2>{m.popular()}</h2>
-      <a href="/search">{m.see_all()}</a>
+      <a href="/search">{m.tab_search()}</a>
     </div>
-    <ProductGrid initial={data.firstPage} {total} />
+    <ProductGrid initial={data.firstPage} />
   </section>
 
   <footer class="foot">

@@ -128,5 +128,6 @@
   "showing_count": "Showing {shown} of {total}",
   "android_app": "Get the Android app",
   "ios_app": "Download on the App Store",
-  "ios_app_pending": "The iPhone app is not on the App Store yet"
+  "ios_app_pending": "The iPhone app is not on the App Store yet",
+  "search_hint": "Type a name to find any medicine — only popular ones are listed here."
 }

@@ -14,7 +14,7 @@
   import { m } from '#lib/paraglide/messages.js';
   import ProductCard from './ProductCard.svelte';
 
-  // Loads by itself for this many pages, then waits for a tap so the page end stays reachable.
+  // Search results auto-load a few pages; browse previews never paginate the catalogue.
   const AUTO_PAGES = 5;
 
   let { q = '', category = '', initial, total }: { q?: string; category?: string; initial?: { items: Medicine[]; hasMore: boolean }; total?: number } = $props();
@@ -23,7 +23,7 @@
   const start = untrack(() => (browser && navigating.type === 'popstate' ? visited.get(key) : undefined) ?? (initial && { ...initial, pageNo: 1 }));
 
   let items = $state.raw<Medicine[]>(start?.items ?? []);
-  let hasMore = $state(start?.hasMore ?? false);
+  let hasMore = $state(!!(start?.hasMore && untrack(() => q).trim()));
   let pageNo = $state(start?.pageNo ?? 1);
   let loaded = $state(!!start);
   let loading = $state(false);
@@ -41,7 +41,8 @@
       const r = await api.get<{ items: Medicine[]; hasMore: boolean }>(`/medicines?${params}`);
       if (ticket !== latest) return;
       items = more ? [...items, ...r.items] : r.items;
-      hasMore = r.hasMore;
+      // Without a query the catalogue is a short popular preview — never offer "load more".
+      hasMore = q.trim() ? r.hasMore : false;
       pageNo = next;
       loaded = true;
     } catch (err) {
@@ -67,7 +68,7 @@
   }
 
   onDestroy(() => {
-    if (browser && loaded) visited.set(shownKey, { items, hasMore, pageNo });
+    if (browser && loaded && q.trim()) visited.set(shownKey, { items, hasMore, pageNo });
   });
 </script>
 
@@ -85,7 +86,7 @@
       {#if error}
         <p class="error">{error}</p>
         <button class="btn" onclick={() => run(true)}>{m.retry()}</button>
-      {:else if hasMore}
+      {:else if hasMore && q.trim()}
         {#key pageNo}
           {#if pageNo < AUTO_PAGES}<span class="sentinel" use:autoMore></span>{/if}
         {/key}
