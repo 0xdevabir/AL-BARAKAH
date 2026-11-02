@@ -3,7 +3,7 @@
   import { onMount, type Snippet } from 'svelte';
   import { goto, onNavigate } from '$app/navigation';
   import { page } from '$app/state';
-  import { api, cart, MOBILE } from '#lib/app.svelte.ts';
+  import { api, cart, MOBILE, tap } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
   import Intro from '#lib/Intro.svelte';
   import StoreHeader from '#lib/StoreHeader.svelte';
@@ -30,6 +30,7 @@
   const showCart = $derived(cart.count > 0 && !hideBar && !page.url.pathname.startsWith('/cart'));
 
   onMount(() => {
+    if (MOBILE) document.documentElement.dataset.native = '1';
     void api.restore();
     if (!MOBILE) return;
     // Returning from bKash, and the Android back button.
@@ -64,7 +65,7 @@
     <StoreHeader links={headerLinks} categories={data.categories} />
     <nav class="tabs" aria-label="Main">
       {#each tabs as t (t.href)}
-        <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined}>
+        <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined} onpointerdown={() => tap()}>
           <span class="glyph">
             <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
           </span>
@@ -76,7 +77,7 @@
   <main class="content">
     {@render children()}
     {#if showCart}
-      <a class="cartbar" href="/cart">
+      <a class="cartbar" href="/cart" onpointerdown={() => tap()}>
         <span class="count mono">{cart.count}</span>
         <span class="grow">{m.view_cart()}</span>
       </a>
@@ -91,8 +92,9 @@
   .content { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
   .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 0.5px solid rgb(60 60 67 / 0.22); background: rgb(249 249 249 / 0.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
-  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 49px; justify-content: flex-end; color: #8e8e93; font-size: 10px; font-weight: 500; letter-spacing: 0.01em; }
-  .glyph { display: grid; place-items: center; width: 54px; height: 32px; border-radius: 16px; }
+  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 49px; justify-content: flex-end; color: #8e8e93; font-size: 10px; font-weight: 500; letter-spacing: 0.01em; touch-action: manipulation; }
+  .glyph { display: grid; place-items: center; width: 54px; height: 32px; border-radius: 16px; transition: transform 0.12s var(--ease); }
+  .tabs a:active .glyph { transform: scale(0.9); }
   .tabs a.on { color: var(--accent-ink); }
   .tabs a.on .glyph { background: var(--sage-soft); }
   .tabs a.on svg { stroke-width: 2.2; }

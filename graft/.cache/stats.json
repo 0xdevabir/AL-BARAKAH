@@ -1,16 +1,16 @@
 {
-  "nodeCount": 483,
-  "edgeCount": 1131,
+  "nodeCount": 487,
+  "edgeCount": 1146,
   "languages": [
     "java",
     "javascript",
     "typescript"
   ],
-  "totalCount": 483,
+  "totalCount": 487,
   "readyCount": 0,
   "staleCount": 0,
   "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-02T11:19:43.575Z",
-  "lastFile": "image-1fe4a7c8-d44b-41fe-840a-0c34e65057b5.png"
+  "syncedAt": "2026-11-02T13:05:11.531Z",
+  "lastFile": "AppBadges.svelte"
 }

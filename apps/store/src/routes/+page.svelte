@@ -1,5 +1,6 @@
 <script lang="ts">
   import { formatTk } from '@albarakah/domain';
+  import AppBadges from '#lib/AppBadges.svelte';
   import BrandLockup from '#lib/BrandLockup.svelte';
   import CategoryIcon from '#lib/CategoryIcon.svelte';
   import ProductGrid from '#lib/ProductGrid.svelte';
@@ -31,6 +32,7 @@
         <h1>{m.greeting()}</h1>
         <p>{m.hero_sub({ count: total.toLocaleString() })}</p>
         <a class="cta" href="#medicines">{m.browse()}</a>
+        <AppBadges />
       </div>
       <div class="packs" aria-hidden="true">
         {#each packs as med (med.id)}
@@ -163,4 +165,6 @@
     .packs img:nth-child(2) { transform: translateY(-14px); }
   }
 </style>
+
+
 

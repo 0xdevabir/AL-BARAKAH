@@ -10,6 +10,7 @@
     "dev": "vite dev --port 5173",
     "build": "vite build",
     "build:mobile": "BUILD_TARGET=mobile vite build",
+    "apk": "cd android && ./gradlew assembleDebug",
     "start": "node build",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --threshold error",
     "budget": "node scripts/check-budget.mjs"
@@ -41,3 +42,4 @@
     "vite": "8.3.5"
   }
 }
+

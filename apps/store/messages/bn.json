@@ -123,5 +123,9 @@
   "see_all": "সব দেখুন",
   "all_categories_menu": "সব ক্যাটাগরি",
   "rx_tag": "প্রেসক্রিপশন",
-  "showing_count": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে"
+  "showing_count": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে",
+  "android_app": "অ্যান্ড্রয়েড অ্যাপ নিন",
+  "ios_app": "অ্যাপ স্টোর থেকে নিন",
+  "ios_app_pending": "আইফোন অ্যাপ এখনো অ্যাপ স্টোরে নেই"
 }
+

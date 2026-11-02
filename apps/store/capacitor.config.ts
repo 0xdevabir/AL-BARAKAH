@@ -4,7 +4,8 @@ const config: CapacitorConfig = {
   appId: 'com.albarakah.app',
   appName: 'AL-BARAKAH',
   webDir: 'build-mobile',
-  android: { allowMixedContent: false },
+  android: { allowMixedContent: false, backgroundColor: '#f1f1f1' },
 };
 
 export default config;
+
