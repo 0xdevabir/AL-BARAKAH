@@ -18,19 +18,23 @@
 
 <div class="page stack">
   <button class="btn ghost small back" onclick={() => history.back()}>‹ {m.back()}</button>
-  <div class="row">
+  <div class="row identity">
     {#if med.imageUrl && !photoFailed}
-      <img class="photo" src={med.imageUrl} alt="" width="96" height="96" referrerpolicy="no-referrer" onerror={() => (photoFailed = true)} />
+      <img class="photo" src={med.imageUrl} alt="" width="120" height="120" referrerpolicy="no-referrer" onerror={() => (photoFailed = true)} />
     {:else}
       <FormGlyph form={med.form} />
     {/if}
     <div class="grow">
-      <h1 class="name">{med.name} {med.strength}</h1>
-      <p class="muted">{med.form}</p>
+      <h1 class="name">{med.name}</h1>
+      {#if med.strength}<p class="strength">{med.strength}</p>{/if}
+      {#if med.form}<p class="muted">{med.form}</p>{/if}
     </div>
   </div>
   <p class="mono price">{formatTk(med.pricePoisha)}</p>
-  {#if med.isRx}<div><span class="chip warn">{m.rx_required()}</span></div>{/if}
+  <div class="tags">
+    {#if med.isRx}<span class="chip warn">{m.rx_required()}</span>{/if}
+    {#if !med.inStock}<span class="chip off">{m.out_of_stock()}</span>{/if}
+  </div>
 
   <div class="group">
     <div class="between"><span class="muted">{m.generic()}</span><span>{med.genericName}</span></div>
@@ -53,9 +57,13 @@
 
 <style>
   .back { align-self: flex-start; padding-left: 0; }
-  .name { font-size: 1.5rem; line-height: 1.2; }
+  .identity { align-items: center; }
+  .name { font-size: 1.75rem; line-height: 1.15; }
+  .strength { margin-top: 4px; font-size: 1.15rem; font-weight: 600; }
   .price { font-size: 1.7rem; font-weight: 700; }
-  .photo { flex: none; width: 96px; height: 96px; border-radius: 18px; object-fit: contain; background: var(--sage-soft); }
-  .between { justify-content: space-between; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tags:empty { display: none; }
+  .photo { flex: none; width: 112px; height: 112px; padding: 8px; border-radius: 20px; object-fit: contain; background: var(--sage-soft); }
+  .between { justify-content: space-between; gap: 16px; }
   .between span:last-child { text-align: right; }
 </style>

@@ -98,13 +98,18 @@
     </div>
 
     {#if active && order.type === 'EMERGENCY'}
-      <div class="card row between">
+      <div class="card when row between">
         <span>{left > 0 ? m.arrives_in() : m.late()}</span>
         {#if left > 0}<strong class="mono timer" role="timer">{countdown}</strong>{/if}
       </div>
     {:else if active}
-      <div class="card">{order.slotStart ? fmtWindow(order.slotStart, order.slotEnd!) : fmtWhen(order.promisedBy)}</div>
+      <div class="card when">{order.slotStart ? fmtWindow(order.slotStart, order.slotEnd!) : fmtWhen(order.promisedBy)}</div>
     {/if}
+
+    <div class="card where">
+      <strong>{order.addressSnapshot.label}</strong>
+      <span>{order.addressSnapshot.line}</span>
+    </div>
 
     {#if order.rider}<a class="btn primary block" href="tel:{order.rider.phone}">{m.call_rider({ name: order.rider.name })}</a>{/if}
 
@@ -128,10 +133,7 @@
       <div class="between"><strong>{m.total()}</strong><strong class="price">{formatTk(order.totalPoisha)}</strong></div>
     </div>
 
-    <div class="card stack small">
-      <span>{order.addressSnapshot.label}: {order.addressSnapshot.line}</span>
-      <span class="muted">{order.paymentMethod === 'COD' ? m.pay_cod() : m.pay_bkash()} · {order.paymentStatus === 'PAID' ? m.paid() : m.unpaid()}</span>
-    </div>
+    <p class="muted">{order.paymentMethod === 'COD' ? m.pay_cod() : m.pay_bkash()} · {order.paymentStatus === 'PAID' ? m.paid() : m.unpaid()}</p>
 
     {#if order.status === 'PLACED'}<button class="btn danger block" disabled={busy} onclick={cancel}>{m.cancel_order()}</button>{/if}
   {/if}
@@ -140,7 +142,9 @@
 <style>
   .back { align-self: flex-start; padding-left: 0; }
   .st { margin-bottom: 2px; }
-  .ok { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
+  .ok, .when { background: var(--sage-soft); color: var(--accent-ink); font-weight: 600; }
+  .where { display: flex; flex-direction: column; gap: 4px; font-weight: 400; color: var(--ink); }
+  .where strong { font-weight: 700; }
   .between { justify-content: space-between; }
   .timer { font-size: 1.5rem; }
   .trail { margin: 0; padding: 0; list-style: none; }

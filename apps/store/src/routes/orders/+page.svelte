@@ -6,7 +6,11 @@
   import { api } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
 
-  interface Row { id: string; code: string; status: string; type: string; totalPoisha: number; promisedBy: string; items: { nameSnapshot: string; qty: number }[] }
+  interface Row {
+    id: string; code: string; status: string; type: string; totalPoisha: number; promisedBy: string;
+    addressSnapshot: { label?: string; line?: string } | null;
+    items: { nameSnapshot: string; qty: number }[];
+  }
   let orders = $state<Row[] | null>(null);
   let error = $state('');
 
@@ -26,13 +30,19 @@
   {#if orders && orders.length === 0}
     <div class="empty stack"><p>{m.orders_empty()}</p><a class="btn" href="/search">{m.browse()}</a></div>
   {:else if orders}
-    <div class="group">
+    <div class="stack">
       {#each orders as o (o.id)}
-        <a href="/orders/{o.id}" class="chev">
-          <span class="grow">
-            <span class="row between"><strong>{o.items[0] ? `${o.items[0].nameSnapshot}` : o.code}</strong><span class="price">{formatTk(o.totalPoisha)}</span></span>
-            <span class="muted small line">{statusLabel(o.status)} · {fmtWhen(o.promisedBy)}</span>
+        <a class="card order" href="/orders/{o.id}">
+          <span class="row between">
+            <span class="chip" class:off={o.status === 'DELIVERED' || o.status === 'CANCELLED'} class:warn={o.status === 'FAILED'}>{statusLabel(o.status)}</span>
+            <span class="price">{formatTk(o.totalPoisha)}</span>
           </span>
+          <strong class="items">{o.items.map((i) => `${i.nameSnapshot} × ${i.qty}`).join(', ') || o.code}</strong>
+          {#if o.addressSnapshot?.line}
+            <span class="where">{o.addressSnapshot.label}</span>
+            <span class="muted">{o.addressSnapshot.line}</span>
+          {/if}
+          <span class="muted small">{fmtWhen(o.promisedBy)}</span>
         </a>
       {/each}
     </div>
@@ -40,6 +50,9 @@
 </div>
 
 <style>
-  .line { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .order { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+  .items { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; line-height: 1.3; }
+  .where { display: block; }
+  .where { font-weight: 600; }
 </style>
 

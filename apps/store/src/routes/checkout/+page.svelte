@@ -104,8 +104,13 @@
 <div class="page stack">
   <div class="row">
     <button class="btn ghost small back" onclick={() => (step === 0 ? history.back() : step--)}>‹ {m.back()}</button>
-    <ol class="dots" aria-hidden="true">{#each [0, 1, 2] as i}<li class:on={i <= step}></li>{/each}</ol>
   </div>
+
+  <ol class="steps">
+    {#each [m.step_address(), m.step_time(), m.step_pay()] as label, i (label)}
+      <li class:on={step === i} aria-current={step === i ? 'step' : undefined}>{label}</li>
+    {/each}
+  </ol>
 
   {#if step === 0}
     <h1 class="title">{m.step_address()}</h1>
@@ -114,7 +119,11 @@
         {#each addresses as a (a.id)}
           <button role="radio" aria-checked={addressId === a.id} onclick={() => (addressId = a.id)}>
             <span class="mark" class:on={addressId === a.id}></span>
-            <span class="grow"><strong>{a.label}</strong><span class="muted small block">{a.line} · {a.zone.name}</span></span>
+            <span class="grow">
+              <strong>{a.label}</strong>
+              <span class="muted lines">{a.line}</span>
+              <span class="muted small lines">{a.zone.name}</span>
+            </span>
           </button>
         {/each}
       </div>
@@ -126,7 +135,7 @@
     {#if type === 'EMERGENCY'}
       <div class="card stack">
         {#if emergency.available}
-          <strong>{m.emergency_title()}</strong>
+          <span class="row between"><strong>{m.emergency_title()}</strong><span class="price">{formatTk(emergency.feePoisha)}</span></span>
           <p class="muted">{m.emergency_body({ minutes: emergency.minutes, fee: formatTk(emergency.feePoisha) })}</p>
         {:else}
           <p>{m.emergency_closed()}</p>
@@ -160,7 +169,7 @@
       <div class="between"><span>{m.subtotal()}</span><span class="price">{formatTk(cart.subtotal)}</span></div>
       <div class="between"><span>{m.delivery_fee()}</span><span class="price">{formatTk(deliveryFee)}</span></div>
       {#if emergencyFee}<div class="between"><span>{m.emergency_fee()}</span><span class="price">{formatTk(emergencyFee)}</span></div>{/if}
-      <div class="between"><strong>{m.total()}</strong><strong class="price">{formatTk(total)}</strong></div>
+      <div class="between total"><strong>{m.total()}</strong><strong class="price">{formatTk(total)}</strong></div>
     </div>
   {/if}
 
@@ -193,14 +202,16 @@
 
 <style>
   .back { padding-left: 0; }
-  .dots { display: flex; gap: 6px; margin: 0 0 0 auto; padding: 0; list-style: none; }
-  .dots li { width: 22px; height: 4px; border-radius: 2px; background: var(--line); }
-  .dots li.on { background: var(--accent); }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .steps li { padding-bottom: 8px; border-bottom: 2px solid var(--line); color: var(--muted); font-size: 0.95rem; font-weight: 600; line-height: 1.25; }
+  .steps li.on { border-color: var(--accent); color: var(--accent-ink); }
   .title { margin-bottom: 0; }
-  .block { display: block; }
-  .between { justify-content: space-between; }
+  .lines { display: block; }
+  .between { justify-content: space-between; gap: 16px; }
   .mark { flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); }
   .mark.on { background: var(--accent); box-shadow: none; }
+  .total { align-items: baseline; }
+  .total .price { font-size: 1.45rem; }
   .sum { display: block; font-size: 1.45rem; font-weight: 700; }
-  .file { padding-top: 11px; }
+  .file { padding-top: 14px; }
 </style>

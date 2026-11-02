@@ -73,7 +73,7 @@ export class OrdersController {
       orderBy: { createdAt: 'desc' },
       skip: (Math.max(Number(page) || 1, 1) - 1) * PAGE,
       take: PAGE,
-      select: { id: true, code: true, status: true, type: true, totalPoisha: true, promisedBy: true, slotStart: true, slotEnd: true, createdAt: true, paymentMethod: true, paymentStatus: true, items: { select: { nameSnapshot: true, qty: true } } },
+      select: { id: true, code: true, status: true, type: true, totalPoisha: true, promisedBy: true, slotStart: true, slotEnd: true, createdAt: true, paymentMethod: true, paymentStatus: true, addressSnapshot: true, items: { select: { nameSnapshot: true, qty: true } } },
     });
   }
 

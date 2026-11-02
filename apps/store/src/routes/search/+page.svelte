@@ -52,8 +52,9 @@
   .wide { max-width: 1320px; }
   .find { background: var(--raised); box-shadow: var(--shadow); border-radius: var(--r-sm); }
   .results { margin-top: 16px; }
-  .chips { display: flex; gap: 10px; margin: 16px -20px 0; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
-  .chips a { flex: none; }
+  .wide .title { margin-bottom: 12px; }
+  .chips { display: flex; gap: 10px; margin: 14px -20px 0; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .chips a { flex: none; scroll-snap-align: start; }
   .chips a:not(.primary) { background: var(--raised); }
   @media (min-width: 900px) {
     .wide { padding-inline: 24px; }

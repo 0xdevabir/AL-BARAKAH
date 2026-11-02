@@ -77,7 +77,7 @@
   {:else if !loaded}
     <div class="grid" aria-hidden="true">{#each { length: 10 } as _, n (n)}<div class="ghost"></div>{/each}</div>
   {:else if items.length === 0}
-    <p class="empty">{m.no_results()}</p>
+    <div class="none"><p>{m.no_results()}</p></div>
   {:else}
     <div class="grid">{#each items as med (med.id)}<ProductCard medicine={med} />{/each}</div>
     <div class="foot">
@@ -96,10 +96,11 @@
 </div>
 
 <style>
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); gap: 14px; }
-  .ghost { aspect-ratio: 3 / 4.300; border-radius: var(--r); background: var(--raised); animation: pulse 1.2s ease-in-out infinite; }
-  .foot { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+  .grid { display: flex; flex-direction: column; gap: 10px; }
+  .ghost { height: 88px; border-radius: var(--r); background: var(--raised); animation: pulse 1.2s ease-in-out infinite; }
+  .none { padding: 36px 20px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); text-align: center; color: var(--muted); }
+  .foot { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px; }
   .sentinel { width: 1px; height: 1px; }
   @keyframes pulse { 50% { opacity: 0.5; } }
-  @media (min-width: 900px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; } }
+  @media (min-width: 900px) { .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
 </style>
