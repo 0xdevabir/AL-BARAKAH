@@ -68,11 +68,10 @@
       {#each data.doctors as d (d.id)}
         <button onclick={() => choose(d)}>
           <span class="grow">
-            <strong>{d.name}</strong>
+            <span class="row between"><strong>{d.name}</strong><span class="price">{formatTk(feeOf(d))}</span></span>
             <span class="muted small line">{d.specialty} · {m.bmdc()} <span class="mono">{d.bmdcNo}</span></span>
             {#if d.bio}<span class="muted small line">{d.bio}</span>{/if}
           </span>
-          <span class="mono small">{formatTk(feeOf(d))}</span>
         </button>
       {/each}
     </div>

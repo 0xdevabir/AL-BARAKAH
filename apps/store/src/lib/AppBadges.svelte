@@ -25,9 +25,7 @@
 
 <style>
   .stores { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px; }
-  .badge { display: block; line-height: 0; border-radius: 8px; transition: transform 0.12s var(--ease); }
+  .badge { display: block; line-height: 0; border-radius: 10px; }
   .badge img { width: 155px; height: 46px; }
-  a.badge:hover { transform: translateY(-1px); }
-  a.badge:active { transform: scale(0.97); }
   span.badge { cursor: default; }
 </style>

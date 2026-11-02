@@ -145,19 +145,19 @@
   .clock { display: flex; flex-direction: column; align-items: center; gap: 14px; }
   .paused { opacity: 0.4; pointer-events: none; }
   .days { display: flex; gap: 8px; width: 100%; }
-  .days button { flex: 1; min-height: 48px; border: 0; border-radius: 14px; background: var(--raised); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .days button { flex: 1; min-height: 48px; border: 0; border-radius: var(--r-sm); background: var(--raised); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); }
   .days button[aria-selected='true'] { background: var(--accent); color: var(--on-accent); }
   .face { position: relative; width: min(100%, 320px); aspect-ratio: 1; touch-action: none; border-radius: 50%; cursor: grab; }
   .face:active { cursor: grabbing; }
   svg { width: 100%; height: 100%; }
-  .dial { fill: var(--raised); stroke: #2b3d2a; stroke-width: 1.2; }
-  .tick { stroke: #2b3d2a; stroke-width: 0.6; stroke-linecap: round; opacity: 0.35; }
+  .dial { fill: var(--raised); stroke: var(--forest); stroke-width: 1.2; }
+  .tick { stroke: var(--forest); stroke-width: 0.6; stroke-linecap: round; opacity: 0.35; }
   .tick.major { stroke-width: 1.1; opacity: 0.7; }
   .hand { transform-origin: 50px 50px; transition: transform 0.18s var(--ease); }
-  .hand line { stroke: #2b3d2a; stroke-width: 1.5; stroke-linecap: round; }
-  .pin { fill: #2b3d2a; }
+  .hand line { stroke: var(--forest); stroke-width: 1.5; stroke-linecap: round; }
+  .pin { fill: var(--forest); }
   .face button { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font: inherit; font-weight: 650; font-size: 0.95rem; cursor: pointer; }
-  .face button[aria-checked='true'] { background: #2b3d2a; color: #fbfbfa; }
+  .face button[aria-checked='true'] { background: var(--forest); color: var(--on-accent); }
   .when { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 1.35rem; }
   .when span { color: var(--muted); font-size: 1rem; }
   @media (prefers-reduced-motion: reduce) { .hand { transition: none; } }

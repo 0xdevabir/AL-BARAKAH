@@ -102,24 +102,24 @@
 </div>
 
 <style>
-  .home { --forest: #2b3d2a; display: flex; flex-direction: column; gap: 28px; width: 100%; max-width: 1320px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top)) 16px 32px; }
+  .home { display: flex; flex-direction: column; gap: 36px; width: 100%; max-width: 1320px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 20px 40px; }
   section { scroll-margin-top: 88px; }
 
-  .phone-top { display: flex; flex-direction: column; gap: 10px; }
+  .phone-top { display: flex; flex-direction: column; gap: 16px; }
   .logo { font-size: 1.12rem; }
   .sign { font-size: 1rem; font-weight: 700; }
 
   .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .lead { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 20px; overflow: hidden; border-radius: var(--r-lg); background: var(--forest); color: #fff; }
+  .lead { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 24px; overflow: hidden; border-radius: var(--r-lg); background: var(--forest); color: #fff; box-shadow: var(--shadow); }
   .lead-text { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-  h1 { font-size: clamp(2.1rem, 9vw, 4rem); line-height: 1.02; font-weight: 700; letter-spacing: -0.035em; text-wrap: balance; }
+  h1 { font-size: clamp(1.85rem, 7vw, 2.75rem); line-height: 1.12; font-weight: 700; letter-spacing: -0.03em; text-wrap: balance; }
   .lead p { max-width: 46ch; color: #d5dfd1; }
-  .cta { display: inline-flex; align-items: center; min-height: 48px; margin-top: 4px; padding: 0 20px; border-radius: 14px; background: #fff; color: var(--forest); font-weight: 600; transition: background 0.15s; }
+  .cta { display: inline-flex; align-items: center; min-height: 48px; margin-top: 4px; padding: 0 20px; border-radius: var(--r-sm); background: #fff; color: var(--forest); font-weight: 600; transition: background 0.15s; }
   .cta:hover { background: var(--sage-soft); }
   .packs { display: none; }
 
-  .tile { display: flex; flex-direction: column; gap: 2px; min-height: 132px; padding: 16px; border-radius: var(--r-lg); transition: filter 0.15s; }
-  .tile:hover { filter: brightness(0.97); }
+  .tile { display: flex; flex-direction: column; gap: 6px; min-height: 148px; padding: 20px; border-radius: var(--r-lg); box-shadow: var(--shadow); }
+  .tile .small { font-size: 1rem; line-height: 1.35; }
   .tile strong { line-height: 1.2; }
   .big { margin-top: auto; font-size: clamp(1.6rem, 6vw, 2.4rem); line-height: 1.1; font-weight: 700; letter-spacing: -0.03em; }
   .urgent { background: var(--warn-soft); color: #5e3d00; }
@@ -131,15 +131,15 @@
   .head a:hover { text-decoration: underline; }
 
   /* Two rows that swipe sideways on a phone, so the medicines are not pushed far down. */
-  .cat-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 136px; grid-template-rows: 1fr 1fr; gap: 8px; margin: 0 -16px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
-  .cat { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px; border-radius: var(--r); background: var(--raised); transition: background 0.15s; }
+  .cat-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 156px; grid-template-rows: 1fr 1fr; gap: 12px; margin: 0 -20px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .cat { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); transition: background 0.15s; }
   .cat:hover { background: var(--sage-soft); }
   .cat-name { flex: 1; font-size: 0.925rem; font-weight: 600; line-height: 1.2; }
   .icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--sage-soft); color: var(--accent-ink); }
   .cat:hover .icon { background: var(--raised); }
 
-  .companies { display: flex; gap: 8px; margin: 0 -16px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
-  .companies a { flex: 1 0 auto; display: grid; place-items: center; min-height: 52px; padding: 0 20px; border-radius: var(--r-sm); background: var(--raised); font-weight: 600; transition: background 0.15s; }
+  .companies { display: flex; gap: 12px; margin: 0 -20px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .companies a { flex: 1 0 auto; display: grid; place-items: center; min-height: 56px; padding: 0 20px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); font-weight: 600; transition: background 0.15s; }
   .companies a:hover { background: var(--sage-soft); }
 
   .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -147,13 +147,13 @@
   .foot nav a:hover { color: var(--accent-ink); text-decoration: underline; }
 
   @media (min-width: 900px) {
-    .home { gap: 40px; padding: 20px 24px 32px; }
+    .home { gap: 48px; padding: 28px 28px 48px; }
     .phone-top { display: none; }
     .hero { grid-template-columns: 3fr 1fr; gap: 14px; }
     .lead { grid-column: 1; grid-row: 1 / span 2; padding: 40px; min-height: 340px; }
     .tile { padding: 20px; }
     h2 { font-size: 1.6rem; }
-    .cat-grid { grid-auto-flow: row; grid-template-rows: none; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); margin: 0; padding: 0; gap: 10px; }
+    .cat-grid { grid-auto-flow: row; grid-template-rows: none; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); margin: 0; padding: 0; gap: 12px; }
     .cat { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 10px; }
     .cat-name { flex: 1 1 calc(100% - 50px); min-width: 0; }
     .cat .muted { display: none; }

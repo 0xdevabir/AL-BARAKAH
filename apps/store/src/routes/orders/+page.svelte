@@ -30,7 +30,7 @@
       {#each orders as o (o.id)}
         <a href="/orders/{o.id}" class="chev">
           <span class="grow">
-            <span class="row between"><strong>{o.items[0] ? `${o.items[0].nameSnapshot}` : o.code}</strong><span class="mono small">{formatTk(o.totalPoisha)}</span></span>
+            <span class="row between"><strong>{o.items[0] ? `${o.items[0].nameSnapshot}` : o.code}</strong><span class="price">{formatTk(o.totalPoisha)}</span></span>
             <span class="muted small line">{statusLabel(o.status)} · {fmtWhen(o.promisedBy)}</span>
           </span>
         </a>

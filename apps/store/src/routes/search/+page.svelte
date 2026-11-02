@@ -50,9 +50,9 @@
 
 <style>
   .wide { max-width: 1320px; }
-  .find { border: 0; background: rgb(118 118 128 / 0.12); box-shadow: none; border-radius: 12px; }
+  .find { background: var(--raised); box-shadow: var(--shadow); border-radius: var(--r-sm); }
   .results { margin-top: 16px; }
-  .chips { display: flex; gap: 8px; margin: 12px -16px 0; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+  .chips { display: flex; gap: 10px; margin: 16px -20px 0; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
   .chips a { flex: none; }
   .chips a:not(.primary) { background: var(--raised); }
   @media (min-width: 900px) {

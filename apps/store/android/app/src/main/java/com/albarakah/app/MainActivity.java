@@ -12,7 +12,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WebView webView = getBridge().getWebView();
-        webView.setBackgroundColor(Color.parseColor("#F1F1F1"));
+        webView.setBackgroundColor(Color.parseColor("#F4F1E8"));
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);
@@ -23,3 +23,4 @@ public class MainActivity extends BridgeActivity {
         settings.setDisplayZoomControls(false);
     }
 }
+

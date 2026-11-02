@@ -87,7 +87,7 @@
             <strong>{med.name} {med.strength}</strong>
             <span class="muted small">{med.genericName} · {med.form}{med.packSize ? ` · ${med.packSize}` : ''}</span>
           </span>
-          <span class="mono small">{formatTk(med.pricePoisha)}</span>
+          <span class="price">{formatTk(med.pricePoisha)}</span>
         </a>
       {/each}
       <a class="item all" class:on={active === seeAllIndex} role="option" aria-selected={active === seeAllIndex} href="/search?q={encodeURIComponent(term)}" onclick={() => (open = false)}>{m.see_all_results({ query: term })}</a>
@@ -97,7 +97,7 @@
 
 <style>
   .box { position: relative; }
-  .list { position: absolute; z-index: 20; inset: calc(100% + 6px) 0 auto; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); box-shadow: 0 10px 28px rgb(0 0 0 / 0.16); }
+  .list { position: absolute; z-index: 20; inset: calc(100% + 8px) 0 auto; overflow: hidden; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow), 0 12px 28px rgb(40 36 24 / 0.08); }
   .item { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; }
   .item:hover, .item.on { background: var(--raised); }
   .item img, .blank { flex: none; width: 36px; height: 36px; border-radius: 10px; object-fit: contain; background: var(--sage-soft); }

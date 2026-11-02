@@ -89,17 +89,18 @@
   .shell { min-height: 100dvh; }
   :global(html[data-intro='1']) .held { pointer-events: none; }
   :global(html[data-intro='1']) { overflow: hidden; }
-  .content { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+  .content { padding-bottom: calc(176px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
-  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 0.5px solid rgb(60 60 67 / 0.22); background: rgb(249 249 249 / 0.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
-  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 49px; justify-content: flex-end; color: #8e8e93; font-size: 10px; font-weight: 500; letter-spacing: 0.01em; touch-action: manipulation; }
-  .glyph { display: grid; place-items: center; width: 54px; height: 32px; border-radius: 16px; transition: transform 0.12s var(--ease); }
-  .tabs a:active .glyph { transform: scale(0.9); }
+  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom)); background: var(--raised); box-shadow: 0 -1px 0 var(--line), 0 -8px 24px rgb(40 36 24 / 0.05); }
+  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 54px; justify-content: flex-end; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.15; text-align: center; touch-action: manipulation; }
+  .glyph { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; }
   .tabs a.on { color: var(--accent-ink); }
   .tabs a.on .glyph { background: var(--sage-soft); }
   .tabs a.on svg { stroke-width: 2.2; }
-  .cartbar { position: fixed; z-index: 9; inset: auto 12px calc(78px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
-  .count { display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 8px; background: rgb(255 255 255 / 0.22); font-size: 0.85rem; }
+  .cartbar { position: fixed; z-index: 9; inset: auto 20px calc(86px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 18px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: var(--shadow), 0 10px 24px rgb(47 67 48 / 0.18); }
+  .count { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 10px; background: rgb(255 255 255 / 0.22); font-size: 0.95rem; }
+  :global(main:has(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
+  .content:global(:has(.dock)) { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
 
   @media (min-width: 900px) {
     /* The top header takes over navigation and the cart on big screens. */

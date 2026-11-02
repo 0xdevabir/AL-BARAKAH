@@ -121,11 +121,11 @@
     <h2 class="section">{m.items()}</h2>
     <div class="group">
       {#each order.items as i (i.id)}
-        <div class="between"><span>{i.nameSnapshot} × {i.qty}</span><span class="mono">{formatTk(i.unitPricePoisha * i.qty)}</span></div>
+        <div class="between"><span>{i.nameSnapshot} × {i.qty}</span><span class="price">{formatTk(i.unitPricePoisha * i.qty)}</span></div>
       {/each}
-      <div class="between"><span>{m.delivery_fee()}</span><span class="mono">{formatTk(order.deliveryFeePoisha)}</span></div>
-      {#if order.emergencyFeePoisha}<div class="between"><span>{m.emergency_fee()}</span><span class="mono">{formatTk(order.emergencyFeePoisha)}</span></div>{/if}
-      <div class="between"><strong>{m.total()}</strong><strong class="mono">{formatTk(order.totalPoisha)}</strong></div>
+      <div class="between"><span>{m.delivery_fee()}</span><span class="price">{formatTk(order.deliveryFeePoisha)}</span></div>
+      {#if order.emergencyFeePoisha}<div class="between"><span>{m.emergency_fee()}</span><span class="price">{formatTk(order.emergencyFeePoisha)}</span></div>{/if}
+      <div class="between"><strong>{m.total()}</strong><strong class="price">{formatTk(order.totalPoisha)}</strong></div>
     </div>
 
     <div class="card stack small">

@@ -36,8 +36,9 @@
   .sheet-body { padding: 8px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
   .grab { width: 36px; height: 5px; margin: 0 auto 12px; border-radius: 3px; background: var(--line); }
   h2 { margin: 0 0 16px; font-size: 1.15rem; }
-  @keyframes rise { from { transform: translateY(100%); } }
+  @keyframes settle { from { opacity: 0; } }
   @media (min-width: 720px) {
     .sheet { inset: 0; margin: auto; height: fit-content; border-radius: var(--r-lg); }
   }
 </style>
+

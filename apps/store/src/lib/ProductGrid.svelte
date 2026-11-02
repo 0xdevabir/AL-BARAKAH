@@ -96,10 +96,10 @@
 </div>
 
 <style>
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); gap: 14px; }
   .ghost { aspect-ratio: 3 / 4.300; border-radius: var(--r); background: var(--raised); animation: pulse 1.2s ease-in-out infinite; }
   .foot { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
   .sentinel { width: 1px; height: 1px; }
   @keyframes pulse { 50% { opacity: 0.5; } }
-  @media (min-width: 900px) { .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; } }
+  @media (min-width: 900px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; } }
 </style>

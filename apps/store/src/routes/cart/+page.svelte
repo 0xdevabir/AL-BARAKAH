@@ -19,7 +19,7 @@
           <FormGlyph form={l.form} />
           <div class="grow">
             <strong>{l.name} {l.strength}</strong>
-            <div class="mono small muted">{formatTk(l.pricePoisha * l.qty)}</div>
+            <div class="price">{formatTk(l.pricePoisha * l.qty)}</div>
           </div>
           <Stepper qty={l.qty} label={l.name} onchange={(q) => cart.setQty(l.id, q)} />
         </div>
@@ -33,6 +33,6 @@
 </div>
 
 <style>
-  .sum { display: block; font-size: 1.15rem; }
+  .sum { display: block; font-size: 1.45rem; font-weight: 700; }
 </style>
 

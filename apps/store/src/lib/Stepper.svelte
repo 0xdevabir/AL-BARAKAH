@@ -9,7 +9,7 @@
 </div>
 
 <style>
-  .stepper { display: flex; align-items: center; flex: none; border-radius: 11px; background: var(--surface); }
-  button { width: 38px; height: 38px; border: 0; background: none; color: var(--ink); font-size: 1.2rem; cursor: pointer; touch-action: manipulation; }
-  output { min-width: 20px; text-align: center; font-size: 0.9rem; }
+  .stepper { display: flex; align-items: center; flex: none; border-radius: var(--r-sm); background: var(--surface); }
+  button { width: 44px; height: 44px; border: 0; background: none; color: var(--ink); font-size: 1.25rem; cursor: pointer; touch-action: manipulation; }
+  output { min-width: 22px; text-align: center; font-size: 1rem; font-weight: 700; }
 </style>

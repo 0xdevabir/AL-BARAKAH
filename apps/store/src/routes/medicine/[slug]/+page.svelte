@@ -54,7 +54,7 @@
 <style>
   .back { align-self: flex-start; padding-left: 0; }
   .name { font-size: 1.5rem; line-height: 1.2; }
-  .price { font-size: 1.4rem; }
+  .price { font-size: 1.7rem; font-weight: 700; }
   .photo { flex: none; width: 96px; height: 96px; border-radius: 18px; object-fit: contain; background: var(--sage-soft); }
   .between { justify-content: space-between; }
   .between span:last-child { text-align: right; }

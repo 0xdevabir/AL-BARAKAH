@@ -38,15 +38,14 @@
 
 <style>
   /* Long lists stay smooth: the browser skips drawing cards that are off screen. */
-  .card-item { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 10px; border-radius: var(--r); background: var(--raised); content-visibility: auto; contain-intrinsic-size: auto 340px; }
+  .card-item { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 14px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); content-visibility: auto; contain-intrinsic-size: auto 340px; }
   .link { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; border-radius: var(--r-sm); }
-  .shot { position: relative; display: grid; place-items: center; aspect-ratio: 1; margin-bottom: 8px; border-radius: var(--r-sm); background: #fff; overflow: hidden; }
-  .shot img { width: 100%; height: 100%; padding: 8px; object-fit: contain; transition: transform 0.25s var(--ease); }
-  .link:hover img { transform: scale(1.04); }
+  .shot { position: relative; display: grid; place-items: center; aspect-ratio: 1; margin-bottom: 8px; border-radius: var(--r-sm); background: var(--bg); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; padding: 10px; object-fit: contain; }
   .rx { position: absolute; top: 6px; left: 6px; }
   .name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font-weight: 600; line-height: 1.25; }
   .link:hover .name { color: var(--accent-ink); }
   .clamp { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .buy { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; min-height: 38px; }
-  .price { font-weight: 600; }
+  .price { font-size: 1.2rem; font-weight: 700; }
 </style>

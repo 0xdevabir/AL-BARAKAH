@@ -91,7 +91,7 @@
     .quick a:hover { background: var(--surface); }
     .quick a.on { color: var(--accent-ink); font-weight: 600; background: var(--sage-soft); }
 
-    .mega { position: absolute; top: 100%; left: 50%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: min(1272px, calc(100vw - 48px)); max-height: calc(100dvh - 140px); padding: 12px; overflow-y: auto; transform: translateX(-50%); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 var(--r) var(--r); background: var(--raised); box-shadow: 0 18px 36px rgb(0 0 0 / 0.14); }
+    .mega { position: absolute; top: 100%; left: 50%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: min(1272px, calc(100vw - 48px)); max-height: calc(100dvh - 140px); padding: 12px; overflow-y: auto; transform: translateX(-50%); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 var(--r) var(--r); background: var(--raised); box-shadow: var(--shadow), 0 16px 32px rgb(40 36 24 / 0.08); }
     .mega a { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 6px 10px; border-radius: var(--r-sm); font-size: 0.95rem; }
     .mega a:hover { background: var(--bg); }
     .icon { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 11px; background: var(--sage-soft); color: var(--accent-ink); }

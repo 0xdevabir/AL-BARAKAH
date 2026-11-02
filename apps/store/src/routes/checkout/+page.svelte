@@ -157,10 +157,10 @@
     </label>
     <label class="field"><span>{m.notes()}</span><textarea class="input" bind:value={notes} maxlength="300"></textarea></label>
     <div class="group">
-      <div class="between"><span>{m.subtotal()}</span><span class="mono">{formatTk(cart.subtotal)}</span></div>
-      <div class="between"><span>{m.delivery_fee()}</span><span class="mono">{formatTk(deliveryFee)}</span></div>
-      {#if emergencyFee}<div class="between"><span>{m.emergency_fee()}</span><span class="mono">{formatTk(emergencyFee)}</span></div>{/if}
-      <div class="between"><strong>{m.total()}</strong><strong class="mono">{formatTk(total)}</strong></div>
+      <div class="between"><span>{m.subtotal()}</span><span class="price">{formatTk(cart.subtotal)}</span></div>
+      <div class="between"><span>{m.delivery_fee()}</span><span class="price">{formatTk(deliveryFee)}</span></div>
+      {#if emergencyFee}<div class="between"><span>{m.emergency_fee()}</span><span class="price">{formatTk(emergencyFee)}</span></div>{/if}
+      <div class="between"><strong>{m.total()}</strong><strong class="price">{formatTk(total)}</strong></div>
     </div>
   {/if}
 
@@ -201,6 +201,6 @@
   .between { justify-content: space-between; }
   .mark { flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); }
   .mark.on { background: var(--accent); box-shadow: none; }
-  .sum { display: block; font-size: 1.15rem; }
+  .sum { display: block; font-size: 1.45rem; font-weight: 700; }
   .file { padding-top: 11px; }
 </style>
