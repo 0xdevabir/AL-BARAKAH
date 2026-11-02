@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, Inject, Module, Post, Req, Res } from '@nestjs/common';
+import { RouteConfig } from '@nestjs/platform-fastify';
 import { otpRequestSchema, otpVerifySchema, totpCodeSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -12,7 +13,8 @@ import { AuthService, type Session } from './auth.service.js';
 
 const COOKIE = 'albarakah_refresh';
 const THIRTY_DAYS = 30 * 24 * 3600;
-const otpLimit = { config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } };
+/** Per IP, on top of the per-phone limits in AuthService. */
+const StrictLimit = () => RouteConfig({ rateLimit: { max: 10, timeWindow: '10 minutes' } });
 
 /**
  * Web keeps the refresh token in an httpOnly cookie that scripts cannot read. The Capacitor app has
@@ -47,6 +49,7 @@ export class AuthController {
   }
 
   @Public()
+  @StrictLimit()
   @Post('otp/request')
   async request(@Body(new ZodPipe(otpRequestSchema)) body: z.output<typeof otpRequestSchema>) {
     await this.auth.requestOtp(body.phone);
@@ -54,6 +57,7 @@ export class AuthController {
   }
 
   @Public()
+  @StrictLimit()
   @Post('otp/verify')
   @HttpCode(200)
   async verify(
@@ -100,6 +104,7 @@ export class AuthController {
   }
 
   @Authenticated()
+  @StrictLimit()
   @Post('totp/verify')
   @HttpCode(200)
   async totpVerify(
@@ -116,5 +121,3 @@ export class AuthController {
 
 @Module({ controllers: [AuthController], providers: [AuthService, SmsService], exports: [AuthService, SmsService] })
 export class AuthModule {}
-
-export { otpLimit };

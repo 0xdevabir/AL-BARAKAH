@@ -1,0 +1,7 @@
+import { createApp } from './bootstrap.js';
+import { loadEnv } from './config/env.js';
+
+const env = loadEnv();
+const app = await createApp(env);
+await app.listen(env.PORT, '0.0.0.0');
+console.log(`API (${env.SERVICE_ROLE}) listening on :${env.PORT}`);
