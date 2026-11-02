@@ -164,6 +164,10 @@ export class OrdersService {
         for (const a of allocations) await tx.batch.update({ where: { id: a.batchId }, data: { qtyRemaining: { increment: a.qty } } });
         await tx.orderAllocation.deleteMany({ where: { orderItem: { orderId } } });
       }
+      // A bKash order stopped after payment still holds the customer's money, so an admin must refund it.
+      if ((to === 'CANCELLED' || to === 'FAILED') && order.paymentStatus === 'PAID') {
+        await tx.auditLog.create({ data: { actorId, action: 'payment.needs_refund', entity: 'Order', entityId: orderId } });
+      }
       if (to === 'DELIVERED') {
         await tx.riderLedgerEntry.create({ data: { riderId: order.riderId!, orderId, type: 'EARNING', amountPoisha: order.riderPayoutPoisha } });
         if (order.paymentMethod === 'COD') {

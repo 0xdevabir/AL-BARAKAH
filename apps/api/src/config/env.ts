@@ -14,6 +14,8 @@ const schema = z.object({
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
   S3_BUCKET: z.string().min(1),
+  /** Address phones use for signed file links, such as https://files.example.com. Defaults to the internal one. */
+  S3_PUBLIC_URL: z.url().optional(),
   JWT_SECRET: secret,
   OTP_PEPPER: secret,
   TOTP_ENCRYPTION_KEY: secret,

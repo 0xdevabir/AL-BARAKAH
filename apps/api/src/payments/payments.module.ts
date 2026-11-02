@@ -80,7 +80,12 @@ export class PaymentsService {
       const claimed = await tx.payment.updateMany({ where: { id: paymentId, status: { not: 'PAID' } }, data: { status: 'PAID', trxId } });
       if (claimed.count === 0) return;
       const p = await tx.payment.findUniqueOrThrow({ where: { id: paymentId } });
-      if (p.orderId) await tx.order.update({ where: { id: p.orderId }, data: { paymentStatus: 'PAID' } });
+      if (p.orderId) {
+        const o = await tx.order.update({ where: { id: p.orderId }, data: { paymentStatus: 'PAID' } });
+        if (o.status === 'CANCELLED' || o.status === 'FAILED') {
+          await tx.auditLog.create({ data: { action: 'payment.needs_refund', entity: 'Payment', entityId: p.id, data: { orderId: o.id } } });
+        }
+      }
       if (p.consultationId) {
         await tx.consultation.updateMany({ where: { id: p.consultationId, status: 'HOLD' }, data: { status: 'CONFIRMED', holdExpiresAt: null } });
         const c = await tx.consultation.findUniqueOrThrow({ where: { id: p.consultationId } });
