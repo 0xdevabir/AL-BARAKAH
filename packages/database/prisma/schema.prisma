@@ -72,6 +72,8 @@ enum LedgerType {
 model User {
   id          String   @id @default(cuid())
   phone       String   @unique
+  /// Optional login address; phone stays required for delivery and account identity.
+  email       String?  @unique
   name        String   @default("")
   role        Role     @default(CUSTOMER)
   isActive    Boolean  @default(true)

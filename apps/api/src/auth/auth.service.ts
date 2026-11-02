@@ -7,6 +7,7 @@ import { AppError, badRequest, unauthorized } from '../common/errors.js';
 import { PRISMA } from '../common/infra.module.js';
 import { type AuthUser, TokenService } from '../common/auth.js';
 import { ENV, type Env } from '../config/env.js';
+import { MailService } from '../notifications/mail.service.js';
 import { SmsService } from '../notifications/sms.service.js';
 
 const OTP_TTL_MS = 5 * 60_000;
@@ -28,7 +29,7 @@ const sha256 = (v: string) => createHash('sha256').update(v).digest('hex');
 export interface Session {
   accessToken: string;
   refreshToken: string;
-  user: { id: string; phone: string; name: string; role: Role; totpEnabled: boolean; mfa: boolean };
+  user: { id: string; phone: string; email: string | null; name: string; role: Role; totpEnabled: boolean; mfa: boolean };
 }
 
 @Injectable()
@@ -40,6 +41,7 @@ export class AuthService {
     @Inject(ENV) private readonly env: Env,
     private readonly tokens: TokenService,
     private readonly sms: SmsService,
+    private readonly mail: MailService,
   ) {
     this.totpKey = createHash('sha256').update(env.TOTP_ENCRYPTION_KEY).digest();
   }
@@ -89,6 +91,72 @@ export class AuthService {
     return this.issue(user.id, false, randomBytes(16).toString('hex'));
   }
 
+  /** Email login still binds a phone — every account needs a number for delivery and SMS alerts. */
+  async requestEmailOtp(email: string, phone: string): Promise<void> {
+    const since = new Date(Date.now() - OTP_WINDOW_MS);
+    const recent = await this.prisma.otpCode.count({ where: { phone: email, createdAt: { gte: since } } });
+    if (recent >= OTP_MAX_PER_WINDOW) throw new AppError(429, 'OTP_RATE_LIMITED', 'Too many codes requested. Please try again in a few minutes.');
+    const byEmail = await this.prisma.user.findUnique({ where: { email } });
+    const byPhone = await this.prisma.user.findUnique({ where: { phone } });
+    if (byEmail && byEmail.phone !== phone) {
+      throw badRequest('EMAIL_IN_USE', 'This email is already linked to a different mobile number');
+    }
+    if (byPhone?.email && byPhone.email !== email) {
+      throw badRequest('PHONE_IN_USE', 'This mobile number is already linked to a different email');
+    }
+    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    // OtpCode.phone stores the destination key for both SMS and email codes.
+    await this.prisma.otpCode.create({
+      data: { phone: email, codeHash: this.hashOtp(email, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) },
+    });
+    await this.mail.send(email, 'Your AL-BARAKAH verification code', `Your AL-BARAKAH verification code is ${code}. It expires in 5 minutes.`);
+  }
+
+  async verifyEmailOtp(email: string, phone: string, code: string, name?: string): Promise<Session> {
+    const otp = await this.prisma.otpCode.findFirst({
+      where: { phone: email, consumedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+    const invalid = () => badRequest('OTP_INVALID', 'That code is incorrect or has expired');
+    if (!otp) throw invalid();
+    const counted = await this.prisma.otpCode.updateMany({
+      where: { id: otp.id, attempts: { lt: OTP_MAX_ATTEMPTS }, consumedAt: null },
+      data: { attempts: { increment: 1 } },
+    });
+    if (counted.count === 0) throw invalid();
+    const a = Buffer.from(otp.codeHash, 'hex');
+    const b = Buffer.from(this.hashOtp(email, code), 'hex');
+    if (!timingSafeEqual(a, b)) throw invalid();
+    const consumed = await this.prisma.otpCode.updateMany({ where: { id: otp.id, consumedAt: null }, data: { consumedAt: new Date() } });
+    if (consumed.count === 0) throw invalid();
+
+    const byEmail = await this.prisma.user.findUnique({ where: { email } });
+    const byPhone = await this.prisma.user.findUnique({ where: { phone } });
+    if (byEmail && byPhone && byEmail.id !== byPhone.id) {
+      throw badRequest('ACCOUNT_CONFLICT', 'This email and mobile number belong to different accounts');
+    }
+    if (byEmail && byEmail.phone !== phone) {
+      throw badRequest('EMAIL_IN_USE', 'This email is already linked to a different mobile number');
+    }
+    if (byPhone?.email && byPhone.email !== email) {
+      throw badRequest('PHONE_IN_USE', 'This mobile number is already linked to a different email');
+    }
+
+    const user = byPhone
+      ? await this.prisma.user.update({
+          where: { id: byPhone.id },
+          data: {
+            email,
+            ...(name && !byPhone.name ? { name } : {}),
+          },
+        })
+      : await this.prisma.user.create({
+          data: { phone, email, name: name ?? '', role: 'CUSTOMER' },
+        });
+    if (!user.isActive) throw new AppError(403, 'ACCOUNT_DISABLED', 'This account has been disabled');
+    return this.issue(user.id, false, randomBytes(16).toString('hex'));
+  }
+
   /** Only reachable when DEMO_LOGIN is on. The demo admin skips TOTP so testers get straight in. */
   async demoLogin(role: keyof typeof DEMO_PHONES): Promise<Session> {
     const user = await this.prisma.user.findFirst({ where: { phone: DEMO_PHONES[role], role, isActive: true } });
@@ -106,7 +174,7 @@ export class AuthService {
     return {
       accessToken: await this.tokens.sign(auth),
       refreshToken,
-      user: { id: user.id, phone: user.phone, name: user.name, role: user.role, totpEnabled: user.totpEnabled, mfa },
+      user: { id: user.id, phone: user.phone, email: user.email, name: user.name, role: user.role, totpEnabled: user.totpEnabled, mfa },
     };
   }
 

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Inject, Module, Post, Req, Res } from '@nestjs/common';
 import { RouteConfig } from '@nestjs/platform-fastify';
-import { otpRequestSchema, otpVerifySchema, totpCodeSchema } from '@albarakah/contracts';
+import { emailOtpRequestSchema, emailOtpVerifySchema, otpRequestSchema, otpVerifySchema, totpCodeSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { Authenticated, type AuthUser, CurrentUser, Public } from '../common/aut
 import { AppError, forbidden, unauthorized, ZodPipe } from '../common/errors.js';
 import { PRISMA } from '../common/infra.module.js';
 import { ENV, type Env } from '../config/env.js';
+import { MailService } from '../notifications/mail.service.js';
 import { SmsAdminController } from '../notifications/sms.controller.js';
 import { SmsService } from '../notifications/sms.service.js';
 import { AuthService, DEMO_PHONES, type Session } from './auth.service.js';
@@ -72,6 +73,27 @@ export class AuthController {
   ) {
     this.assertOrigin(req);
     return this.respond(req, res, await this.auth.verifyOtp(body.phone, body.code, body.name));
+  }
+
+  @Public()
+  @OtpLimit()
+  @Post('otp/email/request')
+  async requestEmail(@Body(new ZodPipe(emailOtpRequestSchema)) body: z.output<typeof emailOtpRequestSchema>) {
+    await this.auth.requestEmailOtp(body.email, body.phone);
+    return { ok: true };
+  }
+
+  @Public()
+  @OtpLimit()
+  @Post('otp/email/verify')
+  @HttpCode(200)
+  async verifyEmail(
+    @Body(new ZodPipe(emailOtpVerifySchema)) body: z.output<typeof emailOtpVerifySchema>,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    this.assertOrigin(req);
+    return this.respond(req, res, await this.auth.verifyEmailOtp(body.email, body.phone, body.code, body.name));
   }
 
   /** Empty unless DEMO_LOGIN is on, so the sign-in pages know whether to show the demo buttons. */
@@ -145,5 +167,5 @@ export class AuthController {
   }
 }
 
-@Module({ controllers: [AuthController, SmsAdminController], providers: [AuthService, SmsService], exports: [AuthService, SmsService] })
+@Module({ controllers: [AuthController, SmsAdminController], providers: [AuthService, SmsService, MailService], exports: [AuthService, SmsService, MailService] })
 export class AuthModule {}

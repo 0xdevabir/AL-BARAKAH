@@ -4,7 +4,7 @@ export class ApiError extends Error {
   }
 }
 
-export interface SessionUser { id: string; phone: string; name: string; role: 'CUSTOMER' | 'ADMIN' | 'RIDER' | 'DOCTOR'; mfa?: boolean; totpEnabled?: boolean }
+export interface SessionUser { id: string; phone: string; email?: string | null; name: string; role: 'CUSTOMER' | 'ADMIN' | 'RIDER' | 'DOCTOR'; mfa?: boolean; totpEnabled?: boolean }
 
 /** Where the native app keeps its refresh token. The web has no vault: it uses an httpOnly cookie. */
 export interface TokenVault { get(): Promise<string | null>; set(token: string | null): Promise<void> }
@@ -106,6 +106,15 @@ export class ApiClient {
 
   async verifyOtp(phone: string, code: string, name?: string) {
     await this.adopt(await this.post<Session>('/auth/otp/verify', { phone, code, ...(name ? { name } : {}) }));
+    return this.user!;
+  }
+
+  requestEmailOtp(email: string, phone: string) {
+    return this.post('/auth/otp/email/request', { email, phone });
+  }
+
+  async verifyEmailOtp(email: string, phone: string, code: string, name?: string) {
+    await this.adopt(await this.post<Session>('/auth/otp/email/verify', { email, phone, code, ...(name ? { name } : {}) }));
     return this.user!;
   }
 

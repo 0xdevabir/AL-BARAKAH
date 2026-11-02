@@ -12,6 +12,21 @@ export const otpVerifySchema = z.object({
   code: z.string().regex(/^\d{6}$/),
   name: z.string().trim().min(1).max(80).optional(),
 });
+
+/** Lower-case email used for the optional email OTP login path. */
+export const emailSchema = z.string().trim().toLowerCase().max(120).pipe(z.email('Enter a valid email address'));
+
+/** Email login still requires a Bangladeshi mobile — phone is mandatory on every account. */
+export const emailOtpRequestSchema = z.object({
+  email: emailSchema,
+  phone: phoneSchema,
+});
+export const emailOtpVerifySchema = z.object({
+  email: emailSchema,
+  phone: phoneSchema,
+  code: z.string().regex(/^\d{6}$/),
+  name: z.string().trim().min(1).max(80).optional(),
+});
 export const totpCodeSchema = z.object({ code: z.string().regex(/^\d{6}$/) });
 
 export const addressSchema = z.object({

@@ -22,8 +22,24 @@
   <div class="card form">
     <OtpLogin
       {api}
+      channels={['phone', 'email']}
       demoRoles={['CUSTOMER']}
-      labels={{ phone: m.phone(), phoneHint: m.phone_hint(), send: m.send_code(), code: m.code(), codeHint: m.code_hint(), verify: m.verify(), change: m.change_number(), invalidPhone: m.invalid_phone() }}
+      labels={{
+        phone: m.phone(),
+        phoneHint: m.phone_hint(),
+        phoneRequired: m.phone_required_email(),
+        send: m.send_code(),
+        code: m.code(),
+        codeHint: m.code_hint(),
+        verify: m.verify(),
+        change: m.change_number(),
+        invalidPhone: m.invalid_phone(),
+        email: m.email(),
+        emailHint: m.email_hint(),
+        invalidEmail: m.invalid_email(),
+        usePhone: m.use_phone(),
+        useEmail: m.use_email(),
+      }}
       ondone={() => goto(next(), { replace: true })}
     />
   </div>

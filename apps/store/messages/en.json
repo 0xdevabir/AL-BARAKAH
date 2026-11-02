@@ -101,7 +101,7 @@
   "join_meet": "Join Google Meet",
   "open_whatsapp": "Open WhatsApp",
   "sign_in": "Sign in",
-  "sign_in_body": "We will text a 6-digit code to your phone.",
+  "sign_in_body": "Sign in with your phone or email. A phone number is always required.",
   "phone": "Mobile number",
   "phone_hint": "Bangladeshi number, such as 017XXXXXXXX",
   "invalid_phone": "Enter a valid Bangladeshi mobile number",
@@ -129,5 +129,11 @@
   "android_app": "Get the Android app",
   "ios_app": "Download on the App Store",
   "ios_app_pending": "The iPhone app is not on the App Store yet",
-  "search_hint": "Type a name to find any medicine — only popular ones are listed here."
+  "search_hint": "Type a name to find any medicine — only popular ones are listed here.",
+  "email": "Email",
+  "email_hint": "We email a 6-digit code right away.",
+  "invalid_email": "Enter a valid email address",
+  "use_phone": "Phone",
+  "use_email": "Email",
+  "phone_required_email": "Required for delivery — Bangladeshi number such as 017XXXXXXXX"
 }

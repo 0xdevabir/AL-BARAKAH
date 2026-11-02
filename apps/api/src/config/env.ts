@@ -30,6 +30,12 @@ const schema = z.object({
   SMS_API_KEY: z.string().optional(),
   /** The sender ID approved on the BulkSMSBD account. */
   SMS_SENDER_ID: z.string().optional(),
+  EMAIL_PROVIDER: z.enum(['console', 'smtp']).default('console'),
+  EMAIL_FROM: z.email().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
   BKASH_MODE: z.enum(['fake', 'sandbox', 'live']).default('fake'),
   BKASH_APP_KEY: z.string().optional(),
   BKASH_APP_SECRET: z.string().optional(),
@@ -48,6 +54,9 @@ const schema = z.object({
     fail('bKash credentials are required unless BKASH_MODE=fake');
   }
   if (e.SMS_PROVIDER === 'bulksmsbd' && !(e.SMS_API_KEY && e.SMS_SENDER_ID)) fail('SMS_API_KEY and SMS_SENDER_ID are required when SMS_PROVIDER=bulksmsbd');
+  if (e.EMAIL_PROVIDER === 'smtp' && !(e.SMTP_HOST && e.SMTP_PORT && e.EMAIL_FROM)) {
+    fail('SMTP_HOST, SMTP_PORT and EMAIL_FROM are required when EMAIL_PROVIDER=smtp');
+  }
 });
 
 export type Env = z.infer<typeof schema>;
