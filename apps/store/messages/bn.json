@@ -115,5 +115,13 @@
   "remove": "মুছে ফেলুন",
   "retry": "আবার চেষ্টা করুন",
   "not_found": "পেজটি পাওয়া যায়নি",
-  "go_home": "হোমে যান"
+  "go_home": "হোমে যান",
+  "hero_sub": "{count}টি ওষুধ থেকে বেছে নিন, অথবা ব্র্যান্ড বা জেনেরিক নামে খুঁজুন।",
+  "minutes_short": "{minutes} মিনিট",
+  "emergency_extra": "অতিরিক্ত {fee}, আপনার দরজায়",
+  "doctor_promo_short": "ভিডিও বা হোয়াটসঅ্যাপ কল",
+  "see_all": "সব দেখুন",
+  "all_categories_menu": "সব ক্যাটাগরি",
+  "rx_tag": "প্রেসক্রিপশন",
+  "showing_count": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে"
 }

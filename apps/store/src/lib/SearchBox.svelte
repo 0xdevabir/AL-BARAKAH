@@ -85,7 +85,7 @@
           {#if med.imageUrl}<img src={med.imageUrl} alt="" width="36" height="36" decoding="async" referrerpolicy="no-referrer" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.visibility = 'hidden')} />{:else}<span class="blank"></span>{/if}
           <span class="grow text">
             <strong>{med.name} {med.strength}</strong>
-            <span class="muted small">{med.genericName} · {med.form}</span>
+            <span class="muted small">{med.genericName} · {med.form}{med.packSize ? ` · ${med.packSize}` : ''}</span>
           </span>
           <span class="mono small">{formatTk(med.pricePoisha)}</span>
         </a>

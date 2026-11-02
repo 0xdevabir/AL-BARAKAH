@@ -5,8 +5,9 @@
   import { page } from '$app/state';
   import { api, cart, MOBILE } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
+  import StoreHeader from '#lib/StoreHeader.svelte';
 
-  let { children }: { children: Snippet } = $props();
+  let { children, data }: { children: Snippet; data: { categories: { id: string; name: string; slug: string; count: number }[] } } = $props();
 
   const ICONS = {
     home: 'M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9Z',
@@ -57,8 +58,8 @@
 
 <div class="shell" class:bare={hideBar}>
   {#if !hideBar}
+    <StoreHeader links={tabs.slice(2)} categories={data.categories} />
     <nav class="tabs" aria-label="Main">
-      <span class="brand">AL-BARAKAH</span>
       {#each tabs as t (t.href)}
         <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined}>
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
@@ -82,20 +83,15 @@
   .shell { min-height: 100dvh; }
   .content { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
-  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 92%, transparent); }
-  .brand { display: none; }
+  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--bg); }
   .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; color: var(--muted); font-size: 0.68rem; font-weight: 500; transition: color 0.15s; }
   .tabs a.on { color: var(--accent-ink); }
   .cartbar { position: fixed; z-index: 9; inset: auto 12px calc(72px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
   .count { display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 8px; background: rgb(255 255 255 / 0.22); font-size: 0.85rem; }
 
   @media (min-width: 900px) {
-    .shell:not(.bare) { padding-left: 232px; }
-    .content { padding-bottom: 96px; }
-    .tabs { inset: 0 auto 0 0; flex-direction: column; gap: 4px; width: 232px; padding: 24px 12px; border-top: 0; border-right: 1px solid var(--line); }
-    .brand { display: block; padding: 0 12px 20px; font-weight: 700; letter-spacing: 0.02em; color: var(--accent-ink); }
-    .tabs a { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 0 12px; border-radius: 12px; font-size: 0.95rem; }
-    .tabs a.on { background: var(--surface); }
-    .cartbar { left: auto; right: 24px; bottom: 24px; width: 280px; }
+    /* The top header takes over navigation and the cart on big screens. */
+    .content { padding-bottom: 48px; }
+    .tabs, .cartbar { display: none; }
   }
 </style>

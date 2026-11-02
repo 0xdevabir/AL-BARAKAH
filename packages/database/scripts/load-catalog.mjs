@@ -7,7 +7,8 @@
  *   name, strength and price belong to a different product than their generic and form, and
  *   importing those would show customers the wrong drug.
  * - The same product is listed once, whatever its spelling: see productKey().
- * - On re-runs, price, stock, name and any category an admin chose stay as they are.
+ * - On re-runs, price, stock and name stay as they are, and so does a category an admin chose,
+ *   unless the source marks the product herbal.
  *
  * Opening stock is the source quantity when above zero, otherwise 24, in a batch named CATALOG
  * with a placeholder expiry, so the catalog can be browsed before real inventory is counted.
@@ -72,13 +73,14 @@ export function toProduct(raw) {
 async function readProducts() {
   const stats = { rows: 0, rejectedInconsistent: 0, rejectedNoPrice: 0, duplicates: 0 };
   const byKey = new Map();
+  const rejectedKeys = new Set();
   const lines = createInterface({ input: createReadStream(join(DATA, 'mediwhole.jsonl')) });
   for await (const line of lines) {
     if (!line) continue;
     stats.rows++;
     const raw = JSON.parse(line);
-    if (!isConsistent(raw)) { stats.rejectedInconsistent++; continue; }
     const p = toProduct(raw);
+    if (!isConsistent(raw)) { stats.rejectedInconsistent++; rejectedKeys.add(productKey(p)); continue; }
     if (!p.pricePoisha) { stats.rejectedNoPrice++; continue; }
     const key = productKey(p);
     const seen = byKey.get(key);
@@ -92,7 +94,8 @@ async function readProducts() {
   for (const p of byKey.values()) if (p.imageUrl) uses.set(p.imageUrl, (uses.get(p.imageUrl) ?? new Set()).add(compact(p.name)));
   let placeholders = 0;
   for (const p of byKey.values()) if (p.imageUrl && uses.get(p.imageUrl).size > 3) { p.imageUrl = ''; placeholders++; }
-  return { products: [...byKey.values()], stats: { ...stats, placeholders } };
+  for (const key of byKey.keys()) rejectedKeys.delete(key);
+  return { products: [...byKey.values()], rejectedKeys, stats: { ...stats, placeholders } };
 }
 
 function report(products, stats) {
@@ -104,7 +107,7 @@ function report(products, stats) {
 }
 
 async function main() {
-  const { products, stats } = await readProducts();
+  const { products, rejectedKeys, stats } = await readProducts();
   report(products, stats);
   if (DRY) return;
 
@@ -123,8 +126,15 @@ async function main() {
   }
   const curated = [...catIds.values()];
 
+  // The source's stand-in picture is not a product photo; showing nothing is more honest.
+  const noPhoto = await client.query(`UPDATE "Medicine" SET "imageUrl" = '', "updatedAt" = NOW() WHERE "imageUrl" LIKE '%/products/default.png'`);
+
   const existing = await client.query(`SELECT id, slug, name, strength, form, manufacturer, "genericName", "categoryId" FROM "Medicine" WHERE manufacturer <> $1`, [DEMO_MAKER]);
   const byKey = new Map(existing.rows.map((r) => [productKey(r), r]));
+
+  // Hidden, not deleted: a product that failed the integrity check may already be on an order.
+  const wrongIds = existing.rows.filter((r) => rejectedKeys.has(productKey(r))).map((r) => r.id);
+  const hidden = await client.query(`UPDATE "Medicine" SET "isActive" = false, "updatedAt" = NOW() WHERE id = ANY($1) AND "isActive"`, [wrongIds]);
   const slugs = new Set((await client.query(`SELECT slug FROM "Medicine"`)).rows.map((r) => r.slug));
 
   let inserted = 0;
@@ -138,9 +148,12 @@ async function main() {
         `UPDATE "Medicine" SET
            "imageUrl" = CASE WHEN "imageUrl" = '' THEN $2 ELSE "imageUrl" END,
            "packSize" = CASE WHEN "packSize" = '' THEN $3 ELSE "packSize" END,
-           popularity = GREATEST(popularity, $4), "updatedAt" = NOW()
+           popularity = GREATEST(popularity, $4),
+           "categoryId" = CASE WHEN $5 THEN $6 ELSE "categoryId" END,
+           "isRx" = CASE WHEN $5 THEN false ELSE "isRx" END,
+           "updatedAt" = NOW()
          WHERE id = $1`,
-        [found.id, p.imageUrl, p.packSize, p.popularity],
+        [found.id, p.imageUrl, p.packSize, p.popularity, p.category.name === 'Herbal & Natural', categoryId],
       );
       merged++;
       continue;
@@ -163,8 +176,11 @@ async function main() {
     inserted++;
   }
 
-  // Rows from before this taxonomy (one category per drug class) move into it.
-  const stale = await client.query(`SELECT id, "genericName", form FROM "Medicine" WHERE manufacturer <> $1 AND NOT ("categoryId" = ANY($2))`, [DEMO_MAKER, curated]);
+  // Rows from before this taxonomy move into it; the remainder is retried as the rules improve.
+  const stale = await client.query(
+    `SELECT id, "genericName", form FROM "Medicine" WHERE manufacturer <> $1 AND (NOT ("categoryId" = ANY($2)) OR "categoryId" = $3)`,
+    [DEMO_MAKER, curated, catIds.get('Other Medicines')],
+  );
   for (const row of stale.rows) {
     const { category, isRx } = categorize(row);
     await client.query(`UPDATE "Medicine" SET "categoryId" = $2, "isRx" = "isRx" OR $3, "updatedAt" = NOW() WHERE id = $1`, [row.id, catIds.get(category.name), isRx]);
@@ -172,13 +188,23 @@ async function main() {
 
   // Square publishes no prices, so it only supplies photos, for Square's own products.
   let squarePhotos = 0;
+  const squareFile = (url) => decodeURIComponent(url).toLowerCase();
+  const formHint = (form) => ['suppository', 'capsule', 'tablet', 'syrup', 'suspension', 'drop', 'injection', 'infusion', 'cream', 'ointment', 'gel', 'inhaler', 'inhal'].find((word) => form.toLowerCase().includes(word));
   for (const photo of JSON.parse(readFileSync(join(DATA, 'square.json'), 'utf8'))) {
-    const res = await client.query(
-      `UPDATE "Medicine" SET "imageUrl" = $1, "updatedAt" = NOW()
-       WHERE "imageUrl" = '' AND manufacturer ILIKE '%square%' AND regexp_replace(lower(name), '[^a-z0-9]', '', 'g') = $2`,
-      [photo.imageUrl, compact(photo.name)],
+    const file = squareFile(photo.imageUrl);
+    const { rows } = await client.query(
+      `SELECT id, form, strength FROM "Medicine"
+       WHERE "imageUrl" = '' AND manufacturer ILIKE '%square%' AND regexp_replace(lower(name), '[^a-z0-9]', '', 'g') = $1`,
+      [compact(photo.name)],
     );
-    squarePhotos += res.rowCount;
+    for (const row of rows) {
+      const hint = formHint(row.form);
+      const strength = (String(row.strength).match(/\d+(?:\.\d+)?/) || [''])[0];
+      if (hint && !file.includes(hint)) continue;
+      if (strength && !file.includes(strength)) continue;
+      await client.query(`UPDATE "Medicine" SET "imageUrl" = $1, "updatedAt" = NOW() WHERE id = $2 AND "imageUrl" = ''`, [photo.imageUrl, row.id]);
+      squarePhotos++;
+    }
   }
 
   // Demo rows have invented prices and would list real brands twice.
@@ -187,7 +213,7 @@ async function main() {
 
   await client.query('COMMIT');
   await client.end();
-  console.log(JSON.stringify({ inserted, merged, recategorised: stale.rowCount, squarePhotos, demoHidden: demo.rowCount, categoriesRemoved: emptied.rowCount }));
+  console.log(JSON.stringify({ inserted, merged, placeholderPhotosCleared: noPhoto.rowCount, wrongRowsHidden: hidden.rowCount, recategorised: stale.rowCount, squarePhotos, demoHidden: demo.rowCount, categoriesRemoved: emptied.rowCount }));
 }
 
 main().catch((err) => {

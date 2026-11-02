@@ -1,16 +1,16 @@
 {
-  "nodeCount": 392,
-  "edgeCount": 884,
+  "nodeCount": 469,
+  "edgeCount": 1093,
   "languages": [
     "java",
     "javascript",
     "typescript"
   ],
-  "totalCount": 392,
+  "totalCount": 469,
   "readyCount": 0,
-  "staleCount": 44,
-  "dirty": true,
+  "staleCount": 0,
+  "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-02T07:42:47.657Z",
-  "lastFile": "load-catalog.mjs"
+  "syncedAt": "2026-11-02T09:14:36.571Z",
+  "lastFile": ".audit-tmp.mjs"
 }

@@ -115,5 +115,13 @@
   "remove": "Remove",
   "retry": "Try again",
   "not_found": "We could not find that page",
-  "go_home": "Go home"
+  "go_home": "Go home",
+  "hero_sub": "Choose from {count} medicines, or search by brand or generic name.",
+  "minutes_short": "{minutes} min",
+  "emergency_extra": "{fee} extra, to your door",
+  "doctor_promo_short": "Video or WhatsApp call",
+  "see_all": "See all",
+  "all_categories_menu": "All categories",
+  "rx_tag": "Prescription",
+  "showing_count": "Showing {shown} of {total}"
 }
