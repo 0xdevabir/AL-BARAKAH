@@ -70,8 +70,9 @@ async function main() {
     }
   }
 
-  const user = (phone: string, name: string, role: 'ADMIN' | 'RIDER' | 'DOCTOR') =>
+  const user = (phone: string, name: string, role: 'CUSTOMER' | 'ADMIN' | 'RIDER' | 'DOCTOR') =>
     prisma.user.upsert({ where: { phone }, update: {}, create: { phone, name, role } });
+  await user('+8801700000004', 'Demo Customer', 'CUSTOMER');
   await user('+8801700000001', 'Demo Admin', 'ADMIN');
   await user('+8801700000002', 'Demo Rider', 'RIDER');
   const docUser = await user('+8801700000003', 'Dr. Demo Rahman', 'DOCTOR');

@@ -21,7 +21,9 @@ pnpm dev
 | Staff portals | http://localhost:5174 |
 | API | http://localhost:4000 |
 
-The seed creates demo accounts: admin `+8801700000001`, rider `+8801700000002` and doctor `+8801700000003`. In development, sign-in codes are printed in the API's log instead of being sent by SMS.
+The seed creates demo accounts: admin `+8801700000001`, rider `+8801700000002`, doctor `+8801700000003` and customer `+8801700000004`. With `DEMO_LOGIN=true`, the sign-in pages show one-tap buttons for them: Customer on the store, and Admin, Rider and Doctor on the staff site. The demo admin skips TOTP. The API refuses to start with this setting in production.
+
+In development, sign-in codes are printed in the API's log instead of being sent by SMS.
 
 ## Layout
 | Folder | Contents |

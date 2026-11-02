@@ -3,13 +3,15 @@ import { RouteConfig } from '@nestjs/platform-fastify';
 import { otpRequestSchema, otpVerifySchema, totpCodeSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { type z } from 'zod';
+import { z } from 'zod';
 import { Authenticated, type AuthUser, CurrentUser, Public } from '../common/auth.js';
-import { forbidden, unauthorized, ZodPipe } from '../common/errors.js';
+import { AppError, forbidden, unauthorized, ZodPipe } from '../common/errors.js';
 import { PRISMA } from '../common/infra.module.js';
 import { ENV, type Env } from '../config/env.js';
 import { SmsService } from '../notifications/sms.service.js';
-import { AuthService, type Session } from './auth.service.js';
+import { AuthService, DEMO_PHONES, type Session } from './auth.service.js';
+
+const demoLoginSchema = z.object({ role: z.enum(['CUSTOMER', 'ADMIN', 'RIDER', 'DOCTOR']) });
 
 const COOKIE = 'albarakah_refresh';
 const THIRTY_DAYS = 30 * 24 * 3600;
@@ -69,6 +71,27 @@ export class AuthController {
   ) {
     this.assertOrigin(req);
     return this.respond(req, res, await this.auth.verifyOtp(body.phone, body.code, body.name));
+  }
+
+  /** Empty unless DEMO_LOGIN is on, so the sign-in pages know whether to show the demo buttons. */
+  @Public()
+  @Get('demo-accounts')
+  demoAccounts() {
+    return { roles: this.env.DEMO_LOGIN ? Object.keys(DEMO_PHONES) : [] };
+  }
+
+  @Public()
+  @OtpLimit()
+  @Post('demo-login')
+  @HttpCode(200)
+  async demoLogin(
+    @Body(new ZodPipe(demoLoginSchema)) body: z.output<typeof demoLoginSchema>,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    if (!this.env.DEMO_LOGIN) throw new AppError(404, 'NOT_FOUND', 'Not found');
+    this.assertOrigin(req);
+    return this.respond(req, res, await this.auth.demoLogin(body.role));
   }
 
   @Public()

@@ -45,6 +45,7 @@
   {:else if !api.user}
     <OtpLogin
       {api}
+      demoRoles={['ADMIN', 'RIDER', 'DOCTOR']}
       labels={{ phone: 'Mobile number', phoneHint: 'The number your admin registered', send: 'Send code', code: '6-digit code', codeHint: 'The code expires in 5 minutes.', verify: 'Verify', change: 'Use a different number', invalidPhone: 'Enter a valid Bangladeshi mobile number' }}
       ondone={route}
     />

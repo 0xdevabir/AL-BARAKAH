@@ -62,7 +62,7 @@ beforeAll(async () => {
   process.loadEnvFile(resolve(import.meta.dirname, '../../../.env'));
   const url = new URL(process.env.DATABASE_URL!);
   url.pathname = '/albarakah_test';
-  Object.assign(process.env, { DATABASE_URL: url.toString(), NODE_ENV: 'test', SERVICE_ROLE: 'api', BKASH_MODE: 'fake' });
+  Object.assign(process.env, { DATABASE_URL: url.toString(), NODE_ENV: 'test', SERVICE_ROLE: 'api', BKASH_MODE: 'fake', DEMO_LOGIN: 'false' });
   // @ts-expect-error compiled output has no declarations in this config
   const { createApp } = await import('../dist/bootstrap.js');
   // @ts-expect-error same as above
@@ -87,6 +87,7 @@ afterAll(async () => {
 describe('route access', () => {
   const PUBLIC_ALLOWED = new Set([
     'AuthController.request', 'AuthController.verify', 'AuthController.refresh', 'AuthController.logout',
+    'AuthController.demoAccounts', 'AuthController.demoLogin',
     'HealthController.health', 'SettingsController.publicSettings',
     'CatalogController.list', 'CatalogController.one', 'CatalogController.categories', 'CatalogController.zones',
     'OrdersController.slots', 'OrdersController.stream',
@@ -127,6 +128,19 @@ describe('route access', () => {
   it('a forged token is rejected', async () => {
     const res = await call('GET', '/orders', { id: 'x', auth: 'Bearer aaa.bbb.ccc' });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('demo login', () => {
+  it('is closed when the switch is off', async () => {
+    expect((await call('GET', '/auth/demo-accounts')).json).toEqual({ roles: [] });
+    expect((await call('POST', '/auth/demo-login', undefined, { role: 'ADMIN' })).status).toBe(404);
+  });
+
+  it('stops the API from starting in production', async () => {
+    // @ts-expect-error compiled output has no declarations in this config
+    const { loadEnv } = await import('../dist/config/env.js');
+    expect(() => loadEnv({ ...process.env, NODE_ENV: 'production', DEMO_LOGIN: 'true' })).toThrow(/DEMO_LOGIN is not allowed/);
   });
 });
 

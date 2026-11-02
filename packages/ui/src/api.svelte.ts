@@ -109,6 +109,10 @@ export class ApiClient {
     return this.user!;
   }
 
+  async demoLogin(role: string) {
+    await this.adopt(await this.post<Session>('/auth/demo-login', { role }));
+  }
+
   async verifyTotp(code: string) {
     const refreshToken = this.vault ? await this.vault.get() : undefined;
     await this.adopt(await this.post<Session>('/auth/totp/verify', { code, ...(refreshToken ? { refreshToken } : {}) }));

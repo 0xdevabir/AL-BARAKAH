@@ -15,6 +15,14 @@ const OTP_MAX_PER_WINDOW = 3;
 const OTP_WINDOW_MS = 10 * 60_000;
 const REFRESH_TTL_MS = 30 * 24 * 3_600_000;
 
+/** Must match the accounts in packages/database/src/seed.ts. */
+export const DEMO_PHONES = {
+  CUSTOMER: '+8801700000004',
+  ADMIN: '+8801700000001',
+  RIDER: '+8801700000002',
+  DOCTOR: '+8801700000003',
+} as const;
+
 const sha256 = (v: string) => createHash('sha256').update(v).digest('hex');
 
 export interface Session {
@@ -78,6 +86,13 @@ export class AuthService {
     if (!user.isActive) throw new AppError(403, 'ACCOUNT_DISABLED', 'This account has been disabled');
     if (name && !user.name) await this.prisma.user.update({ where: { id: user.id }, data: { name } });
     return this.issue(user.id, false, randomBytes(16).toString('hex'));
+  }
+
+  /** Only reachable when DEMO_LOGIN is on. The demo admin skips TOTP so testers get straight in. */
+  async demoLogin(role: keyof typeof DEMO_PHONES): Promise<Session> {
+    const user = await this.prisma.user.findFirst({ where: { phone: DEMO_PHONES[role], role, isActive: true } });
+    if (!user) throw new AppError(404, 'DEMO_ACCOUNT_MISSING', 'Demo account not found. Run pnpm db:seed first.');
+    return this.issue(user.id, role === 'ADMIN', randomBytes(16).toString('hex'));
   }
 
   private async issue(userId: string, mfa: boolean, familyId: string): Promise<Session> {

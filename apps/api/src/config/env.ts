@@ -7,6 +7,8 @@ const schema = z.object({
   SERVICE_ROLE: z.enum(['api', 'worker', 'all']).default('all'),
   // Per address. Generous because many Bangladeshi mobile users share one carrier address.
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(1200),
+  // One-tap sign-in to the seeded demo accounts, for testing. Refused in production below.
+  DEMO_LOGIN: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   PORT: z.coerce.number().int().default(4000),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
@@ -36,6 +38,7 @@ const schema = z.object({
   const fail = (message: string) => ctx.addIssue({ code: 'custom', message });
   if (e.NODE_ENV === 'production') {
     // These would each let someone log in or get free goods if they reached production.
+    if (e.DEMO_LOGIN) fail('DEMO_LOGIN is not allowed in production');
     if (e.BKASH_MODE === 'fake') fail('BKASH_MODE=fake is not allowed in production');
     if (e.SMS_PROVIDER === 'console') fail('SMS_PROVIDER=console is not allowed in production');
     if (e.CORS_ORIGINS.includes('*')) fail('CORS_ORIGINS must not contain * in production');

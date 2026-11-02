@@ -3,7 +3,28 @@
   import type { ApiClient } from './api.svelte.js';
 
   interface Labels { phone: string; phoneHint: string; send: string; code: string; codeHint: string; verify: string; change: string; invalidPhone: string }
-  let { api, labels, ondone }: { api: ApiClient; labels: Labels; ondone: () => void } = $props();
+  let { api, labels, ondone, demoRoles = [] }: { api: ApiClient; labels: Labels; ondone: () => void; demoRoles?: string[] } = $props();
+
+  // The API only offers these on test servers; on the live site the list is empty.
+  let demos = $state<string[]>([]);
+  onMount(() => {
+    api.get<{ roles: string[] }>('/auth/demo-accounts')
+      .then((r) => { demos = demoRoles.filter((role) => r.roles.includes(role)); })
+      .catch(() => undefined);
+  });
+
+  async function demoLogin(role: string) {
+    error = '';
+    busy = true;
+    try {
+      await api.demoLogin(role);
+      ondone();
+    } catch (err) {
+      error = (err as Error).message;
+    } finally {
+      busy = false;
+    }
+  }
 
   let phone = $state('');
   let code = $state('');
@@ -55,3 +76,18 @@
   {/if}
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 </form>
+
+{#if demos.length}
+  <section class="stack demo" aria-label="Demo sign-in">
+    <p class="section">Demo login (testing only)</p>
+    {#each demos as role (role)}
+      <button type="button" class="btn" disabled={busy} onclick={() => demoLogin(role)}>
+        Continue as {role[0] + role.slice(1).toLowerCase()}
+      </button>
+    {/each}
+  </section>
+{/if}
+
+<style>
+  .demo { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
+</style>

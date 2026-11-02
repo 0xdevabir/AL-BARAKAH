@@ -21,7 +21,7 @@ Clone the repo, `cp .env.example .env`, and change these:
 | `BKASH_MODE` and `BKASH_*` | `sandbox` while testing, `live` with your merchant account |
 | `FIRST_ADMIN_PHONE` | Your phone, as `+8801XXXXXXXXX` |
 
-The compose file sets `NODE_ENV`, `DATABASE_URL`, `REDIS_URL` and the `S3_ENDPOINT` settings itself. The API refuses to start in production with the fake bKash or console SMS provider.
+The compose file sets `NODE_ENV`, `DATABASE_URL`, `REDIS_URL` and the `S3_ENDPOINT` settings itself. The API refuses to start in production with the fake bKash or console SMS provider, or with `DEMO_LOGIN=true`, so remove that line from your `.env`.
 
 The HTTP SMS provider's request format must match your provider: see `apps/api/src/notifications/sms.service.ts`.
 

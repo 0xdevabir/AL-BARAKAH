@@ -22,7 +22,7 @@ const r = new Redis(redis.toString());
 await r.flushdb();
 r.disconnect();
 
-const env = { ...process.env, DATABASE_URL: url.toString(), REDIS_URL: redis.toString(), SMS_PROVIDER: 'console', BKASH_MODE: 'fake' };
+const env = { ...process.env, DATABASE_URL: url.toString(), REDIS_URL: redis.toString(), SMS_PROVIDER: 'console', BKASH_MODE: 'fake', DEMO_LOGIN: 'true' };
 
 const run = (cmd, cwd) => execSync(cmd, { cwd: resolve(root, cwd), env, stdio: 'inherit' });
 run('pnpm exec prisma migrate deploy', 'packages/database');
