@@ -31,7 +31,7 @@
 <svelte:head><title>{m.tab_account()} · AL-BARAKAH</title></svelte:head>
 
 <div class="page">
-  <h1 class="title">{m.tab_account()}</h1>
+  <h1 class="title tab-title">{m.tab_account()}</h1>
   {#if api.user}
     <div class="group">
       <div class="who">

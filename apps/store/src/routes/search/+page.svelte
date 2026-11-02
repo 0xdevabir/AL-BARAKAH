@@ -35,7 +35,7 @@
 </svelte:head>
 
 <div class="page wide">
-  <h1 class="title">{m.tab_search()}</h1>
+  <h1 class="title tab-title">{m.tab_search()}</h1>
   <input class="input find" type="search" bind:value={q} placeholder={m.search_placeholder()} aria-label={m.tab_search()} autocomplete="off" enterkeyhint="search" />
   {#if categories.length}
     <div class="chips">
@@ -53,6 +53,7 @@
 
 <style>
   .wide { max-width: 1320px; }
+  @media (max-width: 899px) { .wide { padding-top: calc(12px + env(safe-area-inset-top)); } }
   .find { background: var(--raised); box-shadow: var(--shadow); border-radius: var(--r-sm); }
   .hint { margin: 4px 0 0; font-size: 0.95rem; }
   .results { margin-top: 16px; }

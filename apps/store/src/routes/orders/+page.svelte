@@ -25,7 +25,7 @@
 <svelte:head><title>{m.tab_orders()} · AL-BARAKAH</title></svelte:head>
 
 <div class="page">
-  <h1 class="title">{m.tab_orders()}</h1>
+  <h1 class="title tab-title">{m.tab_orders()}</h1>
   {#if error}<p class="error" role="alert">{error}</p>{/if}
   {#if orders && orders.length === 0}
     <div class="empty stack"><p>{m.orders_empty()}</p><a class="btn primary" href="/search">{m.browse()}</a></div>

@@ -1,9 +1,18 @@
 <script lang="ts">
   import { formatTk } from '@albarakah/domain';
+  import { goto } from '$app/navigation';
   import { cart } from '#lib/app.svelte.ts';
   import FormGlyph from '#lib/FormGlyph.svelte';
   import { m } from '#lib/paraglide/messages.js';
   import Stepper from '#lib/Stepper.svelte';
+
+  let going = $state(false);
+  async function checkout() {
+    if (going || cart.lines.length === 0) return;
+    going = true;
+    try { await goto('/checkout'); }
+    finally { going = false; }
+  }
 </script>
 
 <svelte:head><title>{m.cart()} · AL-BARAKAH</title></svelte:head>
@@ -28,7 +37,7 @@
     </div>
     <div class="dock">
       <span class="grow"><span class="muted small">{m.subtotal()}</span><strong class="mono sum">{formatTk(cart.subtotal)}</strong></span>
-      <a class="btn primary" href="/checkout">{m.checkout()}</a>
+      <button type="button" class="btn primary" disabled={going} onclick={checkout}>{m.checkout()}</button>
     </div>
   {/if}
 </div>
@@ -37,4 +46,3 @@
   .line { display: block; }
   .sum { display: block; font-size: 1.45rem; font-weight: 700; }
 </style>
-

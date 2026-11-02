@@ -61,7 +61,7 @@
 </svelte:head>
 
 <div class="page">
-  <h1 class="title">{m.doctors_title()}</h1>
+  <h1 class="title tab-title">{m.doctors_title()}</h1>
   <div class="group">
     <a class="chev" href="/doctors/bookings">{m.my_bookings()}</a>
   </div>

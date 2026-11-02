@@ -31,6 +31,10 @@
 
   onMount(() => {
     if (MOBILE) document.documentElement.dataset.native = '1';
+    // Never leave the shell frozen if the intro splash stalled.
+    if (document.documentElement.dataset.intro === '1') {
+      window.setTimeout(() => { document.documentElement.dataset.intro = '0'; }, 2200);
+    }
     void api.restore();
     if (!MOBILE) return;
     // Returning from bKash, and the Android back button.
@@ -48,13 +52,19 @@
     })();
   });
 
+  // View transitions are desktop-only — on phones they intermittently freeze taps/navigation.
   onNavigate((nav) => {
-    if (!document.startViewTransition || nav.from?.url.pathname === nav.to?.url.pathname) return;
+    const phone = MOBILE || window.matchMedia('(max-width: 899px)').matches;
+    if (phone || !document.startViewTransition || nav.from?.url.pathname === nav.to?.url.pathname) return;
+    let settled = false;
     return new Promise((resolve) => {
+      const release = () => { if (!settled) { settled = true; resolve(); } };
       document.startViewTransition(async () => {
-        resolve();
+        release();
         await nav.complete;
       });
+      // If the transition never settles, don't hold the router forever.
+      window.setTimeout(release, 600);
     });
   });
 </script>
@@ -101,6 +111,21 @@
   .count { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 10px; background: rgb(255 255 255 / 0.22); font-size: 0.95rem; }
   :global(main:has(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
   .content:global(:has(.dock)) { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
+
+  /* Bottom tabs already show where you are — hide duplicate page titles on phone. */
+  @media (max-width: 899px) {
+    :global(h1.tab-title) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  }
 
   @media (min-width: 900px) {
     /* The top header takes over navigation and the cart on big screens. */

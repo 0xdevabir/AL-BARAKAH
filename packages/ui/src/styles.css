@@ -82,7 +82,7 @@ textarea.input { padding: 14px 16px; min-height: 104px; resize: vertical; }
 .notice { padding: 16px 18px; border-radius: var(--r); box-shadow: var(--shadow); font-weight: 600; }
 .notice.ok { background: var(--sage-soft); color: var(--accent-ink); }
 .notice.bad { background: #f3e4e1; color: var(--danger); }
-.dock { position: fixed; z-index: 8; left: 20px; right: 20px; bottom: calc(88px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 16px; width: auto; max-width: 600px; margin-inline: auto; padding: 12px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow), 0 10px 28px rgb(40 36 24 / 0.08); }
+.dock { position: fixed; z-index: 12; left: 20px; right: 20px; bottom: calc(88px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 16px; width: auto; max-width: 600px; margin-inline: auto; padding: 12px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow), 0 10px 28px rgb(40 36 24 / 0.08); pointer-events: auto; }
 .page:has(.dock) { padding-bottom: calc(168px + env(safe-area-inset-bottom)); }
 .shell.bare .dock { bottom: calc(16px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) { .dock { bottom: 20px; } }
