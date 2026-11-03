@@ -1,16 +1,16 @@
 {
-  "nodeCount": 487,
-  "edgeCount": 1146,
+  "nodeCount": 502,
+  "edgeCount": 1184,
   "languages": [
     "java",
     "javascript",
     "typescript"
   ],
-  "totalCount": 487,
+  "totalCount": 502,
   "readyCount": 0,
   "staleCount": 0,
   "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-02T16:22:27.318Z",
-  "lastFile": "image-8c3413d6-b17b-4454-a34a-7631f3b0c5d6.png"
+  "syncedAt": "2026-11-03T02:27:35.039Z",
+  "lastFile": "+error.svelte"
 }

@@ -43,7 +43,9 @@
       await App.addListener('appUrlOpen', ({ url }) => {
         const u = new URL(url);
         void Browser.close().catch(() => undefined);
-        void goto(`${u.pathname}${u.search}`);
+        // albarakah://app has an empty path — send that to home, not a dead route.
+        const path = u.pathname && u.pathname !== '/' ? u.pathname : '/';
+        void goto(`${path}${u.search}`);
       });
       await App.addListener('backButton', ({ canGoBack }) => {
         if (canGoBack) history.back();
@@ -133,3 +135,4 @@
     .tabs, .cartbar { display: none; }
   }
 </style>
+
