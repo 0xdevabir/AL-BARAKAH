@@ -1,6 +1,7 @@
 <script lang="ts">
   import '@albarakah/ui/styles.css';
   import { onMount, type Snippet } from 'svelte';
+  import { browser } from '$app/env';
   import { goto, onNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import { api, cart, MOBILE, tap } from '#lib/app.svelte.ts';
@@ -29,6 +30,17 @@
   const active = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
   const hideBar = $derived(page.url.pathname.startsWith('/checkout') || page.url.pathname.startsWith('/login'));
   const showCart = $derived(cart.count > 0 && !hideBar && !page.url.pathname.startsWith('/cart'));
+
+  let tabsEl = $state<HTMLElement>();
+  let cartEl = $state<HTMLElement>();
+
+  // Re-home whenever the nodes mount (route changes hide/show them).
+  $effect(() => {
+    if (!browser) return;
+    const home = document.body;
+    if (tabsEl && tabsEl.parentElement !== home) home.appendChild(tabsEl);
+    if (cartEl && cartEl.parentElement !== home) home.appendChild(cartEl);
+  });
 
   onMount(() => {
     if (MOBILE) document.documentElement.dataset.native = '1';
@@ -94,13 +106,13 @@
     </main>
   </div>
   {#if showCart}
-    <a class="cartbar" href="/cart" onpointerdown={() => tap()}>
+    <a class="cartbar" bind:this={cartEl} href="/cart" onpointerdown={() => tap()}>
       <span class="count mono">{cart.count}</span>
       <span class="grow">{m.view_cart()}</span>
     </a>
   {/if}
   {#if !hideBar}
-    <nav class="tabs" aria-label="Main">
+    <nav class="tabs" bind:this={tabsEl} aria-label="Main">
       {#each tabs as t (t.href)}
         <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined} onpointerdown={() => tap()}>
           <span class="glyph">
@@ -123,7 +135,8 @@
   .content { padding-bottom: calc(176px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
   .tabs {
-    position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around;
+    position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; top: auto;
+    display: flex; align-items: flex-end; justify-content: space-around;
     padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
     background: var(--raised);
     box-shadow: 0 -1px 0 var(--line), 0 -8px 24px rgb(40 36 24 / 0.05);
@@ -139,7 +152,7 @@
   .tabs a.on .glyph { background: var(--sage-soft); }
   .tabs a.on svg { stroke-width: 2.2; }
   .cartbar {
-    position: fixed; z-index: 9; inset: auto 20px calc(86px + env(safe-area-inset-bottom));
+    position: fixed; z-index: 39; left: 20px; right: 20px; bottom: calc(86px + env(safe-area-inset-bottom)); top: auto;
     display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 18px; border-radius: var(--r);
     background: var(--accent); color: var(--on-accent); font-weight: 600;
     box-shadow: var(--shadow), 0 10px 24px rgb(47 67 48 / 0.18);
