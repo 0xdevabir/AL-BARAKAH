@@ -87,12 +87,8 @@ textarea.input { padding: 14px 16px; min-height: 104px; resize: vertical; }
 .bare .dock { bottom: calc(16px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) { .dock { bottom: 20px; } }
 
-::view-transition-old(root) { animation: 280ms ease both ab-fade-out; }
-::view-transition-new(root) { animation: 280ms ease both ab-fade-in; }
-@keyframes ab-fade-out { to { opacity: 0; } }
-@keyframes ab-fade-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after, ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; transition: none !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 a, button, label, summary { touch-action: manipulation; }
 html[data-native='1'] { overscroll-behavior: none; }

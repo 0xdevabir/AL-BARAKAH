@@ -1,7 +1,7 @@
 <script lang="ts">
   import '@albarakah/ui/styles.css';
   import { onMount, type Snippet } from 'svelte';
-  import { goto, onNavigate } from '$app/navigation';
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { api, cart, MOBILE, tap } from '#lib/app.svelte.ts';
   import { m } from '#lib/paraglide/messages.js';
@@ -30,12 +30,31 @@
   const hideBar = $derived(page.url.pathname.startsWith('/checkout') || page.url.pathname.startsWith('/login'));
   const showCart = $derived(cart.count > 0 && !hideBar && !page.url.pathname.startsWith('/cart'));
 
+  // One-shot enter fade — never leave content at opacity 0 if the animation stalls.
+  let enter = $state(false);
+
   onMount(() => {
     if (MOBILE) document.documentElement.dataset.native = '1';
-    // Never leave the shell frozen if the intro splash stalled.
-    if (document.documentElement.dataset.intro === '1') {
+
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const playEnter = () => {
+      if (reduce) return;
+      enter = true;
+      window.setTimeout(() => { enter = false; }, 700);
+    };
+    if (document.documentElement.dataset.intro === '0') {
+      playEnter();
+    } else {
+      const obs = new MutationObserver(() => {
+        if (document.documentElement.dataset.intro !== '0') return;
+        obs.disconnect();
+        playEnter();
+      });
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-intro'] });
+      // Never leave the shell frozen if the intro splash stalled.
       window.setTimeout(() => { document.documentElement.dataset.intro = '0'; }, 2200);
     }
+
     void api.restore();
     if (!MOBILE) return;
     // Returning from bKash, and the Android back button.
@@ -54,22 +73,6 @@
       });
     })();
   });
-
-  // View transitions are desktop-only — on phones they intermittently freeze taps/navigation.
-  onNavigate((nav) => {
-    const phone = MOBILE || window.matchMedia('(max-width: 899px)').matches;
-    if (phone || !document.startViewTransition || nav.from?.url.pathname === nav.to?.url.pathname) return;
-    let settled = false;
-    return new Promise((resolve) => {
-      const release = () => { if (!settled) { settled = true; resolve(); } };
-      document.startViewTransition(async () => {
-        release();
-        await nav.complete;
-      });
-      // If the transition never settles, don't hold the router forever.
-      window.setTimeout(release, 600);
-    });
-  });
 </script>
 
 <Intro />
@@ -85,8 +88,9 @@
   {/if}
   <div
     class="shell"
+    class:enter
     onanimationend={(e) => {
-      if (e.target === e.currentTarget) e.currentTarget.style.animation = 'none';
+      if (e.target === e.currentTarget) enter = false;
     }}
   >
     <main class="content">
@@ -125,7 +129,8 @@
   }
   :global(html[data-intro='1']) .held { pointer-events: none; }
   :global(html[data-intro='1']) { overflow: hidden; }
-  :global(html[data-intro='0']) .shell { animation: shell-in 0.45s var(--ease) both; }
+  /* Class toggled off after one play — a permanent rule + fill-mode left content stuck at opacity 0. */
+  .shell.enter { animation: shell-in 0.45s var(--ease) both; }
   .content { padding-bottom: 28px; }
   .frame:has(.cartbar) .content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
   .frame:has(:global(.dock)) .content { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
@@ -178,7 +183,7 @@
     to { opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
-    :global(html[data-intro='0']) .shell, .tabs a, .glyph, .cartbar { animation: none; transition: none; }
+    .shell.enter, .tabs a, .glyph, .cartbar { animation: none; transition: none; }
   }
 
   /* Bottom tabs already show where you are — hide duplicate page titles on phone. */
@@ -204,6 +209,9 @@
     .tabs, .cartbar { display: none; }
   }
 </style>
+
+
+
 
 
 
