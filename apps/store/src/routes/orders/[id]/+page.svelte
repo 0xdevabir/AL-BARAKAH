@@ -82,7 +82,7 @@
   }
 </script>
 
-<svelte:head><title>{order?.code ?? m.tab_orders()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{order?.code ?? m.tab_orders()} · BarakaBari</title></svelte:head>
 
 <div class="page stack">
   <a class="btn ghost small back" href="/orders">‹ {m.tab_orders()}</a>

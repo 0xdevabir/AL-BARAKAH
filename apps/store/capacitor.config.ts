@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.albarakah.app',
-  appName: 'AL-BARAKAH',
+  appId: 'com.barakabari.app',
+  appName: 'BarakaBari',
   webDir: 'build-mobile',
   // Without this, Android opens https://localhost (no path). SvelteKit then has
   // nothing to match and shows the not-found screen on first launch.

@@ -21,7 +21,7 @@ import { categorize } from './catalog-categories.mjs';
 const DATA = join(dirname(fileURLToPath(import.meta.url)), '../data');
 const STATE_PATH = join(DATA, 'dims-state.json');
 const BRANDS_PATH = join(DATA, 'dims-brands.jsonl');
-const UA = 'AL-BARAKAH-catalog-import/1.0';
+const UA = 'BarakaBari-catalog-import/1.0';
 const DELAY_MS = Number(process.env.CATALOG_DELAY_MS || 700);
 const OPENING_QTY = 24;
 

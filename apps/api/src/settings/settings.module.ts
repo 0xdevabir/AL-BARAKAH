@@ -84,7 +84,7 @@ export class SettingsController {
       emergencyMinutes: s.emergencyMinutes,
       androidLatestVersionCode: s.androidLatestVersionCode,
       androidLatestVersionName: s.androidLatestVersionName,
-      androidApkUrl: s.androidApkUrl || `${store}/download/al-barakah.apk`,
+      androidApkUrl: s.androidApkUrl || `${store}/download/barakabari.apk`,
       androidForceUpdate: s.androidForceUpdate,
       androidUpdateNotes: s.androidUpdateNotes,
     };

@@ -18,7 +18,7 @@
   });
 </script>
 
-<svelte:head><title>{m.my_bookings()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{m.my_bookings()} · BarakaBari</title></svelte:head>
 
 <div class="page">
   <a class="btn ghost small back" href="/doctors">‹ {m.doctors_title()}</a>

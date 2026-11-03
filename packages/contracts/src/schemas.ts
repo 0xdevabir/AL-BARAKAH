@@ -88,7 +88,7 @@ export const zoneSchema = z.object({
    /** Highest Android versionCode the store should accept. 0 = update checks off. */
    androidLatestVersionCode: z.number().int().min(0).default(0),
    androidLatestVersionName: z.string().max(40).default(''),
-   /** Empty = use STORE_URL/download/al-barakah.apk */
+   /** Empty = use STORE_URL/download/barakabari.apk */
    androidApkUrl: z.string().max(500).default(''),
    androidForceUpdate: z.boolean().default(false),
    androidUpdateNotes: z.string().max(500).default(''),

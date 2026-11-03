@@ -19,7 +19,7 @@ const DATA = join(dirname(fileURLToPath(import.meta.url)), '../data');
 const STATE = join(DATA, 'crawl-state.json');
 const PRODUCTS = join(DATA, 'mediwhole.jsonl');
 const PHOTOS = join(DATA, 'square.json');
-const UA = 'AL-BARAKAH-catalog-import/1.0';
+const UA = 'BarakaBari-catalog-import/1.0';
 const DELAY_MS = Number(process.env.CATALOG_DELAY_MS || 1000);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

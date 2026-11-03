@@ -8,7 +8,7 @@
 
 {#if !MOBILE}
   <div class="stores">
-    <a class="badge" href="/download/al-barakah.apk?v=1.1.0" download="AL-BARAKAH.apk">
+    <a class="badge" href="/download/barakabari.apk?v=1.1.1" download="barakabari.apk">
       <img src="/badges/google-play.svg" alt={m.android_app()} width="155" height="46" />
     </a>
     {#if IOS_APP_URL}

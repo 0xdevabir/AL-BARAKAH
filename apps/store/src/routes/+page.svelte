@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-  <title>AL-BARAKAH: medicine delivery and doctors</title>
+  <title>BarakaBari: medicine delivery and doctors</title>
   <meta name="description" content="Order medicine for delivery in Bangladesh, with emergency delivery in one hour, and book a doctor by video or WhatsApp." />
 </svelte:head>
 

@@ -167,7 +167,7 @@ export class PaymentsController {
   @Public()
   @Get('bkash/app-callback')
   appCallback(@Query('paymentID') id: string | undefined, @Query('status') status: string | undefined, @Res() res: FastifyReply) {
-    return this.finish(id, status, 'albarakah://app', res);
+    return this.finish(id, status, 'barakabari://app', res);
   }
 
   /** A stand-in for bKash's hosted page. It answers 404 unless BKASH_MODE=fake, which production refuses. */

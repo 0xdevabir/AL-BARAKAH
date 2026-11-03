@@ -15,7 +15,7 @@
   }
 </script>
 
-<svelte:head><title>{m.cart()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{m.cart()} · BarakaBari</title></svelte:head>
 
 <div class="page">
   <h1 class="title">{m.cart()}</h1>

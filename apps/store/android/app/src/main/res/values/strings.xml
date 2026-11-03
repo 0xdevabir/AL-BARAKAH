@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">AL-BARAKAH</string>
-    <string name="title_activity_main">AL-BARAKAH</string>
-    <string name="package_name">com.albarakah.app</string>
-    <string name="custom_url_scheme">com.albarakah.app</string>
+    <string name="app_name">BarakaBari</string>
+    <string name="title_activity_main">BarakaBari</string>
+    <string name="package_name">com.barakabari.app</string>
+    <string name="custom_url_scheme">com.barakabari.app</string>
 </resources>

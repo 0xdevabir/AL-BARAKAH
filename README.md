@@ -1,4 +1,4 @@
-# AL-BARAKAH
+# BarakaBari
 
 Online medicine delivery and doctor consultations for Bangladesh, on the web and as an Android app. It has separate experiences for customers, admins, riders and doctors.
 

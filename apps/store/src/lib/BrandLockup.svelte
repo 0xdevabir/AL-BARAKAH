@@ -6,7 +6,7 @@
 
 <span class="lockup">
   <Mark {size} />
-  <span>AL-BARAKAH</span>
+  <span>BarakaBari</span>
 </span>
 
 <style>

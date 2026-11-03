@@ -22,7 +22,7 @@
   const statusLabel = (s: string) => (m as unknown as Record<string, () => string>)[`status_${s}`]?.() ?? s;
 </script>
 
-<svelte:head><title>{m.tab_orders()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{m.tab_orders()} · BarakaBari</title></svelte:head>
 
 <div class="page">
   <h1 class="title tab-title">{m.tab_orders()}</h1>

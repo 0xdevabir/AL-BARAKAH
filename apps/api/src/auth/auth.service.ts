@@ -59,7 +59,7 @@ export class AuthService {
       data: { phone, codeHash: this.hashOtp(phone, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) },
     });
     // BulkSMSBD requires exactly this wording for OTP messages.
-    await this.sms.send(phone, `Your AL-BARAKAH OTP is ${code}`);
+    await this.sms.send(phone, `Your BarakaBari OTP is ${code}`);
   }
 
   async verifyOtp(phone: string, code: string, name?: string): Promise<Session> {
@@ -109,7 +109,7 @@ export class AuthService {
     await this.prisma.otpCode.create({
       data: { phone: email, codeHash: this.hashOtp(email, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) },
     });
-    await this.mail.send(email, 'Your AL-BARAKAH verification code', `Your AL-BARAKAH verification code is ${code}. It expires in 5 minutes.`);
+    await this.mail.send(email, 'Your BarakaBari verification code', `Your BarakaBari verification code is ${code}. It expires in 5 minutes.`);
   }
 
   async verifyEmailOtp(email: string, phone: string, code: string, name?: string): Promise<Session> {
@@ -219,7 +219,7 @@ export class AuthService {
     if (row.totpEnabled) throw badRequest('TOTP_ALREADY_ENABLED', 'Two-factor authentication is already on');
     const secret = authenticator.generateSecret();
     await this.prisma.user.update({ where: { id: user.id }, data: { totpSecret: this.encrypt(secret) } });
-    return { secret, otpauthUrl: authenticator.keyuri(row.phone, 'AL-BARAKAH', secret) };
+    return { secret, otpauthUrl: authenticator.keyuri(row.phone, 'BarakaBari', secret) };
   }
 
   /** Confirms a code from the authenticator app and upgrades this login to a 2FA session. */

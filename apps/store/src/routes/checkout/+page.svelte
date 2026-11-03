@@ -99,7 +99,7 @@
     } catch (err) { error = (err as Error).message; } finally { busy = false; }
   }
 </script>
-<svelte:head><title>{m.checkout()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{m.checkout()} · BarakaBari</title></svelte:head>
 
 <div class="page stack">
   <div class="row">

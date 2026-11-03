@@ -91,7 +91,7 @@ async function fetchPage(path) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     let res;
     try {
-      res = await fetch(`${SITE}/${path}`, { headers: { 'user-agent': 'AL-BARAKAH-catalog-import/1.0' }, signal: AbortSignal.timeout(30000) });
+      res = await fetch(`${SITE}/${path}`, { headers: { 'user-agent': 'BarakaBari-catalog-import/1.0' }, signal: AbortSignal.timeout(30000) });
     } catch {
       await sleep(3000 * attempt);
       continue;

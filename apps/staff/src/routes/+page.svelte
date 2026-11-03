@@ -39,7 +39,7 @@
 </script>
 
 <div class="page narrow stack">
-  <h1 class="title staff-mark"><img src="/favicon.svg" alt="" width="28" height="28" />AL-BARAKAH Staff</h1>
+  <h1 class="title staff-mark"><img src="/favicon.svg" alt="" width="28" height="28" />BarakaBari Staff</h1>
   {#if !api.ready}
     <span class="muted">Loading…</span>
   {:else if !api.user}

@@ -28,7 +28,7 @@
   }
 </script>
 
-<svelte:head><title>{m.tab_account()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{m.tab_account()} · BarakaBari</title></svelte:head>
 
 <div class="page">
   <h1 class="title tab-title">{m.tab_account()}</h1>

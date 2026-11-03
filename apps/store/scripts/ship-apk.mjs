@@ -41,7 +41,7 @@ function bumpAndroidVersion() {
   const release = {
     androidLatestVersionCode: versionCode,
     androidLatestVersionName: versionName,
-    ...(storeUrl ? { androidApkUrl: `${storeUrl}/download/al-barakah.apk` } : {}),
+    ...(storeUrl ? { androidApkUrl: `${storeUrl}/download/barakabari.apk` } : {}),
   };
   writeFileSync(join(apiRoot, 'android-release.json'), `${JSON.stringify(release, null, 2)}\n`);
   console.log(`Android version → ${versionName} (${versionCode})`);
@@ -71,10 +71,10 @@ if (!existsSync(built)) {
 }
 const outDir = join(root, 'apk');
 mkdirSync(outDir, { recursive: true });
-const dest = join(outDir, 'AL-BARAKAH.apk');
+const dest = join(outDir, 'barakabari.apk');
 cpSync(built, dest);
 const mb = (statSync(dest).size / (1024 * 1024)).toFixed(2);
-console.log(`Shipped ${dest} (${mb} MB) — /download/al-barakah.apk serves this file.`);
+console.log(`Shipped ${dest} (${mb} MB) — /download/barakabari.apk serves this file.`);
 console.log(`Update check: phones below versionCode ${release.androidLatestVersionCode} will see the update sheet.`);
 if (!storeUrl) {
   console.log('Tip: set PUBLIC_STORE_URL (or STORE_URL) so the popup opens the right APK link.');

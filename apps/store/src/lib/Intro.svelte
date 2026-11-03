@@ -48,7 +48,7 @@
   <div class="intro" class:leaving aria-hidden="true">
     <div class="stage">
       <Mark size={88} />
-      <p class="word">AL-BARAKAH</p>
+      <p class="word">BarakaBari</p>
     </div>
   </div>
 {/if}

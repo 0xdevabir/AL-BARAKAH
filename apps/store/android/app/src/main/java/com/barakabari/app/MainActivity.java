@@ -1,4 +1,4 @@
-package com.albarakah.app;
+package com.barakabari.app;
 
 import android.graphics.Color;
 import android.os.Bundle;

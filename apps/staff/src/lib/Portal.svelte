@@ -23,7 +23,7 @@
 {#if allowed}
   <div class="shell">
     <nav aria-label="Sections">
-      <strong class="brand"><img src="/favicon.svg" alt="" width="22" height="22" />AL-BARAKAH</strong>
+      <strong class="brand"><img src="/favicon.svg" alt="" width="22" height="22" />BarakaBari</strong>
       <div class="links">
         {#each tabs as t (t.href)}
           <a href={t.href} class:on={on(t.href)} aria-current={on(t.href) ? 'page' : undefined}>{t.label}</a>

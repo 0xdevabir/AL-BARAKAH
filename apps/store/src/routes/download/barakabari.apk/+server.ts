@@ -5,11 +5,11 @@ import { join } from 'node:path';
 import type { RequestHandler } from './$types';
 
 // The website serves our own package. Android opens the system installer from this file.
-// It does not go to the Play Store. Drop a release build at apk/AL-BARAKAH.apk, or set ANDROID_APK.
+// It does not go to the Play Store. Drop a release build at apk/barakabari.apk, or set ANDROID_APK.
 function apkPath(): string | undefined {
   const candidates = [
     process.env.ANDROID_APK,
-    join(process.cwd(), 'apk/AL-BARAKAH.apk'),
+    join(process.cwd(), 'apk/barakabari.apk'),
     join(process.cwd(), 'android/app/build/outputs/apk/release/app-release.apk'),
     join(process.cwd(), 'android/app/build/outputs/apk/debug/app-debug.apk'),
   ].filter((path): path is string => !!path);
@@ -24,7 +24,7 @@ export const GET: RequestHandler = () => {
     headers: {
       'content-type': 'application/vnd.android.package-archive',
       'content-length': String(size),
-      'content-disposition': 'attachment; filename="AL-BARAKAH.apk"',
+      'content-disposition': 'attachment; filename="barakabari.apk"',
       'cache-control': 'no-cache',
       'x-content-type-options': 'nosniff',
     },

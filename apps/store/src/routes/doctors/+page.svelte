@@ -56,7 +56,7 @@
 </script>
 
 <svelte:head>
-  <title>{m.doctors_title()} · AL-BARAKAH</title>
+  <title>{m.doctors_title()} · BarakaBari</title>
   <meta name="description" content="Book a doctor in Bangladesh by Google Meet or WhatsApp call." />
 </svelte:head>
 

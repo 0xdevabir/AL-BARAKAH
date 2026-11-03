@@ -12,7 +12,7 @@
 </script>
 
 <svelte:head>
-  <title>{med.name} {med.strength} price · AL-BARAKAH</title>
+  <title>{med.name} {med.strength} price · BarakaBari</title>
   <meta name="description" content="{med.name} {med.strength} ({med.genericName}), {med.packSize}, by {med.manufacturer}. {formatTk(med.pricePoisha)}. Delivered in Bangladesh." />
 </svelte:head>
 

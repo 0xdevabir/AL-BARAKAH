@@ -27,7 +27,7 @@ export async function tap() {
   await Haptics.impact({ style: ImpactStyle.Light }).catch(() => undefined);
 }
 
-/** bKash opens in the system browser inside the app, then returns through the albarakah:// link. */
+/** bKash opens in the system browser inside the app, then returns through the barakabari:// link. */
 export async function openPayment(url: string) {
   if (!MOBILE) {
     location.href = url;

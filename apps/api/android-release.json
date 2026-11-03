@@ -1,4 +1,5 @@
 {
-  "androidLatestVersionCode": 2,
-  "androidLatestVersionName": "1.1.0"
+  "androidLatestVersionCode": 3,
+  "androidLatestVersionName": "1.1.1",
+  "androidApkUrl": "https://barakabari.com/download/barakabari.apk"
 }

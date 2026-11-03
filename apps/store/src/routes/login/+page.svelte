@@ -13,7 +13,7 @@
   }
 </script>
 
-<svelte:head><title>{m.sign_in()} · AL-BARAKAH</title></svelte:head>
+<svelte:head><title>{m.sign_in()} · BarakaBari</title></svelte:head>
 
 <div class="page narrow">
   <div class="brand"><BrandLockup size={30} /></div>
