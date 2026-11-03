@@ -61,8 +61,10 @@
   /* If HTML already marked intro done (returning visit), never intercept taps. */
   :global(html[data-intro='0']) .intro { display: none !important; }
   .leaving { animation: fade 0.36s ease forwards; pointer-events: none; }
-  .stage { display: grid; justify-items: center; gap: 18px; color: var(--accent); }
+  .stage { display: grid; justify-items: center; gap: 18px; color: var(--accent); animation: settle 0.7s var(--ease, cubic-bezier(0.32, 0.72, 0, 1)) both; }
   .word { margin: 0; color: var(--accent-ink); font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; }
+  @keyframes settle { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
   @keyframes fade { to { opacity: 0; visibility: hidden; } }
   @media (prefers-reduced-motion: reduce) { .intro { display: none; } }
 </style>
+

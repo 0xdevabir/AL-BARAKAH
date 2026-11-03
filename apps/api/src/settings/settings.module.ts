@@ -23,7 +23,7 @@ const DEFAULTS: Settings = {
 const CACHE_MS = 15_000;
 const RELEASE_FILE = join(dirname(fileURLToPath(import.meta.url)), '../../android-release.json');
 
-/** Written by apps/store/scripts/ship-apk.mjs after each APK build. */
+/** Written by apps/store/scripts/ship-apk.mjs after each APK build. Only version + URL — force/notes stay admin-owned. */
 function releaseOverlay(): Partial<Settings> {
   if (!existsSync(RELEASE_FILE)) return {};
   try {
@@ -31,9 +31,7 @@ function releaseOverlay(): Partial<Settings> {
     return {
       ...(typeof raw.androidLatestVersionCode === 'number' ? { androidLatestVersionCode: raw.androidLatestVersionCode } : {}),
       ...(typeof raw.androidLatestVersionName === 'string' ? { androidLatestVersionName: raw.androidLatestVersionName } : {}),
-      ...(typeof raw.androidApkUrl === 'string' ? { androidApkUrl: raw.androidApkUrl } : {}),
-      ...(typeof raw.androidForceUpdate === 'boolean' ? { androidForceUpdate: raw.androidForceUpdate } : {}),
-      ...(typeof raw.androidUpdateNotes === 'string' ? { androidUpdateNotes: raw.androidUpdateNotes } : {}),
+      ...(typeof raw.androidApkUrl === 'string' && raw.androidApkUrl ? { androidApkUrl: raw.androidApkUrl } : {}),
     };
   } catch {
     return {};

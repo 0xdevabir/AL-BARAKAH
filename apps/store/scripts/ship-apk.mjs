@@ -41,9 +41,7 @@ function bumpAndroidVersion() {
   const release = {
     androidLatestVersionCode: versionCode,
     androidLatestVersionName: versionName,
-    androidApkUrl: storeUrl ? `${storeUrl}/download/al-barakah.apk` : '',
-    androidForceUpdate: false,
-    androidUpdateNotes: '',
+    ...(storeUrl ? { androidApkUrl: `${storeUrl}/download/al-barakah.apk` } : {}),
   };
   writeFileSync(join(apiRoot, 'android-release.json'), `${JSON.stringify(release, null, 2)}\n`);
   console.log(`Android version → ${versionName} (${versionCode})`);
