@@ -141,13 +141,15 @@
   .companies a { flex: 0 0 auto; display: grid; place-items: center; min-height: 52px; padding: 0 18px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); font-weight: 600; scroll-snap-align: start; transition: background 0.15s; }
   .companies a:hover { background: var(--sage-soft); }
 
-  .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-top: 20px; border-top: 1px solid var(--line); }
-  .foot nav { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.925rem; }
-  .foot nav a:hover { color: var(--accent-ink); text-decoration: underline; }
+  /* Website chrome only — phones already have the bottom tab bar. */
+  .foot { display: none; }
 
   @media (min-width: 900px) {
     .home { gap: 48px; padding: 28px 28px 48px; }
     .phone-top { display: none; }
+    .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .foot nav { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.925rem; }
+    .foot nav a:hover { color: var(--accent-ink); text-decoration: underline; }
     .hero { grid-template-columns: 3fr 1fr; gap: 14px; }
     .lead { grid-column: 1; grid-row: 1 / span 2; padding: 40px; min-height: 340px; }
     .tile { padding: 20px; }
