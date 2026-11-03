@@ -58,7 +58,7 @@
   .hint { margin: 4px 0 0; font-size: 0.95rem; }
   .results { margin-top: 16px; }
   .wide .title { margin-bottom: 12px; }
-  .chips { display: flex; gap: 10px; margin: 14px -20px 0; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .chips { display: flex; gap: 10px; margin: 14px -20px 0; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
   .chips a { flex: none; scroll-snap-align: start; }
   .chips a:not(.primary) { background: var(--raised); }
   @media (min-width: 900px) {

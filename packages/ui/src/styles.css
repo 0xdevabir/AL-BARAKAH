@@ -96,5 +96,8 @@ textarea.input { padding: 14px 16px; min-height: 104px; resize: vertical; }
 }
 a, button, label, summary { touch-action: manipulation; }
 html[data-native='1'] { overscroll-behavior: none; }
-html[data-native='1'] body, html[data-native='1'] body * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-html[data-native='1'] input, html[data-native='1'] textarea { -webkit-user-select: text; user-select: text; }
+/* Keep selection off chrome, but never blanket-disable every node (hurts some Android WebViews). */
+html[data-native='1'] body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+html[data-native='1'] input,
+html[data-native='1'] textarea,
+html[data-native='1'] [contenteditable='true'] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }

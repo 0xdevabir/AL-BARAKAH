@@ -16,6 +16,9 @@
 <div class="page">
   <div class="empty stack">
     <p>{page.status === 404 ? m.not_found() : m.retry()}</p>
-    <a class="btn primary" href="/">{m.go_home()}</a>
+    {#if page.status !== 404}
+      <button class="btn primary" type="button" onclick={() => location.reload()}>{m.retry()}</button>
+    {/if}
+    <a class="btn" class:primary={page.status === 404} href="/">{m.go_home()}</a>
   </div>
 </div>

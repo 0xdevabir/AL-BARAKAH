@@ -74,9 +74,32 @@
 
 <Intro />
 <UpdatePrompt />
-<div class="shell" class:bare={hideBar} class:held={true}>
+<!--
+  Fixed chrome (tabs/cart) stays outside any animated/transformed ancestor.
+  A transform on .shell (even identity from fill-mode) turns position:fixed into
+  page-relative on Android WebView — tabs vanish mid-scroll and nav feels broken.
+-->
+<div class="frame" class:bare={hideBar} class:held={true}>
   {#if !hideBar}
     <StoreHeader links={headerLinks} categories={data.categories} />
+  {/if}
+  <div
+    class="shell"
+    onanimationend={(e) => {
+      if (e.target === e.currentTarget) e.currentTarget.style.animation = 'none';
+    }}
+  >
+    <main class="content">
+      {@render children()}
+    </main>
+  </div>
+  {#if showCart}
+    <a class="cartbar" href="/cart" onpointerdown={() => tap()}>
+      <span class="count mono">{cart.count}</span>
+      <span class="grow">{m.view_cart()}</span>
+    </a>
+  {/if}
+  {#if !hideBar}
     <nav class="tabs" aria-label="Main">
       {#each tabs as t (t.href)}
         <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined} onpointerdown={() => tap()}>
@@ -88,39 +111,48 @@
       {/each}
     </nav>
   {/if}
-  <main class="content">
-    {@render children()}
-    {#if showCart}
-      <a class="cartbar" href="/cart" onpointerdown={() => tap()}>
-        <span class="count mono">{cart.count}</span>
-        <span class="grow">{m.view_cart()}</span>
-      </a>
-    {/if}
-  </main>
 </div>
 
 <style>
+  .frame { min-height: 100dvh; }
   .shell { min-height: 100dvh; }
   :global(html[data-intro='1']) .held { pointer-events: none; }
   :global(html[data-intro='1']) { overflow: hidden; }
+  /* Opacity only — any transform on an ancestor breaks position:fixed chrome. */
   :global(html[data-intro='0']) .shell { animation: shell-in 0.45s var(--ease) both; }
   .content { padding-bottom: calc(176px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
-  .tabs { position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom)); background: var(--raised); box-shadow: 0 -1px 0 var(--line), 0 -8px 24px rgb(40 36 24 / 0.05); }
-  .tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 54px; justify-content: flex-end; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.15; text-align: center; touch-action: manipulation; transition: color 0.18s var(--ease); }
+  .tabs {
+    position: fixed; z-index: 10; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-around;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    background: var(--raised);
+    box-shadow: 0 -1px 0 var(--line), 0 -8px 24px rgb(40 36 24 / 0.05);
+  }
+  .tabs a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 54px;
+    justify-content: flex-end; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.15;
+    text-align: center; touch-action: manipulation; transition: color 0.18s var(--ease);
+  }
   .glyph { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; transition: background-color 0.18s var(--ease), transform 0.16s var(--ease); }
   .tabs a:active .glyph { transform: scale(0.9); }
   .tabs a.on { color: var(--accent-ink); }
   .tabs a.on .glyph { background: var(--sage-soft); }
   .tabs a.on svg { stroke-width: 2.2; }
-  .cartbar { position: fixed; z-index: 9; inset: auto 20px calc(86px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 18px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: var(--shadow), 0 10px 24px rgb(47 67 48 / 0.18); transition: transform 0.18s var(--ease), opacity 0.18s var(--ease); }
+  .cartbar {
+    position: fixed; z-index: 9; inset: auto 20px calc(86px + env(safe-area-inset-bottom));
+    display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 18px; border-radius: var(--r);
+    background: var(--accent); color: var(--on-accent); font-weight: 600;
+    box-shadow: var(--shadow), 0 10px 24px rgb(47 67 48 / 0.18);
+    transition: transform 0.18s var(--ease), opacity 0.18s var(--ease);
+    touch-action: manipulation;
+  }
   .cartbar:active { transform: scale(0.98); }
   .count { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 10px; background: rgb(255 255 255 / 0.22); font-size: 0.95rem; }
-  :global(main:has(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
-  .content:global(:has(.dock)) { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
+  :global(main:has(.dock)) ~ .cartbar, :global(.frame:has(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
+  .frame:global(:has(.dock)) .content { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
   @keyframes shell-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: none; }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
     :global(html[data-intro='0']) .shell, .tabs a, .glyph, .cartbar { animation: none; transition: none; }
@@ -147,6 +179,3 @@
     .tabs, .cartbar { display: none; }
   }
 </style>
-
-
-

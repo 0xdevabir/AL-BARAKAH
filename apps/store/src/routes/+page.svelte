@@ -130,14 +130,14 @@
   .head a { flex: none; color: var(--accent-ink); font-size: 0.925rem; font-weight: 600; }
   .head a:hover { text-decoration: underline; }
 
-  .cat-grid { display: flex; gap: 12px; margin: 0 -20px; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .cat-grid { display: flex; gap: 12px; margin: 0 -20px; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
   .cat { display: flex; flex: 0 0 168px; flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); scroll-snap-align: start; transition: background 0.15s; }
   .cat:hover { background: var(--sage-soft); }
   .cat-name { flex: 1; font-size: 0.925rem; font-weight: 600; line-height: 1.2; }
   .icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--sage-soft); color: var(--accent-ink); }
   .cat:hover .icon { background: var(--raised); }
 
-  .companies { display: flex; gap: 12px; margin: 0 -20px; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .companies { display: flex; gap: 12px; margin: 0 -20px; padding: 2px 20px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
   .companies a { flex: 0 0 auto; display: grid; place-items: center; min-height: 52px; padding: 0 18px; border-radius: var(--r); background: var(--raised); box-shadow: var(--shadow); font-weight: 600; scroll-snap-align: start; transition: background 0.15s; }
   .companies a:hover { background: var(--sage-soft); }
 
