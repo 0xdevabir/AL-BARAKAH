@@ -1,13 +1,44 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Body, Controller, Get, Inject, Injectable, Module, Put } from '@nestjs/common';
 import { type Settings, settingsSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import { DEFAULT_FEES, DEFAULT_SCHEDULE } from '@albarakah/domain';
 import { type AuthUser, CurrentUser, Public, RequirePermission } from '../common/auth.js';
+import { type Env, ENV } from '../config/env.js';
 import { ZodPipe } from '../common/errors.js';
 import { PRISMA } from '../common/infra.module.js';
 
-const DEFAULTS: Settings = { ...DEFAULT_FEES, ...DEFAULT_SCHEDULE, requireRxUpload: false };
+const DEFAULTS: Settings = {
+  ...DEFAULT_FEES,
+  ...DEFAULT_SCHEDULE,
+  requireRxUpload: false,
+  androidLatestVersionCode: 0,
+  androidLatestVersionName: '',
+  androidApkUrl: '',
+  androidForceUpdate: false,
+  androidUpdateNotes: '',
+};
 const CACHE_MS = 15_000;
+const RELEASE_FILE = join(dirname(fileURLToPath(import.meta.url)), '../../android-release.json');
+
+/** Written by apps/store/scripts/ship-apk.mjs after each APK build. */
+function releaseOverlay(): Partial<Settings> {
+  if (!existsSync(RELEASE_FILE)) return {};
+  try {
+    const raw = JSON.parse(readFileSync(RELEASE_FILE, 'utf8')) as Partial<Settings>;
+    return {
+      ...(typeof raw.androidLatestVersionCode === 'number' ? { androidLatestVersionCode: raw.androidLatestVersionCode } : {}),
+      ...(typeof raw.androidLatestVersionName === 'string' ? { androidLatestVersionName: raw.androidLatestVersionName } : {}),
+      ...(typeof raw.androidApkUrl === 'string' ? { androidApkUrl: raw.androidApkUrl } : {}),
+      ...(typeof raw.androidForceUpdate === 'boolean' ? { androidForceUpdate: raw.androidForceUpdate } : {}),
+      ...(typeof raw.androidUpdateNotes === 'string' ? { androidUpdateNotes: raw.androidUpdateNotes } : {}),
+    };
+  } catch {
+    return {};
+  }
+}
 
 @Injectable()
 export class SettingsService {
@@ -18,7 +49,7 @@ export class SettingsService {
   async get(): Promise<Settings> {
     if (this.cached && Date.now() - this.cached.at < CACHE_MS) return this.cached.value;
     const row = await this.prisma.setting.findUnique({ where: { key: 'app' } });
-    const value = { ...DEFAULTS, ...(row?.value as Partial<Settings> | null) };
+    const value = { ...DEFAULTS, ...(row?.value as Partial<Settings> | null), ...releaseOverlay() };
     this.cached = { value, at: Date.now() };
     return value;
   }
@@ -35,13 +66,17 @@ export class SettingsService {
 
 @Controller('settings')
 export class SettingsController {
-  constructor(private readonly settings: SettingsService) {}
+  constructor(
+    private readonly settings: SettingsService,
+    @Inject(ENV) private readonly env: Env,
+  ) {}
 
-  /** Only what the store needs to show prices and hours. */
+  /** Only what the store needs to show prices, hours, and app updates. */
   @Public()
   @Get('public')
   async publicSettings() {
     const s = await this.settings.get();
+    const store = this.env.STORE_URL.replace(/\/$/, '');
     return {
       emergencyFeePoisha: s.emergencyFeePoisha,
       doctorBookingFeePoisha: s.doctorBookingFeePoisha,
@@ -49,6 +84,11 @@ export class SettingsController {
       openHour: s.openHour,
       closeHour: s.closeHour,
       emergencyMinutes: s.emergencyMinutes,
+      androidLatestVersionCode: s.androidLatestVersionCode,
+      androidLatestVersionName: s.androidLatestVersionName,
+      androidApkUrl: s.androidApkUrl || `${store}/download/al-barakah.apk`,
+      androidForceUpdate: s.androidForceUpdate,
+      androidUpdateNotes: s.androidUpdateNotes,
     };
   }
 

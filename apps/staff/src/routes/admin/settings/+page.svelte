@@ -5,9 +5,9 @@
 
   interface Zone { id: string; name: string; deliveryFeePoisha: number; isActive: boolean }
   const MONEY = [['emergencyFeePoisha', 'Emergency fee'], ['riderPayoutPoisha', 'Rider pay per delivery'], ['riderEmergencyBonusPoisha', 'Rider emergency bonus'], ['doctorBookingFeePoisha', 'Doctor booking fee']] as const;
-  const NUMBERS = [['leadHours', 'Minimum hours before delivery'], ['openHour', 'Opening hour (0-23)'], ['closeHour', 'Closing hour (1-24)'], ['slotHours', 'Window length in hours'], ['daysAhead', 'Days ahead customers can choose'], ['emergencyStartHour', 'Emergency starts (hour)'], ['emergencyEndHour', 'Emergency ends (hour)'], ['emergencyMinutes', 'Emergency promise in minutes']] as const;
+  const NUMBERS = [['leadHours', 'Minimum hours before delivery'], ['openHour', 'Opening hour (0-23)'], ['closeHour', 'Closing hour (1-24)'], ['slotHours', 'Window length in hours'], ['daysAhead', 'Days ahead customers can choose'], ['emergencyStartHour', 'Emergency starts (hour)'], ['emergencyEndHour', 'Emergency ends (hour)'], ['emergencyMinutes', 'Emergency promise in minutes'], ['androidLatestVersionCode', 'Android version code (0 = off)']] as const;
 
-  let settings = $state<Record<string, number | boolean> | null>(null);
+  let settings = $state<Record<string, number | boolean | string> | null>(null);
   let money = $state<Record<string, string>>({});
   let zones = $state<Zone[]>([]);
   let zone = $state({ name: '', fee: '' });
@@ -18,8 +18,14 @@
   async function loadZones() { zones = await api.get<Zone[]>('/admin/zones'); }
   onMount(async () => {
     try {
-      const s = await api.get<Record<string, number | boolean>>('/settings');
-      settings = s;
+      const s = await api.get<Record<string, number | boolean | string>>('/settings');
+      settings = {
+        ...s,
+        androidLatestVersionName: String(s.androidLatestVersionName ?? ''),
+        androidApkUrl: String(s.androidApkUrl ?? ''),
+        androidUpdateNotes: String(s.androidUpdateNotes ?? ''),
+        androidForceUpdate: !!s.androidForceUpdate,
+      };
       money = Object.fromEntries(MONEY.map(([k]) => [k, poishaToTk(s[k] as number)]));
       await loadZones();
     } catch (err) { error = message(err); }
@@ -34,6 +40,10 @@
       body[k] = v;
     }
     for (const [k] of NUMBERS) body[k] = Number(body[k]);
+    body.androidLatestVersionName = String(body.androidLatestVersionName ?? '');
+    body.androidApkUrl = String(body.androidApkUrl ?? '');
+    body.androidUpdateNotes = String(body.androidUpdateNotes ?? '');
+    body.androidForceUpdate = !!body.androidForceUpdate;
     busy = true; error = ''; saved = false;
     try { await api.put('/settings', body); saved = true; } catch (err) { error = message(err); } finally { busy = false; }
   }
@@ -81,6 +91,16 @@
         {/each}
       </div>
       <label class="row"><input type="checkbox" bind:checked={settings.requireRxUpload as boolean} /> Require a prescription upload for prescription medicines</label>
+
+      <h2 class="section">Android app updates</h2>
+      <p class="muted small">Phones below this version code see an update sheet. Leave version code at 0 to turn checks off. Shipping an APK also writes this automatically.</p>
+      <div class="grid">
+        <label class="field"><span>Latest version name</span><input class="input mono" bind:value={settings.androidLatestVersionName as string} placeholder="1.2.0" maxlength="40" /></label>
+        <label class="field"><span>APK download URL (optional)</span><input class="input" bind:value={settings.androidApkUrl as string} placeholder="Uses the store download link if empty" maxlength="500" /></label>
+      </div>
+      <label class="field"><span>Update notes</span><textarea class="input" bind:value={settings.androidUpdateNotes as string} rows="3" maxlength="500" placeholder="What is new in this build"></textarea></label>
+      <label class="row"><input type="checkbox" bind:checked={settings.androidForceUpdate as boolean} /> Require update (no Later button)</label>
+
       <button class="btn primary" disabled={busy}>Save</button>
       {#if saved}<p role="status" class="small">Saved.</p>{/if}
     </form>

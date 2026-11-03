@@ -135,5 +135,10 @@
   "invalid_email": "সঠিক ইমেইল ঠিকানা লিখুন",
   "use_phone": "ফোন",
   "use_email": "ইমেইল",
-  "phone_required_email": "ডেলিভারির জন্য আবশ্যক — যেমন ০১৭XXXXXXXX"
+  "phone_required_email": "ডেলিভারির জন্য আবশ্যক — যেমন ০১৭XXXXXXXX",
+  "update_title": "আপডেট এসেছে",
+  "update_body": "AL-BARAKAH {version} প্রস্তুত। নতুন সংস্করণে আরও মসৃণ অভিজ্ঞতা পাবেন।",
+  "update_now": "এখনই আপডেট করুন",
+  "update_later": "পরে"
 }
+

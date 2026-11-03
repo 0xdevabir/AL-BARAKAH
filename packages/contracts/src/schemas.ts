@@ -71,23 +71,30 @@ export const zoneSchema = z.object({
   deliveryFeePoisha: z.number().int().min(0).max(10_000_000),
   isActive: z.boolean().default(true),
 });
-export const settingsSchema = z.object({
-  emergencyFeePoisha: z.number().int().min(0),
-  riderPayoutPoisha: z.number().int().min(0),
-  riderEmergencyBonusPoisha: z.number().int().min(0),
-  doctorBookingFeePoisha: z.number().int().min(0),
-  requireRxUpload: z.boolean(),
-  leadHours: z.number().int().min(0).max(72),
-  openHour: z.number().int().min(0).max(23),
-  closeHour: z.number().int().min(1).max(24),
-  slotHours: z.number().int().min(1).max(6),
-  daysAhead: z.number().int().min(0).max(14),
-  emergencyStartHour: z.number().int().min(0).max(23),
-  emergencyEndHour: z.number().int().min(1).max(24),
-  emergencyMinutes: z.number().int().min(15).max(240),
-}).refine((s) => s.openHour < s.closeHour, { message: 'Opening must be before closing', path: ['closeHour'] })
-  .refine((s) => s.emergencyStartHour < s.emergencyEndHour, { message: 'Emergency start must be before its end', path: ['emergencyEndHour'] });
-export type Settings = z.infer<typeof settingsSchema>;
+  export const settingsSchema = z.object({
+   emergencyFeePoisha: z.number().int().min(0),
+   riderPayoutPoisha: z.number().int().min(0),
+   riderEmergencyBonusPoisha: z.number().int().min(0),
+   doctorBookingFeePoisha: z.number().int().min(0),
+   requireRxUpload: z.boolean(),
+   leadHours: z.number().int().min(0).max(72),
+   openHour: z.number().int().min(0).max(23),
+   closeHour: z.number().int().min(1).max(24),
+   slotHours: z.number().int().min(1).max(6),
+   daysAhead: z.number().int().min(0).max(14),
+   emergencyStartHour: z.number().int().min(0).max(23),
+   emergencyEndHour: z.number().int().min(1).max(24),
+   emergencyMinutes: z.number().int().min(15).max(240),
+   /** Highest Android versionCode the store should accept. 0 = update checks off. */
+   androidLatestVersionCode: z.number().int().min(0).default(0),
+   androidLatestVersionName: z.string().max(40).default(''),
+   /** Empty = use STORE_URL/download/al-barakah.apk */
+   androidApkUrl: z.string().max(500).default(''),
+   androidForceUpdate: z.boolean().default(false),
+   androidUpdateNotes: z.string().max(500).default(''),
+ }).refine((s) => s.openHour < s.closeHour, { message: 'Opening must be before closing', path: ['closeHour'] })
+   .refine((s) => s.emergencyStartHour < s.emergencyEndHour, { message: 'Emergency start must be before its end', path: ['emergencyEndHour'] });
+ export type Settings = z.infer<typeof settingsSchema>;
 
 export const orderStatusSchema = z.enum(['PLACED', 'CONFIRMED', 'PACKED', 'ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'FAILED']);
 export const adminTransitionSchema = z.object({
@@ -144,4 +151,5 @@ export const prescriptionUploadSchema = z.object({
   contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
 });
 export const settleSchema = z.object({ amountPoisha: z.number().int().min(1), note: z.string().trim().max(200).optional() });
+
 

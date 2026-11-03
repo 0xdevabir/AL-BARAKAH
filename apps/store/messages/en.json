@@ -135,5 +135,10 @@
   "invalid_email": "Enter a valid email address",
   "use_phone": "Phone",
   "use_email": "Email",
-  "phone_required_email": "Required for delivery — Bangladeshi number such as 017XXXXXXXX"
+  "phone_required_email": "Required for delivery — Bangladeshi number such as 017XXXXXXXX",
+  "update_title": "Update available",
+  "update_body": "AL-BARAKAH {version} is ready. Update now for fixes and a smoother shop.",
+  "update_now": "Update now",
+  "update_later": "Later"
 }
+

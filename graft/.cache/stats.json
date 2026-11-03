@@ -9,8 +9,8 @@
   "totalCount": 502,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-03T02:27:35.039Z",
-  "lastFile": "+error.svelte"
+  "lastFile": "+page.svelte"
 }
