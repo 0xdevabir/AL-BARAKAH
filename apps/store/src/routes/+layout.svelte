@@ -1,7 +1,6 @@
 <script lang="ts">
   import '@albarakah/ui/styles.css';
   import { onMount, type Snippet } from 'svelte';
-  import { browser } from '$app/env';
   import { goto, onNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import { api, cart, MOBILE, tap } from '#lib/app.svelte.ts';
@@ -30,17 +29,6 @@
   const active = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
   const hideBar = $derived(page.url.pathname.startsWith('/checkout') || page.url.pathname.startsWith('/login'));
   const showCart = $derived(cart.count > 0 && !hideBar && !page.url.pathname.startsWith('/cart'));
-
-  let tabsEl = $state<HTMLElement>();
-  let cartEl = $state<HTMLElement>();
-
-  // Re-home whenever the nodes mount (route changes hide/show them).
-  $effect(() => {
-    if (!browser) return;
-    const home = document.body;
-    if (tabsEl && tabsEl.parentElement !== home) home.appendChild(tabsEl);
-    if (cartEl && cartEl.parentElement !== home) home.appendChild(cartEl);
-  });
 
   onMount(() => {
     if (MOBILE) document.documentElement.dataset.native = '1';
@@ -87,9 +75,9 @@
 <Intro />
 <UpdatePrompt />
 <!--
-  Fixed chrome (tabs/cart) stays outside any animated/transformed ancestor.
-  A transform on .shell (even identity from fill-mode) turns position:fixed into
-  page-relative on Android WebView — tabs vanish mid-scroll and nav feels broken.
+  Phone chrome uses an app shell: .shell scrolls, .tabs stay in the flex footer.
+  That keeps the tab bar pinned without position:fixed (which Android WebView
+  demotes whenever any ancestor gets a transform/filter).
 -->
 <div class="frame" class:bare={hideBar} class:held={true}>
   {#if !hideBar}
@@ -106,19 +94,19 @@
     </main>
   </div>
   {#if showCart}
-    <a class="cartbar" bind:this={cartEl} href="/cart" onpointerdown={() => tap()}>
+    <a class="cartbar" href="/cart" onpointerdown={() => tap()}>
       <span class="count mono">{cart.count}</span>
       <span class="grow">{m.view_cart()}</span>
     </a>
   {/if}
   {#if !hideBar}
-    <nav class="tabs" bind:this={tabsEl} aria-label="Main">
+    <nav class="tabs" aria-label="Main">
       {#each tabs as t (t.href)}
         <a href={t.href} class:on={active(t.href)} aria-current={active(t.href) ? 'page' : undefined} onpointerdown={() => tap()}>
           <span class="glyph">
-            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
           </span>
-          <span>{t.label}</span>
+          <span class="label">{t.label}</span>
         </a>
       {/each}
     </nav>
@@ -126,43 +114,65 @@
 </div>
 
 <style>
-  .frame { min-height: 100dvh; }
-  .shell { min-height: 100dvh; }
+  /* Phone: locked viewport shell — content scrolls, tabs never move. */
+  .frame {
+    position: relative; display: flex; flex-direction: column;
+    height: 100dvh; max-height: 100dvh; overflow: hidden;
+  }
+  .shell {
+    flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  }
   :global(html[data-intro='1']) .held { pointer-events: none; }
   :global(html[data-intro='1']) { overflow: hidden; }
-  /* Opacity only — any transform on an ancestor breaks position:fixed chrome. */
   :global(html[data-intro='0']) .shell { animation: shell-in 0.45s var(--ease) both; }
-  .content { padding-bottom: calc(176px + env(safe-area-inset-bottom)); }
+  .content { padding-bottom: 28px; }
+  .frame:has(.cartbar) .content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .frame:has(:global(.dock)) .content { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+  .frame:has(.cartbar):has(:global(.dock)) .content { padding-bottom: calc(176px + env(safe-area-inset-bottom)); }
   .bare .content { padding-bottom: 0; }
+
   .tabs {
-    position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; top: auto;
-    display: flex; align-items: flex-end; justify-content: space-around;
-    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    flex: none; z-index: 40;
+    display: flex; align-items: stretch; justify-content: space-around;
+    gap: 2px; padding: 4px 6px 0;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
     background: var(--raised);
-    box-shadow: 0 -1px 0 var(--line), 0 -8px 24px rgb(40 36 24 / 0.05);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -10px 28px rgb(40 36 24 / 0.06);
   }
   .tabs a {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 54px;
-    justify-content: flex-end; color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.15;
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; min-width: 0; min-height: 52px; padding: 6px 2px 8px;
+    color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.1;
     text-align: center; touch-action: manipulation; transition: color 0.18s var(--ease);
   }
-  .glyph { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; transition: background-color 0.18s var(--ease), transform 0.16s var(--ease); }
+  .label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .glyph {
+    display: grid; place-items: center; width: 52px; height: 30px; border-radius: 15px;
+    transition: background-color 0.18s var(--ease), transform 0.16s var(--ease);
+  }
   .tabs a:active .glyph { transform: scale(0.9); }
   .tabs a.on { color: var(--accent-ink); }
   .tabs a.on .glyph { background: var(--sage-soft); }
-  .tabs a.on svg { stroke-width: 2.2; }
+  .tabs a.on svg { stroke-width: 2.25; }
+
   .cartbar {
-    position: fixed; z-index: 39; left: 20px; right: 20px; bottom: calc(86px + env(safe-area-inset-bottom)); top: auto;
+    position: absolute; z-index: 39; left: 16px; right: 16px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
     display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 18px; border-radius: var(--r);
     background: var(--accent); color: var(--on-accent); font-weight: 600;
     box-shadow: var(--shadow), 0 10px 24px rgb(47 67 48 / 0.18);
     transition: transform 0.18s var(--ease), opacity 0.18s var(--ease);
     touch-action: manipulation;
   }
+  .bare .cartbar { bottom: calc(16px + env(safe-area-inset-bottom)); }
   .cartbar:active { transform: scale(0.98); }
   .count { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 10px; background: rgb(255 255 255 / 0.22); font-size: 0.95rem; }
-  .frame:has(:global(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
-  .frame:has(:global(.dock)) .content { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
+
+  /* Checkout/login: no tab bar — docks sit on the home indicator. */
+  .bare :global(.dock) { bottom: calc(16px + env(safe-area-inset-bottom)); }
+
   @keyframes shell-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -187,8 +197,15 @@
   }
 
   @media (min-width: 900px) {
-    /* The top header takes over navigation and the cart on big screens. */
+    /* Desktop: normal document scroll; top header owns navigation. */
+    .frame { display: block; height: auto; max-height: none; overflow: visible; min-height: 100dvh; }
+    .shell { overflow: visible; min-height: auto; }
     .content { padding-bottom: 48px; }
     .tabs, .cartbar { display: none; }
   }
 </style>
+
+
+
+
+
