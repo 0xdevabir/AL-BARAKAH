@@ -22,10 +22,21 @@ export class InfraLifecycle implements OnModuleDestroy {
   providers: [
     { provide: ENV, useFactory: () => loadEnv() },
     { provide: PRISMA, inject: [ENV], useFactory: (env: Env) => createPrisma(env.DATABASE_URL) },
-    { provide: REDIS, inject: [ENV], useFactory: (env: Env) => new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }) },
+    {
+      provide: REDIS,
+      inject: [ENV],
+      // Bounded waits so a Redis blip cannot freeze health checks, SSE tickets, or auth.
+      useFactory: (env: Env) => new Redis(env.REDIS_URL, {
+        maxRetriesPerRequest: 1,
+        connectTimeout: 5_000,
+        commandTimeout: 5_000,
+        enableOfflineQueue: false,
+      }),
+    },
     TokenService,
     InfraLifecycle,
   ],
   exports: [ENV, PRISMA, REDIS, TokenService],
 })
 export class InfraModule {}
+

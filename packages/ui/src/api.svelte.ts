@@ -17,6 +17,17 @@ const hint = {
 
 interface Session { accessToken: string; refreshToken?: string; user: SessionUser }
 
+/** Caps every call so a stalled network or API never freezes buttons/spinners. */
+const REQUEST_MS = 20_000;
+
+function networkError(err: unknown): ApiError {
+  const name = err instanceof Error ? err.name : '';
+  if (name === 'TimeoutError' || name === 'AbortError') {
+    return new ApiError(0, 'TIMEOUT', 'That took too long. Please try again.');
+  }
+  return new ApiError(0, 'NETWORK', 'No connection. Please check your internet and try again.');
+}
+
 /** The access token lives only in memory, so injected scripts have nothing lasting to steal. */
 export class ApiClient {
   user = $state<SessionUser | null>(null);
@@ -48,13 +59,17 @@ export class ApiClient {
     void this.vault?.set(null);
   }
 
+  private call(path: string, init: RequestInit): Promise<Response> {
+    return fetch(`${this.base}${path}`, { ...init, signal: AbortSignal.timeout(REQUEST_MS) });
+  }
+
   /** Concurrent 401s share one refresh, because a refresh token works only once. */
   private refresh(): Promise<boolean> {
     this.refreshing ??= (async () => {
       try {
         const token = this.vault ? await this.vault.get() : null;
         if (this.vault && !token) return false;
-        const res = await fetch(`${this.base}/auth/refresh`, {
+        const res = await this.call('/auth/refresh', {
           method: 'POST', credentials: 'include',
           headers: this.vault ? { 'content-type': 'application/json', 'x-client': 'native' } : {},
           ...(token ? { body: JSON.stringify({ refreshToken: token }) } : {}),
@@ -72,21 +87,30 @@ export class ApiClient {
     return this.refreshing;
   }
 
-  /** Restores the session on launch. */
+  /** Restores the session on launch. Always marks ready so pages never wait forever. */
   async restore() {
-    if (this.vault ? await this.vault.get() : hint.get()) await this.refresh();
-    this.ready = true;
+    try {
+      const signedIn = this.vault
+        ? await Promise.race([
+            this.vault.get(),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3_000)),
+          ])
+        : hint.get();
+      if (signedIn) await this.refresh();
+    } finally {
+      this.ready = true;
+    }
   }
 
   async request<T>(method: string, path: string, body?: unknown, retry = true): Promise<T> {
     let res: Response;
     try {
-      res = await fetch(`${this.base}${path}`, {
+      res = await this.call(path, {
         method, credentials: 'include', headers: this.headers(body !== undefined),
         ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
-    } catch {
-      throw new ApiError(0, 'NETWORK', 'No connection. Please check your internet and try again.');
+    } catch (err) {
+      throw networkError(err);
     }
     if (res.status === 401 && retry && (await this.refresh())) return this.request<T>(method, path, body, false);
     const data = await res.json().catch(() => null);

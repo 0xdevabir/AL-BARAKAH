@@ -32,27 +32,36 @@ export class CatalogService {
     const size = browsing ? BROWSE_PAGE : SEARCH_PAGE;
     // Browse is intentionally page 1 only — the rest of the catalogue is reached by searching.
     const offset = browsing ? 0 : (Math.max(page, 1) - 1) * size;
+    // Rank + limit first, then stock only for that page — avoids summing batches for every match.
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
-      SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
-             m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
-             (SELECT COALESCE(SUM(b."qtyRemaining"), 0) FROM "Batch" b WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE) AS stock
-      FROM "Medicine" m
-      JOIN "Category" c ON c.id = m."categoryId"
-      WHERE m."isActive"
-        AND (${categorySlug ?? null}::text IS NULL OR c.slug = ${categorySlug ?? null})
-        AND (${term}::text IS NULL
-             OR m.name ILIKE '%' || ${like} || '%' OR m."genericName" ILIKE '%' || ${like} || '%'
-             OR m.manufacturer ILIKE '%' || ${like} || '%'
-             OR m.name % ${term}::text OR m."genericName" % ${term}::text)
-      ORDER BY CASE WHEN ${term}::text IS NULL THEN 0
-                    WHEN m.name ILIKE ${like} THEN 0
-                    WHEN m.name ILIKE ${like} || '%' THEN 1
-                    WHEN m."genericName" ILIKE ${like} || '%' THEN 2
-                    ELSE 3 END,
-               CASE WHEN ${term}::text IS NULL THEN 0
-                    ELSE round((1 - GREATEST(similarity(m.name, COALESCE(${term}, '')), similarity(m."genericName", COALESCE(${term}, ''))))::numeric, 1) END,
-               m.popularity DESC, m.name, m.strength
-      LIMIT ${browsing ? size : size + 1} OFFSET ${offset}`;
+      WITH matched AS (
+        SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
+               m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId"
+        FROM "Medicine" m
+        JOIN "Category" c ON c.id = m."categoryId"
+        WHERE m."isActive"
+          AND (${categorySlug ?? null}::text IS NULL OR c.slug = ${categorySlug ?? null})
+          AND (${term}::text IS NULL
+               OR m.name ILIKE '%' || ${like} || '%' OR m."genericName" ILIKE '%' || ${like} || '%'
+               OR m.manufacturer ILIKE '%' || ${like} || '%'
+               OR m.name % ${term}::text OR m."genericName" % ${term}::text)
+        ORDER BY CASE WHEN ${term}::text IS NULL THEN 0
+                      WHEN m.name ILIKE ${like} THEN 0
+                      WHEN m.name ILIKE ${like} || '%' THEN 1
+                      WHEN m."genericName" ILIKE ${like} || '%' THEN 2
+                      ELSE 3 END,
+                 CASE WHEN ${term}::text IS NULL THEN 0
+                      ELSE round((1 - GREATEST(similarity(m.name, COALESCE(${term}, '')), similarity(m."genericName", COALESCE(${term}, ''))))::numeric, 1) END,
+                 m.popularity DESC, m.name, m.strength
+        LIMIT ${browsing ? size : size + 1} OFFSET ${offset}
+      )
+      SELECT matched.*, COALESCE(stock.qty, 0) AS stock
+      FROM matched
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty
+        FROM "Batch" b
+        WHERE b."medicineId" = matched.id AND b."expiresAt" >= CURRENT_DATE
+      ) stock ON true`;
     return {
       items: rows.slice(0, size).map(toDto),
       hasMore: browsing ? false : rows.length > size,
@@ -63,8 +72,14 @@ export class CatalogService {
     const [row] = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
              m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
-             (SELECT COALESCE(SUM(b."qtyRemaining"), 0) FROM "Batch" b WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE) AS stock
-      FROM "Medicine" m WHERE m.slug = ${slug} AND m."isActive" LIMIT 1`;
+             COALESCE(stock.qty, 0) AS stock
+      FROM "Medicine" m
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty
+        FROM "Batch" b
+        WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE
+      ) stock ON true
+      WHERE m.slug = ${slug} AND m."isActive" LIMIT 1`;
     if (!row) throw notFound('Medicine not found');
     return toDto(row);
   }
