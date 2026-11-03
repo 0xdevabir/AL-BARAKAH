@@ -148,8 +148,8 @@
   }
   .cartbar:active { transform: scale(0.98); }
   .count { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 10px; background: rgb(255 255 255 / 0.22); font-size: 0.95rem; }
-  :global(main:has(.dock)) ~ .cartbar, :global(.frame:has(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
-  .frame:global(:has(.dock)) .content { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
+  .frame:has(:global(.dock)) .cartbar { bottom: calc(176px + env(safe-area-inset-bottom)); }
+  .frame:has(:global(.dock)) .content { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
   @keyframes shell-in {
     from { opacity: 0; }
     to { opacity: 1; }
