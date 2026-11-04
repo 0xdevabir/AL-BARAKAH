@@ -6,7 +6,7 @@ import { type AuthUser, CurrentUser, Public, RequirePermission } from '@albaraka
 import { conflict, notFound, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA } from '@albarakah/nest-common';
 
-/** Full result pages only when searching; browse is a small popular preview. */
+/** Browse uses a smaller page size; both browse and search paginate. */
 const SEARCH_PAGE = 20;
 const BROWSE_PAGE = 12;
 
@@ -30,8 +30,7 @@ export class CatalogService {
     const like = term?.replace(/[\\%_]/g, '\\$&') ?? null;
     const browsing = !term;
     const size = browsing ? BROWSE_PAGE : SEARCH_PAGE;
-    // Browse is intentionally page 1 only — the rest of the catalogue is reached by searching.
-    const offset = browsing ? 0 : (Math.max(page, 1) - 1) * size;
+    const offset = (Math.max(page, 1) - 1) * size;
     // Rank + limit first, then stock only for that page — avoids summing batches for every match.
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
       WITH matched AS (
@@ -53,7 +52,7 @@ export class CatalogService {
                  CASE WHEN ${term}::text IS NULL THEN 0
                       ELSE round((1 - GREATEST(similarity(m.name, COALESCE(${term}, '')), similarity(m."genericName", COALESCE(${term}, ''))))::numeric, 1) END,
                  m.popularity DESC, m.name, m.strength
-        LIMIT ${browsing ? size : size + 1} OFFSET ${offset}
+        LIMIT ${size + 1} OFFSET ${offset}
       )
       SELECT matched.*, COALESCE(stock.qty, 0) AS stock
       FROM matched
@@ -64,7 +63,7 @@ export class CatalogService {
       ) stock ON true`;
     return {
       items: rows.slice(0, size).map(toDto),
-      hasMore: browsing ? false : rows.length > size,
+      hasMore: rows.length > size,
     };
   }
 

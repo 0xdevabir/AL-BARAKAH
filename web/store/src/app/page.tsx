@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { BrandLockup } from '@/components/BrandLockup';
+import { CategoryIcon } from '@/components/CategoryIcon';
+import { ProductGrid } from '@/components/ProductGrid';
 
 const API = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -34,8 +36,8 @@ export default async function HomePage() {
 
   return (
     <div className="home-bleed">
-      <section className="hero-plane">
-        {packs.length > 0 && (
+      <section className="home-banner" aria-label="Welcome">
+        {packs.length > 0 ? (
           <div className="hero-packs" aria-hidden="true">
             {packs.map((med) => (
               <img
@@ -49,7 +51,7 @@ export default async function HomePage() {
               />
             ))}
           </div>
-        )}
+        ) : null}
         <div className="hero-copy">
           <BrandLockup size={34} tone="light" />
           <h1>Medicine at your door</h1>
@@ -65,33 +67,37 @@ export default async function HomePage() {
       </section>
 
       <div className="home-body">
-        <div className="action-row">
-          <Link className="action" href="/search">
-            <strong>Emergency delivery</strong>
-            <span>As fast as one hour when the counter is open.</span>
-          </Link>
-          <Link className="action" href="/doctors">
-            <strong>Talk to a doctor</strong>
-            <span>Video or WhatsApp consultations.</span>
-          </Link>
-        </div>
+        <header className="home-mobile-brand">
+          <BrandLockup size={26} />
+        </header>
 
         {data.categories.length > 0 ? (
-          <section className="home-section">
+          <section className="home-section cat-section" aria-label="Categories">
             <div className="section">
               <h2>Categories</h2>
               <Link href="/search">See all</Link>
             </div>
-            <div className="group">
-              {data.categories.slice(0, 8).map((c) => (
-                <Link key={c.id} href={`/search?category=${c.slug}`} className="chev">
-                  <span className="grow">{c.name}</span>
-                  <span className="cat-count mono small">{(c.count ?? 0).toLocaleString()}</span>
+            <div className="cat-rail" role="list">
+              {data.categories.map((c) => (
+                <Link key={c.id} href={`/search?category=${c.slug}`} className="cat-tile" role="listitem">
+                  <span className="cat-glyph">
+                    <CategoryIcon slug={c.slug} />
+                  </span>
+                  <strong>{c.name}</strong>
+                  <span className="muted small mono">{(c.count ?? 0).toLocaleString()}</span>
                 </Link>
               ))}
             </div>
           </section>
         ) : null}
+
+        <section className="home-section meds-section" aria-label="Medicines">
+          <div className="section">
+            <h2>Medicines</h2>
+            <Link href="/search">Search</Link>
+          </div>
+          <ProductGrid />
+        </section>
       </div>
     </div>
   );

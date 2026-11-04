@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import type { Medicine } from '@/lib/cart';
 import { ProductCard } from './ProductCard';
 
-const AUTO_PAGES = 5;
+const AUTO_PAGES = 8;
 
 export function ProductGrid({ q = '', category = '' }: { q?: string; category?: string }) {
   const key = `${q}|${category}`;
@@ -16,14 +16,18 @@ export function ProductGrid({ q = '', category = '' }: { q?: string; category?: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const ticket = useRef(0);
+  const pageRef = useRef(1);
+  const loadingRef = useRef(false);
   const sentinel = useRef<HTMLSpanElement>(null);
 
   const run = useCallback(
     async (more = false) => {
+      if (loadingRef.current) return;
       const id = ++ticket.current;
-      const next = more ? pageNo + 1 : 1;
+      const next = more ? pageRef.current + 1 : 1;
       setError('');
       setLoading(true);
+      loadingRef.current = true;
       try {
         const params = new URLSearchParams({
           page: String(next),
@@ -33,38 +37,44 @@ export function ProductGrid({ q = '', category = '' }: { q?: string; category?: 
         const r = await api.get<{ items: Medicine[]; hasMore: boolean }>(`/medicines?${params}`);
         if (id !== ticket.current) return;
         setItems((prev) => (more ? [...prev, ...r.items] : r.items));
-        setHasMore(q.trim() ? r.hasMore : false);
+        setHasMore(r.hasMore);
+        pageRef.current = next;
         setPageNo(next);
         setLoaded(true);
       } catch (err) {
         if (id === ticket.current) setError((err as Error).message);
       } finally {
-        if (id === ticket.current) setLoading(false);
+        if (id === ticket.current) {
+          setLoading(false);
+          loadingRef.current = false;
+        }
       }
     },
-    [category, pageNo, q],
+    [category, q],
   );
 
   useEffect(() => {
+    ticket.current += 1;
+    pageRef.current = 1;
     setLoaded(false);
     setItems([]);
     setPageNo(1);
+    setHasMore(false);
     void run(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when key changes
-  }, [key]);
+  }, [key, run]);
 
   useEffect(() => {
     const node = sentinel.current;
-    if (!node || !hasMore || !q.trim() || pageNo >= AUTO_PAGES) return;
+    if (!node || !hasMore || pageNo >= AUTO_PAGES) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && !loading && !error) void run(true);
+        if (entries[0]?.isIntersecting && !loadingRef.current && !error) void run(true);
       },
       { rootMargin: '600px' },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [error, hasMore, loading, pageNo, q, run]);
+  }, [error, hasMore, pageNo, run]);
 
   if (error && !items.length) {
     return (
@@ -111,7 +121,7 @@ export function ProductGrid({ q = '', category = '' }: { q?: string; category?: 
             </button>
           </>
         ) : null}
-        {hasMore && q.trim() ? (
+        {hasMore ? (
           <>
             {pageNo < AUTO_PAGES ? <span ref={sentinel} className="sentinel" /> : null}
             <button className="btn" type="button" disabled={loading} onClick={() => void run(true)}>
