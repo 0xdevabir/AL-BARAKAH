@@ -1,14 +1,13 @@
 'use client';
 
 import { formatTk } from '@albarakah/domain';
-import { fmtWindow, Segmented, Sheet } from '@albarakah/ui';
+import { fmtWindow, hasPoint, MapView, Segmented, Sheet } from '@albarakah/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { useCart } from '@/lib/useCart';
+import { type Address, AddressComposer } from '@/components/AddressComposer';
 
-interface Zone { id: string; name: string; deliveryFeePoisha: number }
-interface Address { id: string; label: string; line: string; phone: string; zone: Zone }
 interface Slot { start: string; end: string }
 
 export default function CheckoutPage() {
@@ -16,7 +15,6 @@ export default function CheckoutPage() {
   const { cart, lines, subtotal } = useCart();
   const [step, setStep] = useState(0);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [zones, setZones] = useState<Zone[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [emergency, setEmergency] = useState({ available: false, feePoisha: 0, minutes: 60 });
   const [addressId, setAddressId] = useState('');
@@ -29,7 +27,6 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [sheet, setSheet] = useState(false);
-  const [draft, setDraft] = useState({ label: '', line: '', zoneId: '', phone: '' });
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [ready, setReady] = useState(false);
 
@@ -51,22 +48,15 @@ export default function CheckoutPage() {
         return;
       }
       try {
-        const [a, z, s] = await Promise.all([
+        const [a, s] = await Promise.all([
           api.get<Address[]>('/addresses'),
-          api.get<Zone[]>('/zones'),
           api.get<{ slots: Slot[]; emergency: typeof emergency }>('/delivery-slots'),
         ]);
         setAddresses(a);
-        setZones(z);
         setSlots(s.slots);
         setEmergency(s.emergency);
         setAddressId(a[0]?.id ?? '');
         setSlotStart(s.slots[0]?.start ?? '');
-        setDraft((d) => ({
-          ...d,
-          phone: api.user!.phone.replace('+88', ''),
-          zoneId: z[0]?.id ?? '',
-        }));
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -74,19 +64,6 @@ export default function CheckoutPage() {
       }
     })();
   }, [lines.length, router]);
-
-  async function saveAddress(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    try {
-      const a = await api.post<Address>('/addresses', draft);
-      setAddresses((prev) => [a, ...prev]);
-      setAddressId(a.id);
-      setSheet(false);
-    } catch (err) {
-      setError((err as Error).message);
-    }
-  }
 
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -166,14 +143,22 @@ export default function CheckoutPage() {
                   <span className="grow">
                     <strong>{a.label}</strong>
                     <span className="muted" style={{ display: 'block' }}>{a.line}</span>
-                    <span className="muted small" style={{ display: 'block' }}>{a.zone.name}</span>
+                    <span className="muted small" style={{ display: "block" }}>{a.zone.name} · {formatTk(a.zone.deliveryFeePoisha)} delivery{hasPoint(a) ? " · 📍 pinned" : ""}</span>
                   </span>
                 </button>
               ))}
             </div>
           ) : null}
-          <button className="btn block" type="button" onClick={() => setSheet(true)}>
-            + Add address
+          {address && hasPoint(address) ? (
+            <div className="checkout-map">
+              <MapView still recenter={false} zoom={16} center={{ lat: address.lat!, lng: address.lng! }} pins={[{ id: 'home', kind: 'home', point: { lat: address.lat!, lng: address.lng! } }]} style={{ height: 130 }} />
+              <span className="checkout-map-cap">The rider navigates to this pin</span>
+            </div>
+          ) : address ? (
+            <p className="muted small">This address has no map pin. You can add one from your account so riders find you faster.</p>
+          ) : null}
+          <button className={`btn block${addresses.length ? '' : ' primary'}`} type="button" onClick={() => setSheet(true)}>
+            {addresses.length ? '+ Add address' : '📍 Pin your delivery address'}
           </button>
         </>
       ) : null}
@@ -276,34 +261,17 @@ export default function CheckoutPage() {
         )}
       </div>
 
-      <Sheet open={sheet} onClose={() => setSheet(false)} title="Add address">
-        <form className="stack" onSubmit={(e) => void saveAddress(e)}>
-          <label className="field">
-            <span>Label</span>
-            <input className="input" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="Home" required maxLength={40} />
-          </label>
-          <label className="field">
-            <span>Address</span>
-            <textarea className="input" value={draft.line} onChange={(e) => setDraft({ ...draft, line: e.target.value })} required minLength={3} maxLength={200} />
-          </label>
-          <label className="field">
-            <span>Zone</span>
-            <select className="input" value={draft.zoneId} onChange={(e) => setDraft({ ...draft, zoneId: e.target.value })} required>
-              {zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.name} ({formatTk(z.deliveryFeePoisha)})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>Phone</span>
-            <input className="input" type="tel" value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} required />
-          </label>
-          <button className="btn primary block" type="submit">
-            Save
-          </button>
-        </form>
+      <Sheet open={sheet} onClose={() => setSheet(false)} title="New address">
+        {sheet ? (
+          <AddressComposer
+            defaultPhone={api.user?.phone ?? ''}
+            onSaved={(a) => {
+              setAddresses((prev) => [a, ...prev.filter((x) => x.id !== a.id)]);
+              setAddressId(a.id);
+              setSheet(false);
+            }}
+          />
+        ) : null}
       </Sheet>
     </div>
   );

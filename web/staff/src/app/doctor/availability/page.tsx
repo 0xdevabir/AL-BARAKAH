@@ -1,6 +1,6 @@
 'use client';
 
-import { chooseAction, haptic, invalidate, LargeTitle, SkeletonList, Switch, toast } from '@albarakah/ui';
+import { chooseAction, confirmAction, haptic, invalidate, LargeTitle, SkeletonList, Switch, toast } from '@albarakah/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { api, useGet } from '@/lib/api';
@@ -12,6 +12,20 @@ const SLOTS = [10, 15, 20, 30, 45, 60];
 const ORDER = [6, 0, 1, 2, 3, 4, 5];
 const strip = (w: Window[]) => w.map(({ weekday, startMinute, endMinute, slotMinutes }) => ({ weekday, startMinute, endMinute, slotMinutes }));
 const sortW = (w: Window[]) => [...w].sort((a, b) => a.weekday - b.weekday || a.startMinute - b.startMinute);
+
+const WORK = [6, 0, 1, 2, 3, 4];
+const PRESETS: { name: string; days: number[]; windows: [number, number][] }[] = [
+  { name: 'Evenings · Sat–Thu 5–9 pm', days: WORK, windows: [[17, 21]] },
+  { name: 'Mornings · Sat–Thu 9 am–1 pm', days: WORK, windows: [[9, 13]] },
+  { name: 'Split · 10–1 & 5–9', days: WORK, windows: [[10, 13], [17, 21]] },
+  { name: 'Weekend · Fri & Sat 10–4', days: [5, 6], windows: [[10, 16]] },
+];
+// The week grid shows 7 am to midnight.
+const pos = (min: number) => Math.min(100, Math.max(0, ((min - 7 * 60) / (17 * 60)) * 100));
+const fmtHours = (w: Window[]) => {
+  const m = w.reduce((n, x) => n + x.endMinute - x.startMinute, 0);
+  return `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
+};
 
 function problem(windows: Window[]): string | null {
   for (const w of windows) {
@@ -53,6 +67,12 @@ export default function Availability() {
     haptic('light');
   }
 
+  async function applyPreset(p: (typeof PRESETS)[number]) {
+    if (w.length && !(await confirmAction({ title: `Use “${p.name}”?`, message: 'This replaces the hours below. Nothing is saved until you tap Save.', confirm: 'Replace' }))) return;
+    setW(sortW(p.days.flatMap((weekday) => p.windows.map(([s, e]) => ({ weekday, startMinute: s * 60, endMinute: e * 60, slotMinutes: w[0]?.slotMinutes ?? 20 })))));
+    haptic('light');
+  }
+
   async function save() {
     if (err) return toast(err, 'bad');
     setBusy(true);
@@ -74,6 +94,31 @@ export default function Availability() {
       {pending ? <SkeletonList rows={7} /> : null}
       {me ? (
         <div className="stack">
+          <div className="panel">
+            <div className="day-head">
+              <strong>Your week</strong>
+              <span className="muted small">{fmtHours(w)} a week</span>
+            </div>
+            <div className="week-grid" aria-hidden="true">
+              <div className="wg-axis">{[8, 12, 16, 20].map((h) => <span key={h} style={{ top: `${pos(h * 60)}%` }}>{h === 12 ? '12 pm' : h < 12 ? `${h} am` : `${h - 12} pm`}</span>)}</div>
+              {ORDER.map((day) => (
+                <div key={day} className="wg-col">
+                  <span className="wg-day">{WEEKDAYS[day]!.slice(0, 3)}</span>
+                  <div className="wg-track">
+                    {w.filter((x) => x.weekday === day).map((x, i) => (
+                      <span key={i} className="wg-block" style={{ top: `${pos(x.startMinute)}%`, height: `${Math.max(2, pos(x.endMinute) - pos(x.startMinute))}%` }} title={`${minutesToHHMM(x.startMinute)}–${minutesToHHMM(x.endMinute % 1440)}`} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="muted small" style={{ margin: '12px 0 6px' }}>Quick start</p>
+            <div className="hscroll chips-row">
+              {PRESETS.map((p) => (
+                <button key={p.name} type="button" className="chip" onClick={() => void applyPreset(p)}>{p.name}</button>
+              ))}
+            </div>
+          </div>
           {ORDER.map((day) => {
             const rows = w.map((x, i) => ({ x, i })).filter(({ x }) => x.weekday === day).sort((a, b) => a.x.startMinute - b.x.startMinute);
             return (

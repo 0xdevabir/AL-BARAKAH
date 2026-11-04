@@ -1,17 +1,17 @@
 {
-  "nodeCount": 3044,
-  "edgeCount": 4359,
+  "nodeCount": 3169,
+  "edgeCount": 4642,
   "languages": [
     "java",
     "javascript",
     "tsx",
     "typescript"
   ],
-  "totalCount": 3044,
+  "totalCount": 3169,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": true,
+  "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-04T11:15:39.909Z",
-  "lastFile": "AddressComposer.tsx"
+  "syncedAt": "2026-11-04T15:26:19.150Z",
+  "lastFile": "page.tsx"
 }

@@ -193,6 +193,8 @@ export const AddressScalarFieldEnum = {
   line: 'line',
   phone: 'phone',
   notes: 'notes',
+  lat: 'lat',
+  lng: 'lng',
   zoneId: 'zoneId',
   isDeleted: 'isDeleted',
   createdAt: 'createdAt'

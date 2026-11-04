@@ -9,13 +9,14 @@ import { api, useGet } from '@/lib/api';
 import { useSignedIn } from '@/lib/auth';
 import { useLive } from '@/lib/live';
 import { reorder } from '@/lib/reorder';
+import { LiveTrack } from '@/components/LiveTrack';
 
 interface Order {
   id: string; code: string; status: string; type: string; promisedBy: string; slotStart: string | null; slotEnd: string | null;
   subtotalPoisha: number; deliveryFeePoisha: number; emergencyFeePoisha: number; totalPoisha: number;
   paymentMethod: 'COD' | 'BKASH'; paymentStatus: string; deliveredAt: string | null; rating: number | null; feedback: string | null;
   handoverCode: string | null; notes: string | null;
-  addressSnapshot: { label: string; line: string; phone?: string };
+  addressSnapshot: { label: string; line: string; phone?: string; lat?: number | null; lng?: number | null };
   items: { id: string; nameSnapshot: string; qty: number; unitPricePoisha: number; medicine: { slug: string; imageUrl: string } | null }[];
   events: { id: string; toStatus: string; createdAt: string; note?: string | null }[];
   rider: { name: string; phone: string } | null;
@@ -44,6 +45,7 @@ function OrderInner() {
   const active = !!order && !ENDED.includes(order.status);
   useLive(user && active ? `/orders/${id}/events/ticket` : null, (e) => {
     invalidate(`/orders/${id}`);
+    invalidate(`/orders/${id}/track`);
     invalidate('/orders?');
     haptic(e.status === 'DELIVERED' ? 'success' : 'light');
     toast(statusLabel(e.status), e.status === 'FAILED' || e.status === 'CANCELLED' ? 'bad' : 'info');
@@ -138,6 +140,8 @@ function OrderInner() {
           )}
         </div>
       ) : null}
+
+      {['ASSIGNED', 'OUT_FOR_DELIVERY'].includes(order.status) ? <LiveTrack orderId={order.id} status={order.status} /> : null}
 
       {order.handoverCode ? (
         <div className="card stack" style={{ alignItems: 'center', textAlign: 'center' }}>
