@@ -284,6 +284,9 @@ importers:
       '@albarakah/domain':
         specifier: workspace:*
         version: link:../domain
+      leaflet:
+        specifier: 1.9.4
+        version: 1.9.4
       react:
         specifier: ^19.0.0
         version: 19.3.1
@@ -291,6 +294,9 @@ importers:
         specifier: ^19.0.0
         version: 19.3.1(react@19.3.1)
     devDependencies:
+      '@types/leaflet':
+        specifier: 1.9.20
+        version: 1.9.20
       '@types/react':
         specifier: ^19.0.0
         version: 19.3.0
@@ -306,6 +312,9 @@ importers:
       '@albarakah/ui':
         specifier: workspace:*
         version: link:../../libs/ui
+      leaflet:
+        specifier: 1.9.4
+        version: 1.9.4
       next:
         specifier: 15.5.4
         version: 15.5.4(@playwright/test@1.64.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -355,6 +364,9 @@ importers:
       '@capacitor/haptics':
         specifier: 8.0.2
         version: 8.0.2(@capacitor/core@8.6.0)
+      leaflet:
+        specifier: 1.9.4
+        version: 1.9.4
       next:
         specifier: 15.5.4
         version: 15.5.4(@playwright/test@1.64.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1530,6 +1542,9 @@ packages:
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
 
+  '@types/leaflet@1.9.20':
+    resolution: {integrity: sha512-rooalPMlk61LCaLOvBF2VIf9M47HgMQqi5xQ9QRi7c8PkdIe0WrIi5IxXUXQjAdL0c+vcQ01mYWbthzmp9GHWw==}
+
   '@types/lodash@4.17.27':
     resolution: {integrity: sha512-VenMRv/eKNrspX9v3H4dbmjsrnCOYdYBG3kxXKk3dG6X+urBGcj2Prww3xw1U5K4FV/mE4h5GbWd0szEKf+9ew==}
 
@@ -2090,6 +2105,9 @@ packages:
   kleur@4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
+
+  leaflet@1.9.4:
+    resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
 
   light-my-request@6.8.0:
     resolution: {integrity: sha512-5Q8PjoSEdtGIB8fikZsTem5vgRo4F2mR6vUKTDW/H1g6MtAt8e3duQbg/QxL5yzg6BZhor2KOUm3hhWMWLTZwg==}
@@ -4361,6 +4379,10 @@ snapshots:
 
   '@types/geojson@7946.0.16': {}
 
+  '@types/leaflet@1.9.20':
+    dependencies:
+      '@types/geojson': 7946.0.16
+
   '@types/lodash@4.17.27': {}
 
   '@types/node@22.19.1':
@@ -4938,6 +4960,8 @@ snapshots:
   kleur@3.0.3: {}
 
   kleur@4.1.5: {}
+
+  leaflet@1.9.4: {}
 
   light-my-request@6.8.0:
     dependencies:

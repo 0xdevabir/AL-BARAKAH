@@ -77,7 +77,18 @@ export class ConsultationsController {
       select: { id: true, specialty: true, bio: true, bmdcNo: true, feePoisha: true, channels: true, user: { select: { name: true } } },
       orderBy: { createdAt: 'asc' },
     });
-    return rows.map(({ user, ...d }) => ({ ...d, name: user.name }));
+    // "Next free" lets patients pick the soonest doctor without opening each one.
+    const now = new Date();
+    const next = await Promise.all(rows.map((d) => this.service.slots(d.id, now).catch(() => [])));
+    const completed = await this.prisma.consultation.groupBy({ by: ['doctorId'], where: { status: 'COMPLETED' }, _count: { _all: true } });
+    const seen = new Map(completed.map((c) => [c.doctorId, c._count._all]));
+    return rows.map(({ user, ...d }, i) => ({
+      ...d,
+      name: user.name,
+      nextSlot: next[i]?.[0] ?? null,
+      openSlots: next[i]?.length ?? 0,
+      consultations: seen.get(d.id) ?? 0,
+    }));
   }
 
   @Public()

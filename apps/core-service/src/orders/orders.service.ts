@@ -98,7 +98,7 @@ export class OrdersService {
             slotEnd,
             promisedBy,
             zoneId: address.zoneId,
-            addressSnapshot: { label: address.label, line: address.line, phone: address.phone, notes: address.notes, zone: address.zone.name },
+            addressSnapshot: { label: address.label, line: address.line, phone: address.phone, notes: address.notes, zone: address.zone.name, lat: address.lat, lng: address.lng },
             ...totals,
             paymentMethod: input.paymentMethod,
             paymentStatus: input.paymentMethod === 'BKASH' ? 'PENDING' : 'UNPAID',

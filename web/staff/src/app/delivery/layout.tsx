@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { Portal, type Tab } from '@/components/Portal';
 import { api, useApi, useGet } from '@/lib/api';
+import { useRiderTracking } from '@/lib/tracking';
 
 const HEARTBEAT_MS = 5 * 60_000;
 
@@ -11,6 +12,8 @@ export default function DeliveryLayout({ children }: { children: React.ReactNode
   const isRider = user?.role === 'RIDER';
   const { data: jobs } = useGet<{ id: string }[]>(isRider ? '/delivery/jobs' : null);
   const { data: summary } = useGet<{ online: boolean }>(isRider ? '/delivery/summary' : null);
+
+  useRiderTracking(!!summary?.online);
 
   // The server forgets a rider after 15 minutes of silence, so keep the shift alive while the app is open.
   useEffect(() => {

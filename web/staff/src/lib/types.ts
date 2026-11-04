@@ -1,6 +1,6 @@
 import type { OrderStatus } from '@albarakah/domain';
 
-export interface AddressSnap { label?: string; line: string; phone?: string; notes?: string | null; zone?: string }
+export interface AddressSnap { label?: string; line: string; phone?: string; notes?: string | null; zone?: string; lat?: number | null; lng?: number | null }
 
 export interface AdminOrderRow {
   id: string;

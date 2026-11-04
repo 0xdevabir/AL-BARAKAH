@@ -3,7 +3,7 @@
 import { canTransition, formatTk, ORDER_STATUSES, type OrderStatus } from '@albarakah/domain';
 import {
   chooseAction, confirmAction, EmptyState, fmtRelative, fmtTime, fmtWhen, haptic, invalidate, LargeTitle, promptText,
-  SearchField, Sheet, SkeletonList, statusLabel, statusTone, toast,
+  hasPoint, MapView, SearchField, Sheet, SkeletonList, statusLabel, statusTone, toast,
 } from '@albarakah/ui';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react';
@@ -332,6 +332,12 @@ function OrderDetail({ id, onDone }: { id: string; onDone: () => void }) {
         </div>
       ) : null}
 
+      {hasPoint(order.addressSnapshot) ? (
+        <a className="order-map" href={mapsLink(order.addressSnapshot.line, order.addressSnapshot)} target="_blank" rel="noreferrer" aria-label="Open the delivery pin in Google Maps">
+          <MapView still recenter={false} zoom={15} center={{ lat: order.addressSnapshot.lat!, lng: order.addressSnapshot.lng! }} pins={[{ id: "home", kind: "home", point: { lat: order.addressSnapshot.lat!, lng: order.addressSnapshot.lng! } }]} style={{ height: 150 }} />
+        </a>
+      ) : null}
+
       <p className="group-label">Customer</p>
       <div className="group">
         <div>
@@ -346,7 +352,7 @@ function OrderDetail({ id, onDone }: { id: string; onDone: () => void }) {
             <Icon name="phone" size={18} />
           </a>
         </div>
-        <a href={mapsLink(order.addressSnapshot.line)} target="_blank" rel="noreferrer" className="chev">
+        <a href={mapsLink(order.addressSnapshot.line, order.addressSnapshot)} target="_blank" rel="noreferrer" className="chev">
           <span className="cell-icon"><Icon name="map" size={18} /></span>
           <span className="cell-main">
             <strong>{order.addressSnapshot.label ?? 'Address'}{order.addressSnapshot.zone ? ` · ${order.addressSnapshot.zone}` : ''}</strong>

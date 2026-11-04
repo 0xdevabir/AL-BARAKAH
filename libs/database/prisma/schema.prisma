@@ -187,6 +187,9 @@ model Address {
   line      String
   phone     String
   notes     String?
+  /// Pin dropped on the map; riders navigate to it. Older addresses have none.
+  lat       Float?
+  lng       Float?
   zoneId    String
   zone      Zone     @relation(fields: [zoneId], references: [id])
   isDeleted Boolean  @default(false)

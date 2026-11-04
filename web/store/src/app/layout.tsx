@@ -1,5 +1,6 @@
 import { ActionSheetHost, Toaster } from '@albarakah/ui';
 import type { Metadata, Viewport } from 'next';
+import 'leaflet/dist/leaflet.css';
 import '@albarakah/ui/styles.css';
 import './store.css';
 import { Shell } from '@/components/Shell';

@@ -15,7 +15,11 @@ export const hhmmToMinutes = (s: string) => {
   return (h ?? 0) * 60 + (m ?? 0);
 };
 
-export const mapsLink = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address}, Bangladesh`)}`;
+/** Pinned addresses open exact directions; older ones fall back to a text search. */
+export const mapsLink = (address: string, at?: { lat?: number | null; lng?: number | null }) =>
+  typeof at?.lat === 'number' && typeof at?.lng === 'number'
+    ? `https://www.google.com/maps/dir/?api=1&destination=${at.lat},${at.lng}&travelmode=two-wheeler`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address}, Bangladesh`)}`;
 export const telLink = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 export const pct = (n: number) => `${Math.round(n * 100)}%`;
 

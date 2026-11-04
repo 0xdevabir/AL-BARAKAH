@@ -35,6 +35,18 @@ export const addressSchema = z.object({
   zoneId: z.string().min(1),
   phone: phoneSchema,
   notes: z.string().trim().max(200).optional(),
+  /** Map pin. Both or neither, and only inside Bangladesh. */
+  lat: z.number().min(20.3).max(26.8).optional(),
+  lng: z.number().min(88).max(92.8).optional(),
+}).refine((a) => (a.lat === undefined) === (a.lng === undefined), { message: 'Drop a pin on the map', path: ['lat'] });
+
+/** A rider's GPS fix, sent every few seconds while on shift. */
+export const riderLocationSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  heading: z.number().min(0).max(360).nullable().optional(),
+  speed: z.number().min(0).max(100).nullable().optional(),
+  accuracy: z.number().min(0).max(10_000).nullable().optional(),
 });
 
 export const placeOrderSchema = z.object({
@@ -94,6 +106,10 @@ export const zoneSchema = z.object({
    androidApkUrl: z.string().max(500).default(''),
    androidForceUpdate: z.boolean().default(false),
    androidUpdateNotes: z.string().max(500).default(''),
+   /** Where riders pick orders up. Shown on every delivery map. */
+   pharmacyLat: z.number().min(20.3).max(26.8).default(23.7808),
+   pharmacyLng: z.number().min(88).max(92.8).default(90.4067),
+   pharmacyAddress: z.string().max(200).default(''),
  }).refine((s) => s.openHour < s.closeHour, { message: 'Opening must be before closing', path: ['closeHour'] })
    .refine((s) => s.emergencyStartHour < s.emergencyEndHour, { message: 'Emergency start must be before its end', path: ['emergencyEndHour'] });
  export type Settings = z.infer<typeof settingsSchema>;

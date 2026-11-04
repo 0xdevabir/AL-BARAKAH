@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { Body, Controller, Delete, Get, Inject, MessageEvent, Module, Param, Patch, Post, Put, Query, Sse } from '@nestjs/common';
-import { addressSchema, adminTransitionSchema, placeOrderSchema, prescriptionUploadSchema, rateOrderSchema, riderOnlineSchema, riderTransitionSchema, settleSchema } from '@albarakah/contracts';
+import { addressSchema, adminTransitionSchema, placeOrderSchema, prescriptionUploadSchema, rateOrderSchema, riderLocationSchema, riderOnlineSchema, riderTransitionSchema, settleSchema } from '@albarakah/contracts';
 import type { OrderStatus, Prisma, PrismaClient } from '@albarakah/database';
 import { Redis } from 'ioredis';
 import { Observable } from 'rxjs';
@@ -9,7 +9,7 @@ import { type AuthUser, badRequest, conflict, CurrentUser, Public, RequirePermis
 import { notFound, unauthorized, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA, REDIS } from '@albarakah/nest-common';
 import { ENV, type Env } from '@albarakah/nest-common';
-import { SettingsModule } from '../settings/settings.module.js';
+import { SettingsModule, SettingsService } from '../settings/settings.module.js';
 import { StorageModule, StorageService } from '../storage/storage.module.js';
 import { ADMIN_CHANNEL, orderChannel, OrdersService, riderChannel } from './orders.service.js';
 
@@ -18,6 +18,10 @@ const ACTIVE: OrderStatus[] = ['PLACED', 'CONFIRMED', 'PACKED', 'ASSIGNED', 'OUT
 /** A rider's "online" flag lapses on its own if their phone dies, so the admin never assigns to a ghost. */
 const ONLINE_TTL = 15 * 60;
 export const riderOnlineKey = (id: string) => `rider:online:${id}`;
+/** Last GPS fix per rider. Short-lived, so a stale dot never shows on a customer's map. */
+const LOCATION_TTL = 5 * 60;
+const riderLocationKey = (id: string) => `rider:loc:${id}`;
+export interface RiderFix { lat: number; lng: number; heading: number | null; speed: number | null; accuracy: number | null; at: string }
 
 function startOfDay(d = new Date()) {
   const x = new Date(d);
@@ -33,7 +37,20 @@ export class OrdersController {
     @Inject(PRISMA) private readonly prisma: PrismaClient,
     @Inject(REDIS) private readonly redis: Redis,
     @Inject(ENV) private readonly env: Env,
+    private readonly settings: SettingsService,
   ) {}
+
+  private async riderFixes(ids: string[]): Promise<(RiderFix | null)[]> {
+    if (!ids.length) return [];
+    const raw = await this.redis.mget(...ids.map(riderLocationKey));
+    return raw.map((r) => {
+      try {
+        return r ? (JSON.parse(r) as RiderFix) : null;
+      } catch {
+        return null;
+      }
+    });
+  }
 
   @Public()
   @Get('delivery-slots')
@@ -52,6 +69,18 @@ export class OrdersController {
   @Post('addresses')
   addAddress(@CurrentUser() u: AuthUser, @Body(new ZodPipe(addressSchema)) body: z.output<typeof addressSchema>) {
     return this.prisma.address.create({ data: { ...body, userId: u.id }, include: { zone: true } });
+  }
+
+  /** Lets a customer fix the pin or details. Past orders keep their own snapshot. */
+  @RequirePermission('address:manage')
+  @Put('addresses/:id')
+  async updateAddress(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(addressSchema)) body: z.output<typeof addressSchema>) {
+    const r = await this.prisma.address.updateMany({
+      where: { id, userId: u.id, isDeleted: false },
+      data: { ...body, notes: body.notes ?? null, lat: body.lat ?? null, lng: body.lng ?? null },
+    });
+    if (r.count === 0) throw notFound('Address not found');
+    return this.prisma.address.findUniqueOrThrow({ where: { id }, include: { zone: true } });
   }
 
   @RequirePermission('address:manage')
@@ -102,6 +131,24 @@ export class OrdersController {
     const onTheWay = o.status === 'OUT_FOR_DELIVERY';
     // The rider's phone and the handover code are only useful, and only shared, while the order is on its way.
     return { ...rest, rider: onTheWay ? o.rider : null, handoverCode: onTheWay ? handoverCode : null };
+  }
+
+  /** Live map data: polled every few seconds by the order screen. The rider's position is only shared while they are on the way. */
+  @RequirePermission('order:read-own')
+  @Get('orders/:id/track')
+  async track(@CurrentUser() u: AuthUser, @Param('id') id: string) {
+    const o = await this.prisma.order.findFirst({ where: { id, customerId: u.id }, select: { status: true, riderId: true, addressSnapshot: true, promisedBy: true } });
+    if (!o) throw notFound('Order not found');
+    const s = await this.settings.get();
+    const snap = o.addressSnapshot as { lat?: number | null; lng?: number | null };
+    const [fix] = o.status === 'OUT_FOR_DELIVERY' && o.riderId ? await this.riderFixes([o.riderId]) : [null];
+    return {
+      status: o.status,
+      promisedBy: o.promisedBy,
+      pharmacy: { lat: s.pharmacyLat, lng: s.pharmacyLng },
+      destination: typeof snap.lat === 'number' && typeof snap.lng === 'number' ? { lat: snap.lat, lng: snap.lng } : null,
+      rider: fix ?? null,
+    };
   }
 
   @RequirePermission('order:read-own')
@@ -279,9 +326,12 @@ export class OrdersController {
       select: { id: true, name: true, phone: true, _count: { select: { deliveries: { where: { status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } } } } } },
       orderBy: { name: 'asc' },
     });
-    const online = riders.length ? await this.redis.mget(...riders.map((r) => riderOnlineKey(r.id))) : [];
+    const [online, fixes] = await Promise.all([
+      riders.length ? this.redis.mget(...riders.map((r) => riderOnlineKey(r.id))) : [],
+      this.riderFixes(riders.map((r) => r.id)),
+    ]);
     return riders
-      .map((r, i) => ({ id: r.id, name: r.name, phone: r.phone, activeJobs: r._count.deliveries, online: !!online[i] }))
+      .map((r, i) => ({ id: r.id, name: r.name, phone: r.phone, activeJobs: r._count.deliveries, online: !!online[i], location: fixes[i] ?? null }))
       .sort((a, b) => Number(b.online) - Number(a.online) || a.activeJobs - b.activeJobs);
   }
 
@@ -353,8 +403,26 @@ export class OrdersController {
   @Put('delivery/online')
   async setOnline(@CurrentUser() u: AuthUser, @Body(new ZodPipe(riderOnlineSchema)) body: z.output<typeof riderOnlineSchema>) {
     if (body.online) await this.redis.set(riderOnlineKey(u.id), '1', 'EX', ONLINE_TTL);
-    else await this.redis.del(riderOnlineKey(u.id));
+    else await this.redis.del([riderOnlineKey(u.id), riderLocationKey(u.id)]);
     return { online: body.online };
+  }
+
+  /** GPS fix from the rider app. Only accepted on shift, and it doubles as the shift heartbeat. */
+  @RequirePermission('delivery:work')
+  @Put('delivery/location')
+  async setLocation(@CurrentUser() u: AuthUser, @Body(new ZodPipe(riderLocationSchema)) body: z.output<typeof riderLocationSchema>) {
+    const online = await this.redis.get(riderOnlineKey(u.id));
+    if (!online) return { ok: false, online: false };
+    const fix: RiderFix = { lat: body.lat, lng: body.lng, heading: body.heading ?? null, speed: body.speed ?? null, accuracy: body.accuracy ?? null, at: new Date().toISOString() };
+    await this.redis.multi().set(riderLocationKey(u.id), JSON.stringify(fix), 'EX', LOCATION_TTL).expire(riderOnlineKey(u.id), ONLINE_TTL).exec();
+    return { ok: true, online: true };
+  }
+
+  @RequirePermission('delivery:work')
+  @Get('delivery/pickup')
+  async pickup() {
+    const s = await this.settings.get();
+    return { lat: s.pharmacyLat, lng: s.pharmacyLng, address: s.pharmacyAddress };
   }
 
   @RequirePermission('delivery:work')

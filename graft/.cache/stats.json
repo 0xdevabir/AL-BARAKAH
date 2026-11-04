@@ -10,8 +10,8 @@
   "totalCount": 3044,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-04T11:15:39.909Z",
-  "lastFile": "ProductGrid.tsx"
+  "lastFile": "AddressComposer.tsx"
 }

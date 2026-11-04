@@ -19,6 +19,9 @@ const DEFAULTS: Settings = {
   androidApkUrl: '',
   androidForceUpdate: false,
   androidUpdateNotes: '',
+  pharmacyLat: 23.7808,
+  pharmacyLng: 90.4067,
+  pharmacyAddress: '',
 };
 const CACHE_MS = 15_000;
 const RELEASE_FILE = join(dirname(fileURLToPath(import.meta.url)), '../../android-release.json');
@@ -87,6 +90,7 @@ export class SettingsController {
       androidApkUrl: s.androidApkUrl || `${store}/download/barakabari.apk`,
       androidForceUpdate: s.androidForceUpdate,
       androidUpdateNotes: s.androidUpdateNotes,
+      pharmacy: { lat: s.pharmacyLat, lng: s.pharmacyLng, address: s.pharmacyAddress },
     };
   }
 

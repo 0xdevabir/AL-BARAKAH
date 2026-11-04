@@ -1,6 +1,6 @@
 'use client';
 
-import { invalidate, LargeTitle, SkeletonList, Switch, toast } from '@albarakah/ui';
+import { invalidate, isInBangladesh, LargeTitle, LocationPicker, MapView, type PickedLocation, Sheet, SkeletonList, Switch, toast } from '@albarakah/ui';
 import { useEffect, useState } from 'react';
 import { api, useGet } from '@/lib/api';
 import { message, poishaToTk, tkToPoisha } from '@/lib/app';
@@ -10,6 +10,7 @@ interface Settings {
   requireRxUpload: boolean; leadHours: number; openHour: number; closeHour: number; slotHours: number; daysAhead: number;
   emergencyStartHour: number; emergencyEndHour: number; emergencyMinutes: number;
   androidLatestVersionCode: number; androidLatestVersionName: string; androidApkUrl: string; androidForceUpdate: boolean; androidUpdateNotes: string;
+  pharmacyLat: number; pharmacyLng: number; pharmacyAddress: string;
 }
 
 const MONEY = [
@@ -26,6 +27,8 @@ export default function SettingsPage() {
   const [s, setS] = useState<Settings | null>(null);
   const [money, setMoney] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [draftPin, setDraftPin] = useState<PickedLocation | null>(null);
 
   useEffect(() => {
     if (!data) return;
@@ -71,7 +74,7 @@ export default function SettingsPage() {
 
   return (
     <div className="settings">
-      <LargeTitle sub="Fees, hours and the Android app">Settings</LargeTitle>
+      <LargeTitle sub="Fees, hours, pickup point and the Android app">Settings</LargeTitle>
 
       <p className="group-label">Fees and payouts (Tk)</p>
       <div className="group">
@@ -114,6 +117,40 @@ export default function SettingsPage() {
           <input className="input num" type="number" min={15} max={240} step={5} value={cur.emergencyMinutes} onChange={num('emergencyMinutes')} />
         </label>
       </div>
+
+      <p className="group-label">Pharmacy pickup point</p>
+      <div className="group">
+        <button type="button" className="setting-map" onClick={() => setPicking(true)} aria-label="Move the pharmacy pin">
+          <MapView still recenter={false} pins={[{ id: 'store', kind: 'store', point: { lat: cur.pharmacyLat, lng: cur.pharmacyLng } }]} fitKey={`${cur.pharmacyLat},${cur.pharmacyLng}`} style={{ height: 170, borderRadius: 0 }} />
+          <span className="setting-map-cta">Move pin</span>
+        </button>
+        <label className="setting-row stacked">
+          <span className="cell-main"><strong>Pickup address</strong><span className="cell-sub">Shown to riders with the map</span></span>
+          <input className="input" maxLength={200} placeholder="Shop 4, Road 2, Mirpur 10" value={cur.pharmacyAddress} onChange={(e) => setS({ ...cur, pharmacyAddress: e.target.value })} />
+        </label>
+      </div>
+      <p className="group-foot">Riders start every route here, and customers see the rider leave from this point.</p>
+
+      <Sheet open={picking} onClose={() => setPicking(false)} title="Pharmacy location">
+        <div className="stack">
+          <LocationPicker
+            value={{ lat: cur.pharmacyLat, lng: cur.pharmacyLng }}
+            onChange={(v) => setDraftPin(v)}
+          />
+          <button
+            className="btn primary block"
+            disabled={!draftPin || !isInBangladesh(draftPin)}
+            onClick={() => {
+              if (!draftPin) return;
+              const place = draftPin.place;
+              setS({ ...cur, pharmacyLat: draftPin.lat, pharmacyLng: draftPin.lng, pharmacyAddress: cur.pharmacyAddress || [place?.title, place?.subtitle].filter(Boolean).join(', ') });
+              setPicking(false);
+            }}
+          >
+            Use this spot
+          </button>
+        </div>
+      </Sheet>
 
       <p className="group-label">Prescriptions</p>
       <div className="group">
