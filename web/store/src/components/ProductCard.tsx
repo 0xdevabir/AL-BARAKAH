@@ -8,6 +8,12 @@ import { cart, type Medicine } from '@/lib/cart';
 import { FormGlyph } from './FormGlyph';
 import { Stepper } from './Stepper';
 
+/** "30' pack" → "30 per pack"; single packs say nothing. */
+function packLabel(pack?: string) {
+  const n = Number(/^(\d+)/.exec(pack?.trim() ?? '')?.[1]);
+  return n > 1 ? `${n} per pack` : '';
+}
+
 export function ProductCard({ medicine }: { medicine: Medicine }) {
   const qty = useSyncExternalStore(
     (cb) => cart.subscribe(cb),
@@ -15,11 +21,12 @@ export function ProductCard({ medicine }: { medicine: Medicine }) {
     () => 0,
   );
   const [photoFailed, setPhotoFailed] = useState(false);
-  const size = [medicine.packSize, medicine.strength].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · ');
   const form = medicine.form?.trim() || '';
+  const detail = [form, medicine.strength?.trim(), packLabel(medicine.packSize)].filter(Boolean).join(', ');
+  const generic = medicine.genericName?.trim();
 
   return (
-    <article className="product">
+    <article className="product" data-in-cart={qty > 0}>
       <Link href={`/medicine/${medicine.slug}`} className="body">
         <span className="shot">
           {medicine.imageUrl && !photoFailed ? (
@@ -36,12 +43,16 @@ export function ProductCard({ medicine }: { medicine: Medicine }) {
           ) : (
             <FormGlyph form={medicine.form} />
           )}
+          {medicine.isRx ? (
+            <span className="product-rx" title="Prescription needed">
+              Rx
+            </span>
+          ) : null}
         </span>
         <span className="text">
           <strong className="name">{medicine.name}</strong>
-          {size ? <span className="muted meta">{size}</span> : null}
-          {form ? <span className="muted small meta">{form}</span> : null}
-          {medicine.isRx ? <span className="chip warn">Rx</span> : null}
+          {generic ? <span className="generic">{generic}</span> : null}
+          {detail ? <span className="muted meta">{detail}</span> : null}
         </span>
       </Link>
       <div className="foot">
@@ -53,7 +64,7 @@ export function ProductCard({ medicine }: { medicine: Medicine }) {
         ) : (
           <button
             type="button"
-            className="btn small primary"
+            className="btn small primary product-add"
             aria-label={`Add ${medicine.name}`}
             onClick={() => {
               haptic('light');
@@ -68,6 +79,9 @@ export function ProductCard({ medicine }: { medicine: Medicine }) {
               });
             }}
           >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
             Add
           </button>
         )}
