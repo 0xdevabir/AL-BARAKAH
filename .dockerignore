@@ -16,3 +16,4 @@ apps/store/android
 apps/store/src/lib/paraglide
 packages/database/src/generated
 infra/backups
+**/.next

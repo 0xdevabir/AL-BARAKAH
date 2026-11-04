@@ -15,6 +15,13 @@ await app.register(proxy, {
   rewritePrefix: '/auth',
 });
 
+// SMS logs and settings live with the OTP sender in auth-service.
+await app.register(proxy, {
+  upstream: authUrl,
+  prefix: '/admin/sms',
+  rewritePrefix: '/admin/sms',
+});
+
 await app.register(proxy, {
   upstream: coreUrl,
   prefix: '/',

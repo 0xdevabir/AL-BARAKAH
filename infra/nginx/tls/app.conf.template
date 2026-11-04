@@ -5,6 +5,7 @@ map $http_origin $files_cors_origin {
   "capacitor://localhost" $http_origin;
   "https://localhost" $http_origin;
 }
+map $scheme $fwd_proto { default $scheme; }
 include /etc/nginx/shared/upstreams.conf;
 
 server {

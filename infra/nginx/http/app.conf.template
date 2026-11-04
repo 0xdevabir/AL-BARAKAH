@@ -4,6 +4,7 @@ map $http_origin $files_cors_origin {
   "http://${STORE_DOMAIN}:8080" $http_origin;
   "http://${STAFF_DOMAIN}:8080" $http_origin;
 }
+map $scheme $fwd_proto { default $scheme; }
 include /etc/nginx/shared/upstreams.conf;
 
 server {

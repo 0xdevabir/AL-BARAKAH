@@ -36,6 +36,45 @@ sudo certbot certonly --standalone -d <store> -d <staff> -d <files>
 
 For renewals, switch certbot to webroot `/var/www/acme` and add a deploy hook: `docker exec albarakah-edge-1 nginx -s reload`.
 
+### Sharing the server with a host nginx
+If nginx on the host already owns ports 80/443 for other sites, don't let the edge container take them. Run it in proxied mode on loopback and skip the certificate step above. Add these to `.env`:
+
+```sh
+EDGE_MODE=proxied
+EDGE_HTTP_PORT=127.0.0.1:8080
+EDGE_HTTPS_PORT=127.0.0.1:8443   # unused in this mode, kept off the public interface
+```
+
+Then give the host nginx one server block for the three names. Certbot's nginx plugin can add TLS to it as it does for your other sites:
+
+```nginx
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name <store> <staff> <files>;
+  # ssl_certificate lines from certbot
+
+  client_max_body_size 11m;          # prescription uploads go to the files domain
+  location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $host;      # picks the site inside the edge, and signed file URLs depend on it
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;              # live order updates
+    proxy_read_timeout 1h;
+  }
+}
+server {
+  listen 80;
+  server_name <store> <staff> <files>;
+  return 301 https://$host$request_uri;
+}
+```
+
+The edge trusts `X-Forwarded-For` only from loopback and private Docker addresses, so it sees the visitor's real IP for rate limits.
+
 ## 4. Deploy
 
 ```sh
@@ -46,7 +85,7 @@ docker build -f infra/Dockerfile --target edge -t albarakah-edge:$APP_VERSION .
 docker compose up -d --wait
 ```
 
-`migrate` runs first on every deploy and applies new migrations. It also creates the settings row and first admin if they don't exist.
+`migrate` runs first on every deploy and applies new migrations. It also creates the settings row and first admin if they don't exist. Then `auth` and `core` start, then `gateway`, then the `store` and `staff` Next servers, then `edge`. `worker` runs the background jobs alongside. All of them use the `albarakah-app` image with different commands. The browser bundles call the relative `/api`, so the image works on any domain without a rebuild.
 
 Then sign in on the staff site with `FIRST_ADMIN_PHONE`, set up TOTP, and set the real fees, zones and catalog.
 
@@ -72,10 +111,10 @@ Test a restore monthly. It loads a backup into a temporary database and compares
 COMPOSE_PROJECT_NAME=albarakah infra/backup/restore-test.sh /var/backups/albarakah/db-<stamp>.dump
 ```
 
-To restore for real, stop `api`, `worker` and `store`, then run `pg_restore --clean --if-exists` into `albarakah`. For prescription files, stop `objectstore` and extract `files-<stamp>.tar.gz` into its volume.
+To restore for real, stop `gateway`, `auth`, `core`, `worker`, `store` and `staff`, then run `pg_restore --clean --if-exists` into `albarakah`. For prescription files, stop `objectstore` and extract `files-<stamp>.tar.gz` into its volume.
 
 ## Scaling
 Do these in order, and only when measurements call for them:
 1. Move Postgres to its own VPS.
-2. Run more `api` replicas behind nginx.
+2. Run more `core` replicas behind the gateway.
 3. Add a read replica.

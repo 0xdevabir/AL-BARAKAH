@@ -1,4 +1,11 @@
 # Application stack. Use together with compose.storage.yml (see docs/runbook.md).
+#
+#   edge (nginx) ─┬─ /api/*  → gateway:4000 ─┬─ /auth, /admin/sms → auth:4010
+#                 │                           └─ everything else  → core:4020
+#                 ├─ store domain → store:3000 (Next)
+#                 ├─ staff domain → staff:3001 (Next)
+#                 └─ files domain → objectstore:8333
+#   worker runs the background jobs (queues, reminders, settlements).
 x-backend: &backend
   image: albarakah-app:${APP_VERSION:-local}
   restart: unless-stopped
@@ -11,6 +18,21 @@ x-backend: &backend
     S3_PORT: "8333"
     S3_USE_SSL: "false"
     PORT: "4000"
+
+x-health: &health
+  interval: 10s
+  timeout: 5s
+  retries: 6
+  start_period: 20s
+
+x-web: &web
+  image: albarakah-app:${APP_VERSION:-local}
+  restart: unless-stopped
+  environment: &web-env
+    NODE_ENV: production
+    # Docker sets HOSTNAME to the container id; Next would then listen on that alone.
+    HOSTNAME: 0.0.0.0
+    API_INTERNAL_URL: http://gateway:4000
 
 services:
   pgbouncer:
@@ -41,51 +63,95 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
 
-  api:
+  auth:
     <<: *backend
+    command: ["node", "apps/auth-service/dist/main.js"]
     environment:
       <<: *backend-env
-      SERVICE_ROLE: api
-    healthcheck: &health
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 20s
+      PORT: "4010"
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4010/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
     depends_on: &ready
       migrate: { condition: service_completed_successfully }
       pgbouncer: { condition: service_started }
       redis: { condition: service_healthy }
 
-  worker:
+  core:
     <<: *backend
+    command: ["node", "apps/core-service/dist/main.js"]
     environment:
       <<: *backend-env
-      SERVICE_ROLE: worker
-    healthcheck: *health
+      PORT: "4020"
+      SERVICE_ROLE: api
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4020/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
     depends_on: *ready
 
-  store:
+  # Same code as core with the job runners switched on. Not routed to; its HTTP port only answers health checks.
+  worker:
+    <<: *backend
+    command: ["node", "apps/core-service/dist/main.js"]
+    environment:
+      <<: *backend-env
+      PORT: "4000"
+      SERVICE_ROLE: worker
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+    depends_on: *ready
+
+  gateway:
     image: albarakah-app:${APP_VERSION:-local}
     restart: unless-stopped
-    command: ["node", "web/store/build/index.js"]
+    command: ["node", "apps/gateway/dist/main.js"]
     environment:
       NODE_ENV: production
-      PORT: "3000"
-      API_INTERNAL_URL: http://api:4000
-      ORIGIN: ${STORE_URL:?set in .env}
-      # nginx overwrites this header, so it holds the visitor's real address.
-      ADDRESS_HEADER: X-Forwarded-For
-      XFF_DEPTH: "1"
+      PORT: "4000"
+      AUTH_SERVICE_URL: http://auth:4010
+      CORE_SERVICE_URL: http://core:4020
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
+      <<: *health
       start_period: 10s
+      # Goes through to core, so "healthy" means the whole API path answers.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
     depends_on:
-      api: { condition: service_healthy }
+      auth: { condition: service_healthy }
+      core: { condition: service_healthy }
 
+  store:
+    <<: *web
+    working_dir: /app/web/store/.next/standalone
+    command: ["node", "web/store/server.js"]
+    environment:
+      <<: *web-env
+      PORT: "3000"
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/favicon.svg').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+    depends_on:
+      gateway: { condition: service_healthy }
+
+  staff:
+    <<: *web
+    working_dir: /app/web/staff/.next/standalone
+    command: ["node", "web/staff/server.js"]
+    environment:
+      <<: *web-env
+      PORT: "3001"
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/favicon.svg').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+    depends_on:
+      gateway: { condition: service_healthy }
+
+  # EDGE_MODE picks the server blocks in infra/nginx/<mode>:
+  #   tls     — owns 80/443 and terminates TLS itself (a server with nothing else on it).
+  #   proxied — plain HTTP behind a host nginx that already owns 80/443. Set
+  #             EDGE_HTTP_PORT=127.0.0.1:8080 and EDGE_HTTPS_PORT=127.0.0.1:8443 so nothing
+  #             public is bound (see docs/runbook.md).
+  #   http    — local smoke test only.
   edge:
     image: albarakah-edge:${APP_VERSION:-local}
     restart: unless-stopped
@@ -100,4 +166,6 @@ services:
       - ${ACME_DIR:-/var/www/acme}:/var/www/acme:ro
     ports: ["${EDGE_HTTP_PORT:-80}:80", "${EDGE_HTTPS_PORT:-443}:443"]
     depends_on:
+      gateway: { condition: service_healthy }
       store: { condition: service_healthy }
+      staff: { condition: service_healthy }
