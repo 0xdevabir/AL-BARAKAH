@@ -10,8 +10,8 @@
   "totalCount": 2714,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-04T06:02:36.111Z",
-  "lastFile": "polish-ui-css.mjs"
+  "lastFile": "page.tsx"
 }
