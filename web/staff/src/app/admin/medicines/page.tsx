@@ -10,11 +10,11 @@ import { Icon } from '@/components/Icon';
 import { api, useGet } from '@/lib/api';
 import { downloadCsv, message, poishaToTk, tkToPoisha } from '@/lib/app';
 
-interface Batch { id: string; batchNo: string; expiresAt: string; qtyRemaining: number }
+interface Batch { id: string; batchNo: string; expiresAt: string; qtyRemaining: number; looseQty: number }
 interface Med {
   id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string; strength: string; packSize: string;
   pricePoisha: number; isRx: boolean; isActive: boolean; categoryId: string; description: string; imageUrl: string; reorderLevel: number;
-  category: { name: string }; batches: Batch[]; stock: number; lowStock: boolean; expiringSoon: boolean; expiredQty: number;
+  category: { name: string }; batches: Batch[]; stock: number; looseStock: number; lowStock: boolean; expiringSoon: boolean; expiredQty: number;
 }
 interface Category { id: string; name: string; count: number }
 type Filter = 'all' | 'low' | 'expiring' | 'inactive';
@@ -114,7 +114,7 @@ function Catalog() {
                 <span className="row" style={{ gap: 4 }}>
                   {!m.isActive ? <span className="chip off">Hidden</span> : null}
                   {m.isRx ? <span className="chip warn">Rx</span> : null}
-                  <span className={`chip ${m.stock === 0 ? 'bad' : m.lowStock ? 'warn' : ''}`}>{m.stock} in stock</span>
+                  <span className={`chip ${m.stock === 0 ? 'bad' : m.lowStock ? 'warn' : ''}`}>{m.stock} in stock{m.looseStock ? ` + ${m.looseStock} loose` : ''}</span>
                   {m.expiredQty ? <span className="chip bad">{m.expiredQty} expired</span> : null}
                 </span>
               </span>
@@ -275,7 +275,7 @@ function Batches({ med }: { med: Med }) {
                   <strong className="mono">#{x.batchNo}</strong>
                   <span className={`cell-sub${expired ? ' late' : ''}`}>{expired ? 'Expired' : 'Expires'} {fmtShortDay(x.expiresAt)} {x.expiresAt.slice(0, 4)}</span>
                 </span>
-                <span className="mono">{x.qtyRemaining}</span>
+                <span className="mono">{x.qtyRemaining}{x.looseQty ? ` + ${x.looseQty} loose` : ''}</span>
                 {x.qtyRemaining > 0 ? <button className="btn small danger" onClick={() => void writeOff(x)}>Write off</button> : null}
               </div>
             );

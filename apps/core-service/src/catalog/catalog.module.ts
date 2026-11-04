@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Header, Inject, Injectable, Module, Param, Patch, Post, Query } from '@nestjs/common';
 import { batchSchema, medicineSchema, productImageUploadSchema, writeOffSchema, zoneSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
+import { piecePricePoisha, piecesPerPack } from '@albarakah/domain';
 import type { z } from 'zod';
 import { type AuthUser, CurrentUser, Public, RequirePermission } from '@albarakah/nest-common';
 import { conflict, notFound, ZodPipe } from '@albarakah/nest-common';
@@ -14,9 +15,20 @@ const BROWSE_PAGE = 12;
 interface MedicineRow {
   id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string;
   strength: string; packSize: string; pricePoisha: number; isRx: boolean; description: string;
-  imageUrl: string; categoryId: string; stock: bigint | number | null;
+  imageUrl: string; categoryId: string; stock: bigint | number | null; loose: bigint | number | null;
 }
-const toDto = (m: MedicineRow) => ({ ...m, stock: undefined, inStock: Number(m.stock ?? 0) > 0 });
+/** inStock: whole packs. looseInStock: pieces, from opened packs or by opening one. */
+const toDto = (m: MedicineRow) => {
+  const packs = Number(m.stock ?? 0);
+  const perPack = piecesPerPack(m.form, m.packSize);
+  return {
+    ...m, stock: undefined, loose: undefined,
+    inStock: packs > 0,
+    piecesPerPack: perPack,
+    piecePricePoisha: perPack ? piecePricePoisha(m.pricePoisha, perPack) : 0,
+    looseInStock: perPack > 0 && (packs > 0 || Number(m.loose ?? 0) > 0),
+  };
+};
 
 @Injectable()
 export class CatalogService {
@@ -55,10 +67,10 @@ export class CatalogService {
                  m.popularity DESC, m.name, m.strength
         LIMIT ${size + 1} OFFSET ${offset}
       )
-      SELECT matched.*, COALESCE(stock.qty, 0) AS stock
+      SELECT matched.*, COALESCE(stock.qty, 0) AS stock, COALESCE(stock.loose, 0) AS loose
       FROM matched
       LEFT JOIN LATERAL (
-        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty
+        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty, COALESCE(SUM(b."looseQty"), 0) AS loose
         FROM "Batch" b
         WHERE b."medicineId" = matched.id AND b."expiresAt" >= CURRENT_DATE
       ) stock ON true`;
@@ -72,10 +84,10 @@ export class CatalogService {
     const [row] = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
              m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
-             COALESCE(stock.qty, 0) AS stock
+             COALESCE(stock.qty, 0) AS stock, COALESCE(stock.loose, 0) AS loose
       FROM "Medicine" m
       LEFT JOIN LATERAL (
-        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty
+        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty, COALESCE(SUM(b."looseQty"), 0) AS loose
         FROM "Batch" b
         WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE
       ) stock ON true
@@ -91,16 +103,16 @@ export class CatalogService {
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
              m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
-             COALESCE(stock.qty, 0) AS stock
+             COALESCE(stock.qty, 0) AS stock, COALESCE(stock.loose, 0) AS loose
       FROM "Medicine" m
       LEFT JOIN LATERAL (
-        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty FROM "Batch" b
+        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty, COALESCE(SUM(b."looseQty"), 0) AS loose FROM "Batch" b
         WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE
       ) stock ON true
       WHERE m."isActive" AND m.id <> ${base.id}
         AND lower(m."genericName") = lower(${base.genericName})
         AND lower(m.strength) = lower(${base.strength})
-      ORDER BY (COALESCE(stock.qty, 0) > 0) DESC, m."pricePoisha" ASC
+      ORDER BY (COALESCE(stock.qty, 0) + COALESCE(stock.loose, 0) > 0) DESC, m."pricePoisha" ASC
       LIMIT 8`;
     return rows.map(toDto);
   }
@@ -174,8 +186,9 @@ export class CatalogController {
     const rows = items.map((m) => {
       const usable = m.batches.filter((b) => b.expiresAt >= today);
       const stock = usable.reduce((s, b) => s + b.qtyRemaining, 0);
+      const looseStock = usable.reduce((s, b) => s + b.looseQty, 0);
       return {
-        ...m, stock,
+        ...m, stock, looseStock,
         lowStock: m.isActive && stock <= m.reorderLevel,
         expiringSoon: usable.some((b) => b.qtyRemaining > 0 && b.expiresAt < soon),
         expiredQty: m.batches.filter((b) => b.expiresAt < today).reduce((s, b) => s + b.qtyRemaining, 0),

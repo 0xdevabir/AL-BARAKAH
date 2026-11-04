@@ -1,11 +1,12 @@
 'use client';
 
-import { formatTk } from '@albarakah/domain';
+import { formatTk, pieceNoun } from '@albarakah/domain';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FormGlyph } from '@/components/FormGlyph';
 import { Stepper } from '@/components/Stepper';
+import { lineKey } from '@/lib/cart';
 import { useCart } from '@/lib/useCart';
 
 export default function CartPage() {
@@ -37,14 +38,18 @@ export default function CartPage() {
         <>
           <div className="group">
             {lines.map((l) => (
-              <div key={l.id}>
+              <div key={lineKey(l)}>
                 <FormGlyph form={l.form} />
                 <div className="grow">
                   <strong>{l.name}</strong>
-                  {l.strength ? <span className="muted small" style={{ display: 'block' }}>{l.strength}</span> : null}
+                  {l.strength || l.unit === 'PIECE' ? (
+                    <span className="muted small" style={{ display: 'block' }}>
+                      {[l.strength, l.unit === 'PIECE' ? `Loose ${pieceNoun(l.form, 2)} · ${formatTk(l.pricePoisha)} each` : ''].filter(Boolean).join(' · ')}
+                    </span>
+                  ) : null}
                   <span className="price">{formatTk(l.pricePoisha * l.qty)}</span>
                 </div>
-                <Stepper qty={l.qty} label={l.name} onChange={(q) => cart.setQty(l.id, q)} />
+                <Stepper qty={l.qty} label={l.name} onChange={(q) => cart.setQty(l.id, q, l.unit)} />
               </div>
             ))}
           </div>

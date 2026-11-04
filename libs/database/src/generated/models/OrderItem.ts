@@ -42,6 +42,7 @@ export type OrderItemMinAggregateOutputType = {
   medicineId: string | null
   nameSnapshot: string | null
   unitPricePoisha: number | null
+  unit: $Enums.SaleUnit | null
   qty: number | null
 }
 
@@ -51,6 +52,7 @@ export type OrderItemMaxAggregateOutputType = {
   medicineId: string | null
   nameSnapshot: string | null
   unitPricePoisha: number | null
+  unit: $Enums.SaleUnit | null
   qty: number | null
 }
 
@@ -60,6 +62,7 @@ export type OrderItemCountAggregateOutputType = {
   medicineId: number
   nameSnapshot: number
   unitPricePoisha: number
+  unit: number
   qty: number
   _all: number
 }
@@ -81,6 +84,7 @@ export type OrderItemMinAggregateInputType = {
   medicineId?: true
   nameSnapshot?: true
   unitPricePoisha?: true
+  unit?: true
   qty?: true
 }
 
@@ -90,6 +94,7 @@ export type OrderItemMaxAggregateInputType = {
   medicineId?: true
   nameSnapshot?: true
   unitPricePoisha?: true
+  unit?: true
   qty?: true
 }
 
@@ -99,6 +104,7 @@ export type OrderItemCountAggregateInputType = {
   medicineId?: true
   nameSnapshot?: true
   unitPricePoisha?: true
+  unit?: true
   qty?: true
   _all?: true
 }
@@ -195,6 +201,7 @@ export type OrderItemGroupByOutputType = {
   medicineId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit: $Enums.SaleUnit
   qty: number
   _count: OrderItemCountAggregateOutputType | null
   _avg: OrderItemAvgAggregateOutputType | null
@@ -227,6 +234,7 @@ export type OrderItemWhereInput = {
   medicineId?: Prisma.StringFilter<"OrderItem"> | string
   nameSnapshot?: Prisma.StringFilter<"OrderItem"> | string
   unitPricePoisha?: Prisma.IntFilter<"OrderItem"> | number
+  unit?: Prisma.EnumSaleUnitFilter<"OrderItem"> | $Enums.SaleUnit
   qty?: Prisma.IntFilter<"OrderItem"> | number
   order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
   medicine?: Prisma.XOR<Prisma.MedicineScalarRelationFilter, Prisma.MedicineWhereInput>
@@ -239,6 +247,7 @@ export type OrderItemOrderByWithRelationInput = {
   medicineId?: Prisma.SortOrder
   nameSnapshot?: Prisma.SortOrder
   unitPricePoisha?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   qty?: Prisma.SortOrder
   order?: Prisma.OrderOrderByWithRelationInput
   medicine?: Prisma.MedicineOrderByWithRelationInput
@@ -254,6 +263,7 @@ export type OrderItemWhereUniqueInput = Prisma.AtLeast<{
   medicineId?: Prisma.StringFilter<"OrderItem"> | string
   nameSnapshot?: Prisma.StringFilter<"OrderItem"> | string
   unitPricePoisha?: Prisma.IntFilter<"OrderItem"> | number
+  unit?: Prisma.EnumSaleUnitFilter<"OrderItem"> | $Enums.SaleUnit
   qty?: Prisma.IntFilter<"OrderItem"> | number
   order?: Prisma.XOR<Prisma.OrderScalarRelationFilter, Prisma.OrderWhereInput>
   medicine?: Prisma.XOR<Prisma.MedicineScalarRelationFilter, Prisma.MedicineWhereInput>
@@ -266,6 +276,7 @@ export type OrderItemOrderByWithAggregationInput = {
   medicineId?: Prisma.SortOrder
   nameSnapshot?: Prisma.SortOrder
   unitPricePoisha?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   qty?: Prisma.SortOrder
   _count?: Prisma.OrderItemCountOrderByAggregateInput
   _avg?: Prisma.OrderItemAvgOrderByAggregateInput
@@ -283,6 +294,7 @@ export type OrderItemScalarWhereWithAggregatesInput = {
   medicineId?: Prisma.StringWithAggregatesFilter<"OrderItem"> | string
   nameSnapshot?: Prisma.StringWithAggregatesFilter<"OrderItem"> | string
   unitPricePoisha?: Prisma.IntWithAggregatesFilter<"OrderItem"> | number
+  unit?: Prisma.EnumSaleUnitWithAggregatesFilter<"OrderItem"> | $Enums.SaleUnit
   qty?: Prisma.IntWithAggregatesFilter<"OrderItem"> | number
 }
 
@@ -290,6 +302,7 @@ export type OrderItemCreateInput = {
   id?: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   order: Prisma.OrderCreateNestedOneWithoutItemsInput
   medicine: Prisma.MedicineCreateNestedOneWithoutOrderItemsInput
@@ -302,6 +315,7 @@ export type OrderItemUncheckedCreateInput = {
   medicineId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   allocations?: Prisma.OrderAllocationUncheckedCreateNestedManyWithoutOrderItemInput
 }
@@ -310,6 +324,7 @@ export type OrderItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   order?: Prisma.OrderUpdateOneRequiredWithoutItemsNestedInput
   medicine?: Prisma.MedicineUpdateOneRequiredWithoutOrderItemsNestedInput
@@ -322,6 +337,7 @@ export type OrderItemUncheckedUpdateInput = {
   medicineId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   allocations?: Prisma.OrderAllocationUncheckedUpdateManyWithoutOrderItemNestedInput
 }
@@ -332,6 +348,7 @@ export type OrderItemCreateManyInput = {
   medicineId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
 }
 
@@ -339,6 +356,7 @@ export type OrderItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -348,6 +366,7 @@ export type OrderItemUncheckedUpdateManyInput = {
   medicineId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -367,6 +386,7 @@ export type OrderItemCountOrderByAggregateInput = {
   medicineId?: Prisma.SortOrder
   nameSnapshot?: Prisma.SortOrder
   unitPricePoisha?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   qty?: Prisma.SortOrder
 }
 
@@ -381,6 +401,7 @@ export type OrderItemMaxOrderByAggregateInput = {
   medicineId?: Prisma.SortOrder
   nameSnapshot?: Prisma.SortOrder
   unitPricePoisha?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   qty?: Prisma.SortOrder
 }
 
@@ -390,6 +411,7 @@ export type OrderItemMinOrderByAggregateInput = {
   medicineId?: Prisma.SortOrder
   nameSnapshot?: Prisma.SortOrder
   unitPricePoisha?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   qty?: Prisma.SortOrder
 }
 
@@ -487,6 +509,10 @@ export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
   deleteMany?: Prisma.OrderItemScalarWhereInput | Prisma.OrderItemScalarWhereInput[]
 }
 
+export type EnumSaleUnitFieldUpdateOperationsInput = {
+  set?: $Enums.SaleUnit
+}
+
 export type OrderItemCreateNestedOneWithoutAllocationsInput = {
   create?: Prisma.XOR<Prisma.OrderItemCreateWithoutAllocationsInput, Prisma.OrderItemUncheckedCreateWithoutAllocationsInput>
   connectOrCreate?: Prisma.OrderItemCreateOrConnectWithoutAllocationsInput
@@ -505,6 +531,7 @@ export type OrderItemCreateWithoutMedicineInput = {
   id?: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   order: Prisma.OrderCreateNestedOneWithoutItemsInput
   allocations?: Prisma.OrderAllocationCreateNestedManyWithoutOrderItemInput
@@ -515,6 +542,7 @@ export type OrderItemUncheckedCreateWithoutMedicineInput = {
   orderId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   allocations?: Prisma.OrderAllocationUncheckedCreateNestedManyWithoutOrderItemInput
 }
@@ -554,6 +582,7 @@ export type OrderItemScalarWhereInput = {
   medicineId?: Prisma.StringFilter<"OrderItem"> | string
   nameSnapshot?: Prisma.StringFilter<"OrderItem"> | string
   unitPricePoisha?: Prisma.IntFilter<"OrderItem"> | number
+  unit?: Prisma.EnumSaleUnitFilter<"OrderItem"> | $Enums.SaleUnit
   qty?: Prisma.IntFilter<"OrderItem"> | number
 }
 
@@ -561,6 +590,7 @@ export type OrderItemCreateWithoutOrderInput = {
   id?: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   medicine: Prisma.MedicineCreateNestedOneWithoutOrderItemsInput
   allocations?: Prisma.OrderAllocationCreateNestedManyWithoutOrderItemInput
@@ -571,6 +601,7 @@ export type OrderItemUncheckedCreateWithoutOrderInput = {
   medicineId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   allocations?: Prisma.OrderAllocationUncheckedCreateNestedManyWithoutOrderItemInput
 }
@@ -605,6 +636,7 @@ export type OrderItemCreateWithoutAllocationsInput = {
   id?: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
   order: Prisma.OrderCreateNestedOneWithoutItemsInput
   medicine: Prisma.MedicineCreateNestedOneWithoutOrderItemsInput
@@ -616,6 +648,7 @@ export type OrderItemUncheckedCreateWithoutAllocationsInput = {
   medicineId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
 }
 
@@ -639,6 +672,7 @@ export type OrderItemUpdateWithoutAllocationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   order?: Prisma.OrderUpdateOneRequiredWithoutItemsNestedInput
   medicine?: Prisma.MedicineUpdateOneRequiredWithoutOrderItemsNestedInput
@@ -650,6 +684,7 @@ export type OrderItemUncheckedUpdateWithoutAllocationsInput = {
   medicineId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -658,6 +693,7 @@ export type OrderItemCreateManyMedicineInput = {
   orderId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
 }
 
@@ -665,6 +701,7 @@ export type OrderItemUpdateWithoutMedicineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   order?: Prisma.OrderUpdateOneRequiredWithoutItemsNestedInput
   allocations?: Prisma.OrderAllocationUpdateManyWithoutOrderItemNestedInput
@@ -675,6 +712,7 @@ export type OrderItemUncheckedUpdateWithoutMedicineInput = {
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   allocations?: Prisma.OrderAllocationUncheckedUpdateManyWithoutOrderItemNestedInput
 }
@@ -684,6 +722,7 @@ export type OrderItemUncheckedUpdateManyWithoutMedicineInput = {
   orderId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -692,6 +731,7 @@ export type OrderItemCreateManyOrderInput = {
   medicineId: string
   nameSnapshot: string
   unitPricePoisha: number
+  unit?: $Enums.SaleUnit
   qty: number
 }
 
@@ -699,6 +739,7 @@ export type OrderItemUpdateWithoutOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   medicine?: Prisma.MedicineUpdateOneRequiredWithoutOrderItemsNestedInput
   allocations?: Prisma.OrderAllocationUpdateManyWithoutOrderItemNestedInput
@@ -709,6 +750,7 @@ export type OrderItemUncheckedUpdateWithoutOrderInput = {
   medicineId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
   allocations?: Prisma.OrderAllocationUncheckedUpdateManyWithoutOrderItemNestedInput
 }
@@ -718,6 +760,7 @@ export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
   medicineId?: Prisma.StringFieldUpdateOperationsInput | string
   nameSnapshot?: Prisma.StringFieldUpdateOperationsInput | string
   unitPricePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumSaleUnitFieldUpdateOperationsInput | $Enums.SaleUnit
   qty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -758,6 +801,7 @@ export type OrderItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   medicineId?: boolean
   nameSnapshot?: boolean
   unitPricePoisha?: boolean
+  unit?: boolean
   qty?: boolean
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
@@ -771,6 +815,7 @@ export type OrderItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   medicineId?: boolean
   nameSnapshot?: boolean
   unitPricePoisha?: boolean
+  unit?: boolean
   qty?: boolean
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
@@ -782,6 +827,7 @@ export type OrderItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   medicineId?: boolean
   nameSnapshot?: boolean
   unitPricePoisha?: boolean
+  unit?: boolean
   qty?: boolean
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
@@ -793,10 +839,11 @@ export type OrderItemSelectScalar = {
   medicineId?: boolean
   nameSnapshot?: boolean
   unitPricePoisha?: boolean
+  unit?: boolean
   qty?: boolean
 }
 
-export type OrderItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "medicineId" | "nameSnapshot" | "unitPricePoisha" | "qty", ExtArgs["result"]["orderItem"]>
+export type OrderItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "medicineId" | "nameSnapshot" | "unitPricePoisha" | "unit" | "qty", ExtArgs["result"]["orderItem"]>
 export type OrderItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
@@ -825,6 +872,10 @@ export type $OrderItemPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     medicineId: string
     nameSnapshot: string
     unitPricePoisha: number
+    /**
+     * PIECE: qty counts tablets/capsules and unitPricePoisha is per piece.
+     */
+    unit: $Enums.SaleUnit
     qty: number
   }, ExtArgs["result"]["orderItem"]>
   composites: {}
@@ -1257,6 +1308,7 @@ export interface OrderItemFieldRefs {
   readonly medicineId: Prisma.FieldRef<"OrderItem", 'String'>
   readonly nameSnapshot: Prisma.FieldRef<"OrderItem", 'String'>
   readonly unitPricePoisha: Prisma.FieldRef<"OrderItem", 'Int'>
+  readonly unit: Prisma.FieldRef<"OrderItem", 'SaleUnit'>
   readonly qty: Prisma.FieldRef<"OrderItem", 'Int'>
 }
     

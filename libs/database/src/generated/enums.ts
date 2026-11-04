@@ -33,6 +33,14 @@ export const OrderStatus = {
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 
+export const SaleUnit = {
+  PACK: 'PACK',
+  PIECE: 'PIECE'
+} as const
+
+export type SaleUnit = (typeof SaleUnit)[keyof typeof SaleUnit]
+
+
 export const OrderType = {
   NORMAL: 'NORMAL',
   EMERGENCY: 'EMERGENCY'

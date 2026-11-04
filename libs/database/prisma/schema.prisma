@@ -25,6 +25,12 @@ enum OrderStatus {
   FAILED
 }
 
+/// A whole pack, or loose tablets/capsules cut from one.
+enum SaleUnit {
+  PACK
+  PIECE
+}
+
 enum OrderType {
   NORMAL
   EMERGENCY
@@ -162,7 +168,10 @@ model Batch {
   medicine     Medicine  @relation(fields: [medicineId], references: [id])
   batchNo      String
   expiresAt    DateTime  @db.Date
+  /// Whole packs left.
   qtyRemaining Int
+  /// Pieces left in packs already opened for loose sales.
+  looseQty     Int       @default(0)
   createdAt    DateTime  @default(now())
 
   allocations OrderAllocation[]
@@ -251,6 +260,8 @@ model OrderItem {
   medicine        Medicine @relation(fields: [medicineId], references: [id])
   nameSnapshot    String
   unitPricePoisha Int
+  /// PIECE: qty counts tablets/capsules and unitPricePoisha is per piece.
+  unit            SaleUnit @default(PACK)
   qty             Int
 
   allocations OrderAllocation[]
@@ -265,7 +276,9 @@ model OrderAllocation {
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   batchId     String
   batch       Batch     @relation(fields: [batchId], references: [id])
+  /// Whole packs, or loose pieces when `loose` (a cancel returns those to Batch.looseQty).
   qty         Int
+  loose       Boolean   @default(false)
 
   @@index([orderItemId])
   @@index([batchId])

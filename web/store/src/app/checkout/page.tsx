@@ -120,7 +120,7 @@ export default function CheckoutPage() {
         ...(type === 'NORMAL' ? { slotStart } : {}),
         ...(prescriptionKey ? { prescriptionKey } : {}),
         ...(notes.trim() ? { notes: notes.trim() } : {}),
-        items: lines.map((l) => ({ medicineId: l.id, qty: l.qty })),
+        items: lines.map((l) => ({ medicineId: l.id, qty: l.qty, unit: l.unit ?? 'PACK' })),
       });
       cart.clear();
       if (paymentMethod === 'BKASH') {

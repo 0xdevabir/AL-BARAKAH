@@ -1,8 +1,11 @@
 import { randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import type { placeOrderSchema } from '@albarakah/contracts';
-import type { OrderStatus, Prisma, PrismaClient } from '@albarakah/database';
-import { canTransition, computeTotals, deliverySlots, emergencyDeadline, isEmergencyAvailable, isValidDeliverySlot, type OrderActor, restoresStock } from '@albarakah/domain';
+import type { OrderStatus, Prisma, PrismaClient, SaleUnit } from '@albarakah/database';
+import {
+  canTransition, computeTotals, deliverySlots, emergencyDeadline, isEmergencyAvailable, isValidDeliverySlot, type OrderActor,
+  pieceNoun, piecePricePoisha, piecesPerPack, restoresStock,
+} from '@albarakah/domain';
 import type { Redis } from 'ioredis';
 import type { z } from 'zod';
 import { badRequest, conflict, forbidden, notFound } from '@albarakah/nest-common';
@@ -68,9 +71,15 @@ export class OrdersService {
     if (!address.zone.isActive) throw badRequest('ZONE_UNAVAILABLE', 'We do not deliver to this area right now');
 
     // Merge repeated lines. Locking in sorted order means two orders can never deadlock.
-    const qtyById = new Map<string, number>();
-    for (const i of input.items) qtyById.set(i.medicineId, (qtyById.get(i.medicineId) ?? 0) + i.qty);
-    const ids = [...qtyById.keys()].sort();
+    // A medicine can be in the cart twice: once by the pack, once as loose pieces.
+    const qtyByKey = new Map<string, { medicineId: string; unit: SaleUnit; qty: number }>();
+    for (const i of input.items) {
+      const key = `${i.medicineId}|${i.unit}`;
+      const prev = qtyByKey.get(key);
+      qtyByKey.set(key, { medicineId: i.medicineId, unit: i.unit, qty: (prev?.qty ?? 0) + i.qty });
+    }
+    const keys = [...qtyByKey.keys()].sort();
+    const ids = [...new Set(keys.map((k) => qtyByKey.get(k)!.medicineId))];
     const medicines = await this.prisma.medicine.findMany({ where: { id: { in: ids }, isActive: true } });
     if (medicines.length !== ids.length) throw badRequest('ITEM_UNAVAILABLE', 'An item in your cart is no longer available');
     if (s.requireRxUpload && medicines.some((m) => m.isRx) && !input.prescriptionKey) {
@@ -79,9 +88,17 @@ export class OrdersService {
     if (input.prescriptionKey && !input.prescriptionKey.startsWith(`rx/${customerId}/`)) throw forbidden();
 
     const byId = new Map(medicines.map((m) => [m.id, m]));
-    const lines = ids.map((id) => ({ medicine: byId.get(id)!, qty: qtyById.get(id)! }));
+    const lines = keys.map((k) => {
+      const { medicineId, unit, qty } = qtyByKey.get(k)!;
+      const medicine = byId.get(medicineId)!;
+      if (unit === 'PACK') return { medicine, unit, qty, perPack: 0, unitPricePoisha: medicine.pricePoisha, nameSnapshot: `${medicine.name} ${medicine.strength}`.trim() };
+      const perPack = piecesPerPack(medicine.form, medicine.packSize);
+      if (!perPack) throw badRequest('LOOSE_UNAVAILABLE', `${medicine.name} is sold by the pack only`);
+      const nameSnapshot = `${medicine.name} ${medicine.strength}`.trim() + ` (loose ${pieceNoun(medicine.form, 2)})`;
+      return { medicine, unit, qty, perPack, unitPricePoisha: piecePricePoisha(medicine.pricePoisha, perPack), nameSnapshot };
+    });
     const totals = computeTotals({
-      lines: lines.map((l) => ({ unitPricePoisha: l.medicine.pricePoisha, qty: l.qty })),
+      lines,
       zoneDeliveryFeePoisha: address.zone.deliveryFeePoisha,
       emergency,
       fees: s,
@@ -108,11 +125,12 @@ export class OrdersService {
             events: { create: { toStatus: 'PLACED', actorId: customerId } },
           },
         });
-        for (const { medicine, qty } of lines) {
+        for (const { medicine, unit, qty, perPack, unitPricePoisha, nameSnapshot } of lines) {
           const item = await tx.orderItem.create({
-            data: { orderId: order.id, medicineId: medicine.id, nameSnapshot: `${medicine.name} ${medicine.strength}`.trim(), unitPricePoisha: medicine.pricePoisha, qty },
+            data: { orderId: order.id, medicineId: medicine.id, nameSnapshot, unitPricePoisha, unit, qty },
           });
-          await this.allocate(tx, medicine.id, medicine.name, item.id, qty);
+          if (unit === 'PIECE') await this.allocatePieces(tx, medicine.id, medicine.name, item.id, qty, perPack);
+          else await this.allocate(tx, medicine.id, medicine.name, item.id, qty);
         }
         return order;
       });
@@ -140,6 +158,30 @@ export class OrdersService {
       const take = Math.min(left, b.qtyRemaining);
       await tx.batch.update({ where: { id: b.id }, data: { qtyRemaining: { decrement: take } } });
       await tx.orderAllocation.create({ data: { orderItemId, batchId: b.id, qty: take } });
+      left -= take;
+    }
+    if (left > 0) throw conflict('OUT_OF_STOCK', `Sorry, ${name} does not have enough stock`);
+  }
+
+  /**
+   * Loose pieces, earliest-expiring batch first. A batch's already-opened pieces go before
+   * opening another of its packs, so at most one pack per batch is ever left part-used.
+   */
+  private async allocatePieces(tx: Prisma.TransactionClient, medicineId: string, name: string, orderItemId: string, qty: number, perPack: number) {
+    const batches = await tx.$queryRaw<{ id: string; qtyRemaining: number; looseQty: number }[]>`
+      SELECT id, "qtyRemaining", "looseQty" FROM "Batch"
+      WHERE "medicineId" = ${medicineId} AND ("qtyRemaining" > 0 OR "looseQty" > 0) AND "expiresAt" >= CURRENT_DATE
+      ORDER BY "expiresAt" ASC, id ASC FOR UPDATE`;
+    let left = qty;
+    for (const b of batches) {
+      if (left === 0) break;
+      const take = Math.min(left, b.looseQty + b.qtyRemaining * perPack);
+      const opened = Math.max(0, Math.ceil((take - b.looseQty) / perPack));
+      await tx.batch.update({
+        where: { id: b.id },
+        data: { qtyRemaining: { decrement: opened }, looseQty: b.looseQty + opened * perPack - take },
+      });
+      await tx.orderAllocation.create({ data: { orderItemId, batchId: b.id, qty: take, loose: true } });
       left -= take;
     }
     if (left > 0) throw conflict('OUT_OF_STOCK', `Sorry, ${name} does not have enough stock`);
@@ -177,7 +219,10 @@ export class OrdersService {
       }
       if (restoresStock(to)) {
         const allocations = await tx.orderAllocation.findMany({ where: { orderItem: { orderId } } });
-        for (const a of allocations) await tx.batch.update({ where: { id: a.batchId }, data: { qtyRemaining: { increment: a.qty } } });
+        // Loose pieces go back as loose: a cut strip cannot become a sealed pack again.
+        for (const a of allocations) {
+          await tx.batch.update({ where: { id: a.batchId }, data: a.loose ? { looseQty: { increment: a.qty } } : { qtyRemaining: { increment: a.qty } } });
+        }
         await tx.orderAllocation.deleteMany({ where: { orderItem: { orderId } } });
       }
       // A bKash order stopped after payment still holds the customer's money, so an admin must refund it.

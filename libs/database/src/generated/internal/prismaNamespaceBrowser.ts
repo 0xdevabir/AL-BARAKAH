@@ -170,6 +170,7 @@ export const BatchScalarFieldEnum = {
   batchNo: 'batchNo',
   expiresAt: 'expiresAt',
   qtyRemaining: 'qtyRemaining',
+  looseQty: 'looseQty',
   createdAt: 'createdAt'
 } as const
 
@@ -242,6 +243,7 @@ export const OrderItemScalarFieldEnum = {
   medicineId: 'medicineId',
   nameSnapshot: 'nameSnapshot',
   unitPricePoisha: 'unitPricePoisha',
+  unit: 'unit',
   qty: 'qty'
 } as const
 
@@ -252,7 +254,8 @@ export const OrderAllocationScalarFieldEnum = {
   id: 'id',
   orderItemId: 'orderItemId',
   batchId: 'batchId',
-  qty: 'qty'
+  qty: 'qty',
+  loose: 'loose'
 } as const
 
 export type OrderAllocationScalarFieldEnum = (typeof OrderAllocationScalarFieldEnum)[keyof typeof OrderAllocationScalarFieldEnum]

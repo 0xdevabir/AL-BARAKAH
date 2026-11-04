@@ -1962,6 +1962,7 @@ export const BatchScalarFieldEnum = {
   batchNo: 'batchNo',
   expiresAt: 'expiresAt',
   qtyRemaining: 'qtyRemaining',
+  looseQty: 'looseQty',
   createdAt: 'createdAt'
 } as const
 
@@ -2034,6 +2035,7 @@ export const OrderItemScalarFieldEnum = {
   medicineId: 'medicineId',
   nameSnapshot: 'nameSnapshot',
   unitPricePoisha: 'unitPricePoisha',
+  unit: 'unit',
   qty: 'qty'
 } as const
 
@@ -2044,7 +2046,8 @@ export const OrderAllocationScalarFieldEnum = {
   id: 'id',
   orderItemId: 'orderItemId',
   batchId: 'batchId',
-  qty: 'qty'
+  qty: 'qty',
+  loose: 'loose'
 } as const
 
 export type OrderAllocationScalarFieldEnum = (typeof OrderAllocationScalarFieldEnum)[keyof typeof OrderAllocationScalarFieldEnum]
@@ -2364,6 +2367,20 @@ export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'PaymentStatus[]'
  */
 export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SaleUnit'
+ */
+export type EnumSaleUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SaleUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'SaleUnit[]'
+ */
+export type ListEnumSaleUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SaleUnit[]'>
     
 
 

@@ -39,6 +39,7 @@ export type OrderAllocationMinAggregateOutputType = {
   orderItemId: string | null
   batchId: string | null
   qty: number | null
+  loose: boolean | null
 }
 
 export type OrderAllocationMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type OrderAllocationMaxAggregateOutputType = {
   orderItemId: string | null
   batchId: string | null
   qty: number | null
+  loose: boolean | null
 }
 
 export type OrderAllocationCountAggregateOutputType = {
@@ -53,6 +55,7 @@ export type OrderAllocationCountAggregateOutputType = {
   orderItemId: number
   batchId: number
   qty: number
+  loose: number
   _all: number
 }
 
@@ -70,6 +73,7 @@ export type OrderAllocationMinAggregateInputType = {
   orderItemId?: true
   batchId?: true
   qty?: true
+  loose?: true
 }
 
 export type OrderAllocationMaxAggregateInputType = {
@@ -77,6 +81,7 @@ export type OrderAllocationMaxAggregateInputType = {
   orderItemId?: true
   batchId?: true
   qty?: true
+  loose?: true
 }
 
 export type OrderAllocationCountAggregateInputType = {
@@ -84,6 +89,7 @@ export type OrderAllocationCountAggregateInputType = {
   orderItemId?: true
   batchId?: true
   qty?: true
+  loose?: true
   _all?: true
 }
 
@@ -178,6 +184,7 @@ export type OrderAllocationGroupByOutputType = {
   orderItemId: string
   batchId: string
   qty: number
+  loose: boolean
   _count: OrderAllocationCountAggregateOutputType | null
   _avg: OrderAllocationAvgAggregateOutputType | null
   _sum: OrderAllocationSumAggregateOutputType | null
@@ -208,6 +215,7 @@ export type OrderAllocationWhereInput = {
   orderItemId?: Prisma.StringFilter<"OrderAllocation"> | string
   batchId?: Prisma.StringFilter<"OrderAllocation"> | string
   qty?: Prisma.IntFilter<"OrderAllocation"> | number
+  loose?: Prisma.BoolFilter<"OrderAllocation"> | boolean
   orderItem?: Prisma.XOR<Prisma.OrderItemScalarRelationFilter, Prisma.OrderItemWhereInput>
   batch?: Prisma.XOR<Prisma.BatchScalarRelationFilter, Prisma.BatchWhereInput>
 }
@@ -217,6 +225,7 @@ export type OrderAllocationOrderByWithRelationInput = {
   orderItemId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   qty?: Prisma.SortOrder
+  loose?: Prisma.SortOrder
   orderItem?: Prisma.OrderItemOrderByWithRelationInput
   batch?: Prisma.BatchOrderByWithRelationInput
 }
@@ -229,6 +238,7 @@ export type OrderAllocationWhereUniqueInput = Prisma.AtLeast<{
   orderItemId?: Prisma.StringFilter<"OrderAllocation"> | string
   batchId?: Prisma.StringFilter<"OrderAllocation"> | string
   qty?: Prisma.IntFilter<"OrderAllocation"> | number
+  loose?: Prisma.BoolFilter<"OrderAllocation"> | boolean
   orderItem?: Prisma.XOR<Prisma.OrderItemScalarRelationFilter, Prisma.OrderItemWhereInput>
   batch?: Prisma.XOR<Prisma.BatchScalarRelationFilter, Prisma.BatchWhereInput>
 }, "id">
@@ -238,6 +248,7 @@ export type OrderAllocationOrderByWithAggregationInput = {
   orderItemId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   qty?: Prisma.SortOrder
+  loose?: Prisma.SortOrder
   _count?: Prisma.OrderAllocationCountOrderByAggregateInput
   _avg?: Prisma.OrderAllocationAvgOrderByAggregateInput
   _max?: Prisma.OrderAllocationMaxOrderByAggregateInput
@@ -253,11 +264,13 @@ export type OrderAllocationScalarWhereWithAggregatesInput = {
   orderItemId?: Prisma.StringWithAggregatesFilter<"OrderAllocation"> | string
   batchId?: Prisma.StringWithAggregatesFilter<"OrderAllocation"> | string
   qty?: Prisma.IntWithAggregatesFilter<"OrderAllocation"> | number
+  loose?: Prisma.BoolWithAggregatesFilter<"OrderAllocation"> | boolean
 }
 
 export type OrderAllocationCreateInput = {
   id?: string
   qty: number
+  loose?: boolean
   orderItem: Prisma.OrderItemCreateNestedOneWithoutAllocationsInput
   batch: Prisma.BatchCreateNestedOneWithoutAllocationsInput
 }
@@ -267,11 +280,13 @@ export type OrderAllocationUncheckedCreateInput = {
   orderItemId: string
   batchId: string
   qty: number
+  loose?: boolean
 }
 
 export type OrderAllocationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
   orderItem?: Prisma.OrderItemUpdateOneRequiredWithoutAllocationsNestedInput
   batch?: Prisma.BatchUpdateOneRequiredWithoutAllocationsNestedInput
 }
@@ -281,6 +296,7 @@ export type OrderAllocationUncheckedUpdateInput = {
   orderItemId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrderAllocationCreateManyInput = {
@@ -288,11 +304,13 @@ export type OrderAllocationCreateManyInput = {
   orderItemId: string
   batchId: string
   qty: number
+  loose?: boolean
 }
 
 export type OrderAllocationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrderAllocationUncheckedUpdateManyInput = {
@@ -300,6 +318,7 @@ export type OrderAllocationUncheckedUpdateManyInput = {
   orderItemId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrderAllocationListRelationFilter = {
@@ -317,6 +336,7 @@ export type OrderAllocationCountOrderByAggregateInput = {
   orderItemId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   qty?: Prisma.SortOrder
+  loose?: Prisma.SortOrder
 }
 
 export type OrderAllocationAvgOrderByAggregateInput = {
@@ -328,6 +348,7 @@ export type OrderAllocationMaxOrderByAggregateInput = {
   orderItemId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   qty?: Prisma.SortOrder
+  loose?: Prisma.SortOrder
 }
 
 export type OrderAllocationMinOrderByAggregateInput = {
@@ -335,6 +356,7 @@ export type OrderAllocationMinOrderByAggregateInput = {
   orderItemId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   qty?: Prisma.SortOrder
+  loose?: Prisma.SortOrder
 }
 
 export type OrderAllocationSumOrderByAggregateInput = {
@@ -428,6 +450,7 @@ export type OrderAllocationUncheckedUpdateManyWithoutOrderItemNestedInput = {
 export type OrderAllocationCreateWithoutBatchInput = {
   id?: string
   qty: number
+  loose?: boolean
   orderItem: Prisma.OrderItemCreateNestedOneWithoutAllocationsInput
 }
 
@@ -435,6 +458,7 @@ export type OrderAllocationUncheckedCreateWithoutBatchInput = {
   id?: string
   orderItemId: string
   qty: number
+  loose?: boolean
 }
 
 export type OrderAllocationCreateOrConnectWithoutBatchInput = {
@@ -471,11 +495,13 @@ export type OrderAllocationScalarWhereInput = {
   orderItemId?: Prisma.StringFilter<"OrderAllocation"> | string
   batchId?: Prisma.StringFilter<"OrderAllocation"> | string
   qty?: Prisma.IntFilter<"OrderAllocation"> | number
+  loose?: Prisma.BoolFilter<"OrderAllocation"> | boolean
 }
 
 export type OrderAllocationCreateWithoutOrderItemInput = {
   id?: string
   qty: number
+  loose?: boolean
   batch: Prisma.BatchCreateNestedOneWithoutAllocationsInput
 }
 
@@ -483,6 +509,7 @@ export type OrderAllocationUncheckedCreateWithoutOrderItemInput = {
   id?: string
   batchId: string
   qty: number
+  loose?: boolean
 }
 
 export type OrderAllocationCreateOrConnectWithoutOrderItemInput = {
@@ -515,11 +542,13 @@ export type OrderAllocationCreateManyBatchInput = {
   id?: string
   orderItemId: string
   qty: number
+  loose?: boolean
 }
 
 export type OrderAllocationUpdateWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
   orderItem?: Prisma.OrderItemUpdateOneRequiredWithoutAllocationsNestedInput
 }
 
@@ -527,23 +556,27 @@ export type OrderAllocationUncheckedUpdateWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderItemId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrderAllocationUncheckedUpdateManyWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderItemId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrderAllocationCreateManyOrderItemInput = {
   id?: string
   batchId: string
   qty: number
+  loose?: boolean
 }
 
 export type OrderAllocationUpdateWithoutOrderItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
   batch?: Prisma.BatchUpdateOneRequiredWithoutAllocationsNestedInput
 }
 
@@ -551,12 +584,14 @@ export type OrderAllocationUncheckedUpdateWithoutOrderItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrderAllocationUncheckedUpdateManyWithoutOrderItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
+  loose?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -566,6 +601,7 @@ export type OrderAllocationSelect<ExtArgs extends runtime.Types.Extensions.Inter
   orderItemId?: boolean
   batchId?: boolean
   qty?: boolean
+  loose?: boolean
   orderItem?: boolean | Prisma.OrderItemDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.BatchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderAllocation"]>
@@ -575,6 +611,7 @@ export type OrderAllocationSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   orderItemId?: boolean
   batchId?: boolean
   qty?: boolean
+  loose?: boolean
   orderItem?: boolean | Prisma.OrderItemDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.BatchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderAllocation"]>
@@ -584,6 +621,7 @@ export type OrderAllocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   orderItemId?: boolean
   batchId?: boolean
   qty?: boolean
+  loose?: boolean
   orderItem?: boolean | Prisma.OrderItemDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.BatchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderAllocation"]>
@@ -593,9 +631,10 @@ export type OrderAllocationSelectScalar = {
   orderItemId?: boolean
   batchId?: boolean
   qty?: boolean
+  loose?: boolean
 }
 
-export type OrderAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderItemId" | "batchId" | "qty", ExtArgs["result"]["orderAllocation"]>
+export type OrderAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderItemId" | "batchId" | "qty" | "loose", ExtArgs["result"]["orderAllocation"]>
 export type OrderAllocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   orderItem?: boolean | Prisma.OrderItemDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.BatchDefaultArgs<ExtArgs>
@@ -619,7 +658,11 @@ export type $OrderAllocationPayload<ExtArgs extends runtime.Types.Extensions.Int
     id: string
     orderItemId: string
     batchId: string
+    /**
+     * Whole packs, or loose pieces when `loose` (a cancel returns those to Batch.looseQty).
+     */
     qty: number
+    loose: boolean
   }, ExtArgs["result"]["orderAllocation"]>
   composites: {}
 }
@@ -1049,6 +1092,7 @@ export interface OrderAllocationFieldRefs {
   readonly orderItemId: Prisma.FieldRef<"OrderAllocation", 'String'>
   readonly batchId: Prisma.FieldRef<"OrderAllocation", 'String'>
   readonly qty: Prisma.FieldRef<"OrderAllocation", 'Int'>
+  readonly loose: Prisma.FieldRef<"OrderAllocation", 'Boolean'>
 }
     
 

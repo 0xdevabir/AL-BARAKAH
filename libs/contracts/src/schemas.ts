@@ -57,7 +57,7 @@ export const placeOrderSchema = z.object({
   paymentMethod: z.enum(['COD', 'BKASH']),
   prescriptionKey: z.string().max(200).optional(),
   notes: z.string().trim().max(300).optional(),
-  items: z.array(z.object({ medicineId: z.string().min(1), qty: z.number().int().min(1).max(50) })).min(1).max(50),
+  items: z.array(z.object({ medicineId: z.string().min(1), qty: z.number().int().min(1).max(50), unit: z.enum(['PACK', 'PIECE']).default('PACK') })).min(1).max(50),
 }).refine((o) => o.type === 'EMERGENCY' || !!o.slotStart, { message: 'Choose a delivery time', path: ['slotStart'] });
 
 export const medicineSchema = z.object({

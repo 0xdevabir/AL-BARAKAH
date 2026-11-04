@@ -172,15 +172,15 @@ export class OrdersController {
   @RequirePermission('order:read-own')
   @Get('orders/:id/reorder')
   async reorder(@CurrentUser() u: AuthUser, @Param('id') id: string) {
-    const o = await this.prisma.order.findFirst({ where: { id, customerId: u.id }, select: { items: { select: { medicineId: true, qty: true } } } });
+    const o = await this.prisma.order.findFirst({ where: { id, customerId: u.id }, select: { items: { select: { medicineId: true, qty: true, unit: true } } } });
     if (!o) throw notFound('Order not found');
     const meds = await this.prisma.medicine.findMany({
       where: { id: { in: o.items.map((i) => i.medicineId) }, isActive: true },
-      select: { id: true, slug: true, name: true, strength: true, form: true, pricePoisha: true, isRx: true, imageUrl: true },
+      select: { id: true, slug: true, name: true, strength: true, form: true, packSize: true, pricePoisha: true, isRx: true, imageUrl: true },
     });
     const byId = new Map(meds.map((m) => [m.id, m]));
     return {
-      items: o.items.flatMap((i) => (byId.has(i.medicineId) ? [{ medicine: byId.get(i.medicineId)!, qty: i.qty }] : [])),
+      items: o.items.flatMap((i) => (byId.has(i.medicineId) ? [{ medicine: byId.get(i.medicineId)!, qty: i.qty, unit: i.unit }] : [])),
       unavailable: o.items.length - o.items.filter((i) => byId.has(i.medicineId)).length,
     };
   }

@@ -28,10 +28,12 @@ export type AggregateBatch = {
 
 export type BatchAvgAggregateOutputType = {
   qtyRemaining: number | null
+  looseQty: number | null
 }
 
 export type BatchSumAggregateOutputType = {
   qtyRemaining: number | null
+  looseQty: number | null
 }
 
 export type BatchMinAggregateOutputType = {
@@ -40,6 +42,7 @@ export type BatchMinAggregateOutputType = {
   batchNo: string | null
   expiresAt: Date | null
   qtyRemaining: number | null
+  looseQty: number | null
   createdAt: Date | null
 }
 
@@ -49,6 +52,7 @@ export type BatchMaxAggregateOutputType = {
   batchNo: string | null
   expiresAt: Date | null
   qtyRemaining: number | null
+  looseQty: number | null
   createdAt: Date | null
 }
 
@@ -58,6 +62,7 @@ export type BatchCountAggregateOutputType = {
   batchNo: number
   expiresAt: number
   qtyRemaining: number
+  looseQty: number
   createdAt: number
   _all: number
 }
@@ -65,10 +70,12 @@ export type BatchCountAggregateOutputType = {
 
 export type BatchAvgAggregateInputType = {
   qtyRemaining?: true
+  looseQty?: true
 }
 
 export type BatchSumAggregateInputType = {
   qtyRemaining?: true
+  looseQty?: true
 }
 
 export type BatchMinAggregateInputType = {
@@ -77,6 +84,7 @@ export type BatchMinAggregateInputType = {
   batchNo?: true
   expiresAt?: true
   qtyRemaining?: true
+  looseQty?: true
   createdAt?: true
 }
 
@@ -86,6 +94,7 @@ export type BatchMaxAggregateInputType = {
   batchNo?: true
   expiresAt?: true
   qtyRemaining?: true
+  looseQty?: true
   createdAt?: true
 }
 
@@ -95,6 +104,7 @@ export type BatchCountAggregateInputType = {
   batchNo?: true
   expiresAt?: true
   qtyRemaining?: true
+  looseQty?: true
   createdAt?: true
   _all?: true
 }
@@ -191,6 +201,7 @@ export type BatchGroupByOutputType = {
   batchNo: string
   expiresAt: Date
   qtyRemaining: number
+  looseQty: number
   createdAt: Date
   _count: BatchCountAggregateOutputType | null
   _avg: BatchAvgAggregateOutputType | null
@@ -223,6 +234,7 @@ export type BatchWhereInput = {
   batchNo?: Prisma.StringFilter<"Batch"> | string
   expiresAt?: Prisma.DateTimeFilter<"Batch"> | Date | string
   qtyRemaining?: Prisma.IntFilter<"Batch"> | number
+  looseQty?: Prisma.IntFilter<"Batch"> | number
   createdAt?: Prisma.DateTimeFilter<"Batch"> | Date | string
   medicine?: Prisma.XOR<Prisma.MedicineScalarRelationFilter, Prisma.MedicineWhereInput>
   allocations?: Prisma.OrderAllocationListRelationFilter
@@ -234,6 +246,7 @@ export type BatchOrderByWithRelationInput = {
   batchNo?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   medicine?: Prisma.MedicineOrderByWithRelationInput
   allocations?: Prisma.OrderAllocationOrderByRelationAggregateInput
@@ -249,6 +262,7 @@ export type BatchWhereUniqueInput = Prisma.AtLeast<{
   batchNo?: Prisma.StringFilter<"Batch"> | string
   expiresAt?: Prisma.DateTimeFilter<"Batch"> | Date | string
   qtyRemaining?: Prisma.IntFilter<"Batch"> | number
+  looseQty?: Prisma.IntFilter<"Batch"> | number
   createdAt?: Prisma.DateTimeFilter<"Batch"> | Date | string
   medicine?: Prisma.XOR<Prisma.MedicineScalarRelationFilter, Prisma.MedicineWhereInput>
   allocations?: Prisma.OrderAllocationListRelationFilter
@@ -260,6 +274,7 @@ export type BatchOrderByWithAggregationInput = {
   batchNo?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.BatchCountOrderByAggregateInput
   _avg?: Prisma.BatchAvgOrderByAggregateInput
@@ -277,6 +292,7 @@ export type BatchScalarWhereWithAggregatesInput = {
   batchNo?: Prisma.StringWithAggregatesFilter<"Batch"> | string
   expiresAt?: Prisma.DateTimeWithAggregatesFilter<"Batch"> | Date | string
   qtyRemaining?: Prisma.IntWithAggregatesFilter<"Batch"> | number
+  looseQty?: Prisma.IntWithAggregatesFilter<"Batch"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Batch"> | Date | string
 }
 
@@ -285,6 +301,7 @@ export type BatchCreateInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
   medicine: Prisma.MedicineCreateNestedOneWithoutBatchesInput
   allocations?: Prisma.OrderAllocationCreateNestedManyWithoutBatchInput
@@ -296,6 +313,7 @@ export type BatchUncheckedCreateInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
   allocations?: Prisma.OrderAllocationUncheckedCreateNestedManyWithoutBatchInput
 }
@@ -305,6 +323,7 @@ export type BatchUpdateInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   medicine?: Prisma.MedicineUpdateOneRequiredWithoutBatchesNestedInput
   allocations?: Prisma.OrderAllocationUpdateManyWithoutBatchNestedInput
@@ -316,6 +335,7 @@ export type BatchUncheckedUpdateInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allocations?: Prisma.OrderAllocationUncheckedUpdateManyWithoutBatchNestedInput
 }
@@ -326,6 +346,7 @@ export type BatchCreateManyInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
 }
 
@@ -334,6 +355,7 @@ export type BatchUpdateManyMutationInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -343,6 +365,7 @@ export type BatchUncheckedUpdateManyInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -367,11 +390,13 @@ export type BatchCountOrderByAggregateInput = {
   batchNo?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type BatchAvgOrderByAggregateInput = {
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
 }
 
 export type BatchMaxOrderByAggregateInput = {
@@ -380,6 +405,7 @@ export type BatchMaxOrderByAggregateInput = {
   batchNo?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -389,11 +415,13 @@ export type BatchMinOrderByAggregateInput = {
   batchNo?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type BatchSumOrderByAggregateInput = {
   qtyRemaining?: Prisma.SortOrder
+  looseQty?: Prisma.SortOrder
 }
 
 export type BatchScalarRelationFilter = {
@@ -462,6 +490,7 @@ export type BatchCreateWithoutMedicineInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
   allocations?: Prisma.OrderAllocationCreateNestedManyWithoutBatchInput
 }
@@ -471,6 +500,7 @@ export type BatchUncheckedCreateWithoutMedicineInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
   allocations?: Prisma.OrderAllocationUncheckedCreateNestedManyWithoutBatchInput
 }
@@ -510,6 +540,7 @@ export type BatchScalarWhereInput = {
   batchNo?: Prisma.StringFilter<"Batch"> | string
   expiresAt?: Prisma.DateTimeFilter<"Batch"> | Date | string
   qtyRemaining?: Prisma.IntFilter<"Batch"> | number
+  looseQty?: Prisma.IntFilter<"Batch"> | number
   createdAt?: Prisma.DateTimeFilter<"Batch"> | Date | string
 }
 
@@ -518,6 +549,7 @@ export type BatchCreateWithoutAllocationsInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
   medicine: Prisma.MedicineCreateNestedOneWithoutBatchesInput
 }
@@ -528,6 +560,7 @@ export type BatchUncheckedCreateWithoutAllocationsInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
 }
 
@@ -552,6 +585,7 @@ export type BatchUpdateWithoutAllocationsInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   medicine?: Prisma.MedicineUpdateOneRequiredWithoutBatchesNestedInput
 }
@@ -562,6 +596,7 @@ export type BatchUncheckedUpdateWithoutAllocationsInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -570,6 +605,7 @@ export type BatchCreateManyMedicineInput = {
   batchNo: string
   expiresAt: Date | string
   qtyRemaining: number
+  looseQty?: number
   createdAt?: Date | string
 }
 
@@ -578,6 +614,7 @@ export type BatchUpdateWithoutMedicineInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allocations?: Prisma.OrderAllocationUpdateManyWithoutBatchNestedInput
 }
@@ -587,6 +624,7 @@ export type BatchUncheckedUpdateWithoutMedicineInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   allocations?: Prisma.OrderAllocationUncheckedUpdateManyWithoutBatchNestedInput
 }
@@ -596,6 +634,7 @@ export type BatchUncheckedUpdateManyWithoutMedicineInput = {
   batchNo?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qtyRemaining?: Prisma.IntFieldUpdateOperationsInput | number
+  looseQty?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -636,6 +675,7 @@ export type BatchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   batchNo?: boolean
   expiresAt?: boolean
   qtyRemaining?: boolean
+  looseQty?: boolean
   createdAt?: boolean
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
   allocations?: boolean | Prisma.Batch$allocationsArgs<ExtArgs>
@@ -648,6 +688,7 @@ export type BatchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   batchNo?: boolean
   expiresAt?: boolean
   qtyRemaining?: boolean
+  looseQty?: boolean
   createdAt?: boolean
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["batch"]>
@@ -658,6 +699,7 @@ export type BatchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   batchNo?: boolean
   expiresAt?: boolean
   qtyRemaining?: boolean
+  looseQty?: boolean
   createdAt?: boolean
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["batch"]>
@@ -668,10 +710,11 @@ export type BatchSelectScalar = {
   batchNo?: boolean
   expiresAt?: boolean
   qtyRemaining?: boolean
+  looseQty?: boolean
   createdAt?: boolean
 }
 
-export type BatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "medicineId" | "batchNo" | "expiresAt" | "qtyRemaining" | "createdAt", ExtArgs["result"]["batch"]>
+export type BatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "medicineId" | "batchNo" | "expiresAt" | "qtyRemaining" | "looseQty" | "createdAt", ExtArgs["result"]["batch"]>
 export type BatchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   medicine?: boolean | Prisma.MedicineDefaultArgs<ExtArgs>
   allocations?: boolean | Prisma.Batch$allocationsArgs<ExtArgs>
@@ -695,7 +738,14 @@ export type $BatchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     medicineId: string
     batchNo: string
     expiresAt: Date
+    /**
+     * Whole packs left.
+     */
     qtyRemaining: number
+    /**
+     * Pieces left in packs already opened for loose sales.
+     */
+    looseQty: number
     createdAt: Date
   }, ExtArgs["result"]["batch"]>
   composites: {}
@@ -1127,6 +1177,7 @@ export interface BatchFieldRefs {
   readonly batchNo: Prisma.FieldRef<"Batch", 'String'>
   readonly expiresAt: Prisma.FieldRef<"Batch", 'DateTime'>
   readonly qtyRemaining: Prisma.FieldRef<"Batch", 'Int'>
+  readonly looseQty: Prisma.FieldRef<"Batch", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Batch", 'DateTime'>
 }
     

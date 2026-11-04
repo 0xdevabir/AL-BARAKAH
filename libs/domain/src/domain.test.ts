@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   canTransition, computeTotals, consultationSlots, DEFAULT_FEES, deliverySlots, dhakaHour, emergencyDeadline,
-  formatTk, isEmergencyAvailable, isValidDeliverySlot,
+  formatTk, isEmergencyAvailable, isValidDeliverySlot, pieceNoun, piecePricePoisha, piecesPerPack,
 } from './index.js';
 
 /** Build an instant from Dhaka wall-clock time. */
@@ -86,5 +86,28 @@ describe('consultation slots', () => {
   it('applies lead time, weekday and taken slots', () => {
     const slots = consultationSlots(windows, now, 7, [dhaka('2026-11-02', '10:00')]);
     expect(slots.map((s) => dhakaHour(s.start))).toEqual([9.5, 10.5]);
+  });
+});
+
+describe('loose pieces', () => {
+  it('reads pieces per pack from tablet and capsule pack sizes', () => {
+    expect(piecesPerPack('Tablet', "30' pack")).toBe(30);
+    expect(piecesPerPack('Capsule', "10's Pack")).toBe(10);
+    expect(piecesPerPack('Tablet (Enteric Coated)', '14’s pack')).toBe(14);
+    expect(piecesPerPack('Tablet', '20')).toBe(20);
+  });
+  it('keeps everything else pack-only', () => {
+    expect(piecesPerPack('Syrup', "30' pack")).toBe(0);
+    expect(piecesPerPack('Tablet', "1' pack")).toBe(0);
+    expect(piecesPerPack('Tablet', '10 x 10')).toBe(0);
+    expect(piecesPerPack('Tablet', '')).toBe(0);
+  });
+  it('prices a piece at the pack price split evenly, rounded up', () => {
+    expect(piecePricePoisha(3000, 30)).toBe(100);
+    expect(piecePricePoisha(1000, 30)).toBe(34);
+  });
+  it('names the piece', () => {
+    expect(pieceNoun('Capsule', 4)).toBe('capsules');
+    expect(pieceNoun('Tablet')).toBe('tablet');
   });
 });

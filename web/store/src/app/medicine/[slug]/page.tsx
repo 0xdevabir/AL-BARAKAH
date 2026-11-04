@@ -1,6 +1,6 @@
 'use client';
 
-import { formatTk } from '@albarakah/domain';
+import { formatTk, pieceNoun } from '@albarakah/domain';
 import { haptic, Skeleton } from '@albarakah/ui';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -8,6 +8,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { FormGlyph } from '@/components/FormGlyph';
 import { ProductCard } from '@/components/ProductCard';
 import { Stepper } from '@/components/Stepper';
+import { lineFor, UnitToggle, useUnit } from '@/components/UnitToggle';
 import { useGet } from '@/lib/api';
 import { cart, type Medicine } from '@/lib/cart';
 
@@ -17,9 +18,10 @@ export default function MedicinePage() {
   const { data: med, error } = useGet<Medicine>(`/medicines/${slug}`, { staleMs: 60_000 });
   const { data: alts } = useGet<Medicine[]>(`/medicines/${slug}/alternatives`, { staleMs: 120_000 });
   const [photoFailed, setPhotoFailed] = useState(false);
+  const { unit, setUnit, canChoose } = useUnit(med);
   const qty = useSyncExternalStore(
     (cb) => cart.subscribe(cb),
-    () => (med ? cart.qtyOf(med.id) : 0),
+    () => (med ? cart.qtyOf(med.id, unit) : 0),
     () => 0,
   );
 
@@ -44,6 +46,10 @@ export default function MedicinePage() {
 
   const cheaper = alts?.filter((a) => a.inStock && a.pricePoisha < med.pricePoisha) ?? [];
   const saving = cheaper.length ? med.pricePoisha - Math.min(...cheaper.map((a) => a.pricePoisha)) : 0;
+  const loose = unit === 'PIECE';
+  const price = loose ? med.piecePricePoisha : med.pricePoisha;
+  const available = loose ? med.looseInStock : med.inStock;
+  const noun = pieceNoun(med.form);
 
   return (
     <div className="page stack screen">
@@ -60,10 +66,14 @@ export default function MedicinePage() {
           {med.form ? <p className="muted">{med.form}</p> : null}
         </div>
       </div>
-      <p className="mono price" style={{ fontSize: '1.7rem', fontWeight: 700 }}>{formatTk(med.pricePoisha)}</p>
+      {canChoose ? <UnitToggle medicine={med} unit={unit} onChange={setUnit} /> : null}
+      <p className="mono price" style={{ fontSize: '1.7rem', fontWeight: 700 }}>
+        {formatTk(price)}
+        {canChoose ? <span className="per">/{loose ? noun : `pack of ${med.piecesPerPack}`}</span> : null}
+      </p>
       <div className="tags">
         {med.isRx ? <span className="chip warn">Prescription required</span> : null}
-        {!med.inStock ? <span className="chip off">Out of stock</span> : null}
+        {!available ? <span className="chip off">Out of stock</span> : null}
       </div>
       <div className="group">
         <Link className="row between" href={`/search?q=${encodeURIComponent(med.genericName)}`}>
@@ -95,12 +105,12 @@ export default function MedicinePage() {
         </section>
       ) : null}
 
-      <div className={`dock${!med.inStock ? ' gone' : ''}`}>
-        {!med.inStock ? (
+      <div className={`dock${!available ? ' gone' : ''}`}>
+        {!available ? (
           <span className="muted" style={{ fontWeight: 600 }}>Out of stock</span>
         ) : qty ? (
           <>
-            <Stepper qty={qty} label={med.name} onChange={(q) => cart.setQty(med.id, q)} />
+            <Stepper qty={qty} label={loose ? `${med.name} ${noun}s` : med.name} onChange={(q) => cart.setQty(med.id, q, unit)} />
             <Link className="btn primary grow" href="/cart">View cart</Link>
           </>
         ) : (
@@ -109,10 +119,10 @@ export default function MedicinePage() {
             type="button"
             onClick={() => {
               haptic('light');
-              cart.add({ id: med.id, slug: med.slug, name: med.name, form: med.form, strength: med.strength, pricePoisha: med.pricePoisha, isRx: med.isRx });
+              cart.add(lineFor(med, unit));
             }}
           >
-            Add to cart · {formatTk(med.pricePoisha)}
+            Add {loose ? `1 ${noun}` : 'to cart'} · {formatTk(price)}
           </button>
         )}
       </div>

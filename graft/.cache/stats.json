@@ -10,7 +10,7 @@
   "totalCount": 3174,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-04T17:54:28.194Z",
   "lastFile": "page.tsx"
