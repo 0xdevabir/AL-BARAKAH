@@ -1,6 +1,6 @@
 {
   "nodeCount": 3029,
-  "edgeCount": 4317,
+  "edgeCount": 4318,
   "languages": [
     "java",
     "javascript",
@@ -10,8 +10,8 @@
   "totalCount": 3029,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": true,
+  "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-04T09:10:34.876Z",
-  "lastFile": "staff.css"
+  "syncedAt": "2026-11-04T09:17:53.391Z",
+  "lastFile": "shots.mjs"
 }

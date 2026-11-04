@@ -144,9 +144,10 @@
   border-radius: 999px;
   color: inherit;
   animation: dock-in 0.6s var(--spring-soft) both;
-  transition: bottom 0.45s var(--spring-soft), transform 0.5s var(--spring-soft);
+  transition: bottom 0.45s var(--spring-soft), left 0.45s var(--spring-soft), right 0.45s var(--spring-soft), min-height 0.45s var(--spring-soft), transform 0.5s var(--spring-soft);
 }
 .cart-dock:active { transform: scale(0.97); transition-duration: 0.12s; }
+@media (pointer: coarse) { html[data-compact='1'] .cart-dock { left: max(48px, calc(50% - 170px)); right: max(48px, calc(50% - 170px)); min-height: 50px; } }
 .cart-dock .grow { display: flex; flex-direction: column; gap: 0; min-width: 0; line-height: 1.2; }
 .cart-dock .grow strong { font-size: 1rem; }
 .cart-dock-icon {
