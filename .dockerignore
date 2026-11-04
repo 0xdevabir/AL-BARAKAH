@@ -12,8 +12,14 @@
 .env.*
 docs
 graft
-apps/store/android
-apps/store/src/lib/paraglide
-packages/database/src/generated
+web/store/android
+web/store/ios
+libs/database/data
+libs/database/src/generated
 infra/backups
 **/.next
+**/coverage
+**/test-results
+**/playwright-report
+**/*.log
+**/.DS_Store

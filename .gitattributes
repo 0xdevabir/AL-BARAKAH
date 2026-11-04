@@ -1,0 +1,17 @@
+# Keep LF in the repo and in every checkout, so files copied into Linux containers work
+# the same when the repo is cloned on Windows (a CRLF shell script fails with "not found").
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.jar binary
+*.dump binary
