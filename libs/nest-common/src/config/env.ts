@@ -12,14 +12,25 @@ const schema = z.object({
   PORT: z.coerce.number().int().default(4000),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
-  S3_ENDPOINT: z.string().min(1),
-  S3_PORT: z.coerce.number().int(),
+  /**
+   * Full S3 API address for a hosted service such as Cloudflare R2
+   * (https://<account id>.r2.cloudflarestorage.com). When set it replaces S3_ENDPOINT, S3_PORT and S3_USE_SSL.
+   */
+  S3_URL: z.url().optional(),
+  S3_ENDPOINT: z.string().min(1).optional(),
+  S3_PORT: z.coerce.number().int().optional(),
   S3_USE_SSL: z.stringbool().default(false),
+  /** R2 uses `auto`. */
+  S3_REGION: z.string().min(1).default('us-east-1'),
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
   S3_BUCKET: z.string().min(1),
   /** Address phones use for signed file links, such as https://files.example.com. Defaults to the internal one. */
   S3_PUBLIC_URL: z.url().optional(),
+  /** Public bucket for product photos that staff upload. Optional; without it staff paste image links. */
+  S3_IMAGES_BUCKET: z.string().min(1).optional(),
+  /** Public address of that bucket: an R2 custom domain such as https://images.example.com, or its r2.dev URL. */
+  S3_IMAGES_PUBLIC_URL: z.url().optional(),
   JWT_SECRET: secret,
   OTP_PEPPER: secret,
   TOTP_ENCRYPTION_KEY: secret,
@@ -50,6 +61,8 @@ const schema = z.object({
     if (e.SMS_PROVIDER === 'console') fail('SMS_PROVIDER=console is not allowed in production');
     if (e.CORS_ORIGINS.includes('*')) fail('CORS_ORIGINS must not contain * in production');
   }
+  if (!e.S3_URL && !(e.S3_ENDPOINT && e.S3_PORT)) fail('Set S3_URL, or both S3_ENDPOINT and S3_PORT');
+  if (!!e.S3_IMAGES_BUCKET !== !!e.S3_IMAGES_PUBLIC_URL) fail('S3_IMAGES_BUCKET and S3_IMAGES_PUBLIC_URL must be set together');
   if (e.BKASH_MODE !== 'fake' && !(e.BKASH_APP_KEY && e.BKASH_APP_SECRET && e.BKASH_USERNAME && e.BKASH_PASSWORD)) {
     fail('bKash credentials are required unless BKASH_MODE=fake');
   }

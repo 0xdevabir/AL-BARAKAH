@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BarakaBari — offline</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:#F4F1E8;color:#1f2a24;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px;box-sizing:border-box}
+  h1{font-size:20px;margin:0 0 8px}
+  p{margin:0 0 24px;color:#5b6660;line-height:1.5}
+  button{font:inherit;font-weight:600;padding:12px 28px;border:0;border-radius:999px;background:#1f5c45;color:#fff}
+</style>
+</head>
+<body>
+  <main>
+    <h1>You're offline</h1>
+    <p>BarakaBari needs an internet connection.<br>Check your connection and try again.</p>
+    <button onclick="location.replace(window.APP_URL || '/')">Try again</button>
+  </main>
+  <script src="app-url.js"></script>
+</body>
+</html>

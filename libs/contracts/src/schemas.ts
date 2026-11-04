@@ -181,6 +181,9 @@ export const paymentStartSchema = z.object({
 export const prescriptionUploadSchema = z.object({
   contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
 });
+export const productImageUploadSchema = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+});
 export const settleSchema = z.object({ amountPoisha: z.number().int().min(1), note: z.string().trim().max(200).optional() });
 
 

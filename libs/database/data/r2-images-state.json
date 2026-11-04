@@ -1,0 +1,26 @@
+{
+ "done": {
+  "https://www.squarepharma.com.bd/products/Ripril-2.5_Tablet.jpg": "https://pub-2bf49e01378c48c686a062928713d9c7.r2.dev/products/d1694f108c989218f8ca8d0f7fe57e5338455ef5.jpg"
+ },
+ "failed": {
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1753098250333.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1754992052242.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1755524217151.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1753031748245.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1752774851518.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1755018405031.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1764257004228.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1763229502770.png": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1777910994917.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1756563609375.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1756654120521.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1758643287313.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1777725177834.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1761206247391.png": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1775304431212.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1756220516822.webp": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1774035971545.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1753176865094.jpg": "fetch failed",
+  "https://api.mediwholebd.com/api/v1/public/images/products/product-1792643790397.jpg": "fetch failed"
+ }
+}

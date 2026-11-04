@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Header, Inject, Injectable, Module, Param, Patch, Post, Query } from '@nestjs/common';
-import { batchSchema, medicineSchema, writeOffSchema, zoneSchema } from '@albarakah/contracts';
+import { batchSchema, medicineSchema, productImageUploadSchema, writeOffSchema, zoneSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { z } from 'zod';
 import { type AuthUser, CurrentUser, Public, RequirePermission } from '@albarakah/nest-common';
 import { conflict, notFound, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA } from '@albarakah/nest-common';
+import { StorageModule, StorageService } from '../storage/storage.module.js';
 
 /** Browse uses a smaller page size; both browse and search paginate. */
 const SEARCH_PAGE = 20;
@@ -109,7 +110,11 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').repla
 
 @Controller()
 export class CatalogController {
-  constructor(private readonly catalog: CatalogService, @Inject(PRISMA) private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly catalog: CatalogService,
+    @Inject(PRISMA) private readonly prisma: PrismaClient,
+    private readonly storage: StorageService,
+  ) {}
 
   @Public()
   @Get('medicines')
@@ -202,6 +207,12 @@ export class CatalogController {
   }
 
   @RequirePermission('catalog:manage')
+  @Post('admin/medicines/image-upload-url')
+  imageUploadUrl(@Body(new ZodPipe(productImageUploadSchema)) body: z.output<typeof productImageUploadSchema>) {
+    return this.storage.productImageUploadUrl(body.contentType);
+  }
+
+  @RequirePermission('catalog:manage')
   @Patch('admin/medicines/:id')
   async update(@Param('id') id: string, @Body(new ZodPipe(medicineSchema)) body: z.output<typeof medicineSchema>, @CurrentUser() user: AuthUser) {
     const before = await this.prisma.medicine.findUnique({ where: { id } });
@@ -245,5 +256,5 @@ export class CatalogController {
   }
 }
 
-@Module({ controllers: [CatalogController], providers: [CatalogService] })
+@Module({ imports: [StorageModule], controllers: [CatalogController], providers: [CatalogService] })
 export class CatalogModule {}

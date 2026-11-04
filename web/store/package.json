@@ -12,11 +12,18 @@
   "dependencies": {
     "@albarakah/domain": "workspace:*",
     "@albarakah/ui": "workspace:*",
+    "@aparajita/capacitor-secure-storage": "8.0.1",
+    "@capacitor/android": "8.6.0",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/browser": "8.0.3",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/haptics": "8.0.2",
     "next": "15.5.4",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.6.0",
     "@types/node": "22.19.1",
     "@types/react": "19.1.13",
     "@types/react-dom": "19.1.9",

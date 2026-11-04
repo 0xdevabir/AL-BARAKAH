@@ -21,7 +21,20 @@ Clone the repo, `cp .env.example .env`, and change these:
 | `BKASH_MODE` and `BKASH_*` | `sandbox` while testing, `live` with your merchant account |
 | `FIRST_ADMIN_PHONE` | Your phone, as `+8801XXXXXXXXX` |
 
-The compose file sets `NODE_ENV`, `DATABASE_URL`, `REDIS_URL` and the `S3_ENDPOINT` settings itself. The API refuses to start in production with the fake bKash or console SMS provider, or with `DEMO_LOGIN=true`, so remove that line from your `.env`.
+### Using Cloudflare R2 for files
+Instead of the bundled object store you can keep prescriptions and product photos in R2:
+
+1. In Cloudflare, R2 > Create bucket: `albarakah-private` (stays private) and `albarakah-images`.
+2. On `albarakah-images`, Settings > Public access: connect a custom domain (such as `images.<your domain>`) or enable the r2.dev URL.
+3. On **both** buckets, Settings > CORS policy, allow the browser uploads:
+   ```json
+   [{ "AllowedOrigins": ["https://<store domain>", "https://<staff domain>", "capacitor://localhost", "https://localhost"],
+      "AllowedMethods": ["GET", "PUT"], "AllowedHeaders": ["content-type"], "MaxAgeSeconds": 3600 }]
+   ```
+4. R2 > Manage API tokens > Create API token: permission **Object Read & Write**, applied to those two buckets. Copy the Access Key ID and Secret Access Key (shown once).
+5. In `.env` set `S3_URL=https://<account id>.r2.cloudflarestorage.com`, `S3_REGION=auto`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET=albarakah-private`, `S3_IMAGES_BUCKET=albarakah-images` and `S3_IMAGES_PUBLIC_URL=https://images.<your domain>`. Remove `S3_PUBLIC_URL`: signed links point straight at R2, so the files domain and the `objectstore` container are no longer used.
+
+The compose file sets `NODE_ENV`, `DATABASE_URL`, `REDIS_URL` and the `S3_ENDPOINT` settings itself (`S3_URL` overrides the latter). The API refuses to start in production with the fake bKash or console SMS provider, or with `DEMO_LOGIN=true`, so remove that line from your `.env`.
 
 BulkSMSBD can refuse requests from an IP that isn't whitelisted (gateway error 1032). Add the server's IP under Phone Book > IP White List in its dashboard, or disable whitelisting there. Masked sender IDs must send Bengali text (error 1012), and sign-in codes are in English, so use a non-masking sender ID or translate them. Failed sends appear in the worker log with the gateway's reason. Admins can check credit at `GET /admin/sms/balance`.
 

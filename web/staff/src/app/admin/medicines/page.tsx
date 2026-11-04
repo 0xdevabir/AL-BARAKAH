@@ -138,6 +138,28 @@ function Editor({ med, cats, onSaved }: { med: Med | null; cats: Category[]; onS
     imageUrl: med?.imageUrl ?? '', reorderLevel: String(med?.reorderLevel ?? 10),
   });
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const input = e.target;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast('Choose a photo under 5 MB', 'bad');
+    setUploading(true);
+    try {
+      const { url, publicUrl } = await api.post<{ url: string; publicUrl: string }>('/admin/medicines/image-upload-url', { contentType: file.type });
+      const put = await fetch(url, { method: 'PUT', headers: { 'content-type': file.type }, body: file });
+      if (!put.ok) throw new Error('The upload failed. Please try again.');
+      setF((prev) => ({ ...prev, imageUrl: publicUrl }));
+      toast('Photo uploaded. Save to keep it.');
+    } catch (err) {
+      toast(message(err), 'bad');
+    } finally {
+      setUploading(false);
+      input.value = '';
+    }
+  }
+
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
 
   async function save(e: React.FormEvent) {
@@ -185,6 +207,10 @@ function Editor({ med, cats, onSaved }: { med: Med | null; cats: Category[]; onS
           </select>
         </label>
         <label className="field span">Image URL<input className="input" type="url" placeholder="https://…" value={f.imageUrl} onChange={set('imageUrl')} /></label>
+        <label className="field span">Or upload a photo
+          <input className="input" type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={(e) => void uploadPhoto(e)} />
+          {uploading ? <span>Uploading…</span> : null}
+        </label>
         <label className="field span">Description<textarea className="input" value={f.description} onChange={set('description')} /></label>
         <div className="group span">
           <div><span className="grow">Needs a prescription</span><Switch label="Needs a prescription" checked={f.isRx} onChange={(v) => setF({ ...f, isRx: v })} /></div>
