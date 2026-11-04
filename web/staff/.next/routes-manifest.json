@@ -39,16 +39,52 @@
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/consultations",
+      "regex": "^/admin/consultations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/consultations(?:/)?$"
+    },
+    {
+      "page": "/admin/medicines",
+      "regex": "^/admin/medicines(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/medicines(?:/)?$"
+    },
+    {
+      "page": "/admin/people",
+      "regex": "^/admin/people(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/people(?:/)?$"
+    },
+    {
+      "page": "/admin/settings",
+      "regex": "^/admin/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/settings(?:/)?$"
+    },
+    {
       "page": "/delivery",
       "regex": "^/delivery(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/delivery(?:/)?$"
     },
     {
+      "page": "/delivery/earnings",
+      "regex": "^/delivery/earnings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/delivery/earnings(?:/)?$"
+    },
+    {
       "page": "/doctor",
       "regex": "^/doctor(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/doctor(?:/)?$"
+    },
+    {
+      "page": "/doctor/availability",
+      "regex": "^/doctor/availability(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/doctor/availability(?:/)?$"
     },
     {
       "page": "/login",

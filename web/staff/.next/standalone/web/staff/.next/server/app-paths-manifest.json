@@ -1,8 +1,14 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/admin/consultations/page": "app/admin/consultations/page.js",
+  "/admin/people/page": "app/admin/people/page.js",
+  "/admin/medicines/page": "app/admin/medicines/page.js",
+  "/admin/settings/page": "app/admin/settings/page.js",
   "/admin/page": "app/admin/page.js",
   "/delivery/page": "app/delivery/page.js",
-  "/page": "app/page.js",
-  "/login/page": "app/login/page.js",
-  "/doctor/page": "app/doctor/page.js"
+  "/delivery/earnings/page": "app/delivery/earnings/page.js",
+  "/doctor/page": "app/doctor/page.js",
+  "/doctor/availability/page": "app/doctor/availability/page.js"
 }

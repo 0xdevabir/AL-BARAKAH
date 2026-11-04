@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApi } from '@/lib/api';
+import { useCart } from '@/lib/useCart';
 
 const tabs = [
   {
@@ -58,11 +59,24 @@ const tabs = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   useApi();
+  const { count } = useCart();
   const hideBar = pathname.startsWith('/login') || pathname.startsWith('/checkout');
+  const showCart = !hideBar && count > 0 && !pathname.startsWith('/cart');
 
   return (
     <div className="shell">
       <main className="shell-main">{children}</main>
+      {showCart && (
+        <Link className="dock cart-dock" href="/cart">
+          <span className="grow">
+            <span className="muted small">Cart</span>
+            <strong>
+              {count} item{count === 1 ? '' : 's'}
+            </strong>
+          </span>
+          <span className="btn primary small">View</span>
+        </Link>
+      )}
       {!hideBar && (
         <nav className="tabbar" aria-label="Primary">
           {tabs.map((tab) => {
@@ -79,3 +93,5 @@ export function Shell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+

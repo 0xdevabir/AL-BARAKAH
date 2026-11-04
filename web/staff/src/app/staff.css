@@ -133,3 +133,13 @@
   .staff-main { animation: none !important; }
   .portal-card { transition: none !important; }
 }
+
+.portal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.portal-tabs .btn:not(.primary) { background: var(--raised); }
+.collect { padding: 10px 12px; border-radius: 12px; background: var(--surface); }
+.row.wrap { flex-wrap: wrap; }
