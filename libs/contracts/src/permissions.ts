@@ -16,6 +16,9 @@ export const PERMISSIONS = {
   'settings:manage': ['ADMIN'],
   'consultation:manage': ['ADMIN'],
   'ledger:manage': ['ADMIN'],
+  'analytics:read': ['ADMIN'],
+  'customer:read': ['ADMIN'],
+  'audit:read': ['ADMIN'],
   'delivery:work': ['RIDER'],
   'doctor:work': ['DOCTOR'],
 } as const satisfies Record<string, readonly Role[]>;

@@ -475,3 +475,7 @@
 }
 .cart-dock .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 @media (min-width: 900px) { .cart-dock { bottom: 24px; } }
+
+/* Alternatives rail on the product page */
+.alt-rail { padding-bottom: 10px; }
+.alt-cell { flex: none; width: min(44vw, 190px); scroll-snap-align: start; }

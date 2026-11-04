@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Header, Inject, Injectable, Module, Param, Patch, Post, Query } from '@nestjs/common';
-import { batchSchema, medicineSchema, zoneSchema } from '@albarakah/contracts';
+import { batchSchema, medicineSchema, writeOffSchema, zoneSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { z } from 'zod';
 import { type AuthUser, CurrentUser, Public, RequirePermission } from '@albarakah/nest-common';
@@ -82,6 +82,27 @@ export class CatalogService {
     if (!row) throw notFound('Medicine not found');
     return toDto(row);
   }
+
+  /** Same molecule and strength from other makers, cheapest first: the "save money" row on a product page. */
+  async alternatives(slug: string) {
+    const base = await this.prisma.medicine.findUnique({ where: { slug }, select: { id: true, genericName: true, strength: true, form: true } });
+    if (!base) throw notFound('Medicine not found');
+    const rows = await this.prisma.$queryRaw<MedicineRow[]>`
+      SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
+             m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
+             COALESCE(stock.qty, 0) AS stock
+      FROM "Medicine" m
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty FROM "Batch" b
+        WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE
+      ) stock ON true
+      WHERE m."isActive" AND m.id <> ${base.id}
+        AND lower(m."genericName") = lower(${base.genericName})
+        AND lower(m.strength) = lower(${base.strength})
+      ORDER BY (COALESCE(stock.qty, 0) > 0) DESC, m."pricePoisha" ASC
+      LIMIT 8`;
+    return rows.map(toDto);
+  }
 }
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100);
@@ -105,6 +126,13 @@ export class CatalogController {
   }
 
   @Public()
+  @Get('medicines/:slug/alternatives')
+  @Header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
+  alternatives(@Param('slug') slug: string) {
+    return this.catalog.alternatives(slug);
+  }
+
+  @Public()
   @Get('categories')
   @Header('Cache-Control', 'public, max-age=300')
   async categories() {
@@ -124,14 +152,43 @@ export class CatalogController {
 
   @RequirePermission('catalog:manage')
   @Get('admin/medicines')
-  async adminList(@Query('q') q?: string) {
+  async adminList(@Query('q') q?: string, @Query('filter') filter?: string, @Query('category') category?: string) {
     const items = await this.prisma.medicine.findMany({
-      where: q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { genericName: { contains: q, mode: 'insensitive' } }] } : {},
+      where: {
+        ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { genericName: { contains: q, mode: 'insensitive' } }, { manufacturer: { contains: q, mode: 'insensitive' } }] } : {}),
+        ...(category ? { categoryId: category } : {}),
+        ...(filter === 'inactive' ? { isActive: false } : {}),
+      },
       orderBy: { name: 'asc' },
-      take: 100,
+      take: 200,
       include: { batches: { orderBy: { expiresAt: 'asc' } }, category: { select: { name: true } } },
     });
-    return items;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const soon = new Date(today.getTime() + 60 * 86_400_000);
+    const rows = items.map((m) => {
+      const usable = m.batches.filter((b) => b.expiresAt >= today);
+      const stock = usable.reduce((s, b) => s + b.qtyRemaining, 0);
+      return {
+        ...m, stock,
+        lowStock: m.isActive && stock <= m.reorderLevel,
+        expiringSoon: usable.some((b) => b.qtyRemaining > 0 && b.expiresAt < soon),
+        expiredQty: m.batches.filter((b) => b.expiresAt < today).reduce((s, b) => s + b.qtyRemaining, 0),
+      };
+    });
+    if (filter === 'low') return rows.filter((r) => r.lowStock);
+    if (filter === 'expiring') return rows.filter((r) => r.expiringSoon || r.expiredQty > 0);
+    return rows;
+  }
+
+  /** Writes off stock from a batch (damaged, expired, recalled). Audited, because it moves inventory value. */
+  @RequirePermission('catalog:manage')
+  @Post('admin/batches/:id/write-off')
+  async writeOff(@Param('id') id: string, @Body(new ZodPipe(writeOffSchema)) body: z.output<typeof writeOffSchema>, @CurrentUser() user: AuthUser) {
+    const r = await this.prisma.batch.updateMany({ where: { id, qtyRemaining: { gte: body.qty } }, data: { qtyRemaining: { decrement: body.qty } } });
+    if (r.count === 0) throw conflict('WRITE_OFF', 'That batch does not hold that many units');
+    await this.prisma.auditLog.create({ data: { actorId: user.id, action: 'batch.write_off', entity: 'Batch', entityId: id, data: { qty: body.qty, reason: body.reason } } });
+    return { ok: true };
   }
 
   @RequirePermission('catalog:manage')

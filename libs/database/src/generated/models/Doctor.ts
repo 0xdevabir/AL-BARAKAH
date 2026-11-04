@@ -545,14 +545,6 @@ export type DoctorCreatechannelsInput = {
   set: $Enums.ConsultationChannel[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type DoctorUpdatechannelsInput = {
   set?: $Enums.ConsultationChannel[]
   push?: $Enums.ConsultationChannel | $Enums.ConsultationChannel[]

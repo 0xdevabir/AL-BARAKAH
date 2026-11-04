@@ -38,10 +38,10 @@ export default function DoctorsPage() {
       try {
         const [list, settings] = await Promise.all([
           api.get<Doctor[]>('/doctors'),
-          api.get<{ doctorFeePoisha?: number }>('/settings/public').catch((): { doctorFeePoisha?: number } => ({})),
+          api.get<{ doctorBookingFeePoisha?: number }>('/settings/public').catch((): { doctorBookingFeePoisha?: number } => ({})),
         ]);
         setDoctors(list);
-        setDefaultFee(settings.doctorFeePoisha ?? 0);
+        setDefaultFee(settings.doctorBookingFeePoisha ?? 0);
       } catch (err) {
         setError((err as Error).message);
       }

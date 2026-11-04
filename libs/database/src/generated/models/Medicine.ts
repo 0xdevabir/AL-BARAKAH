@@ -29,11 +29,13 @@ export type AggregateMedicine = {
 export type MedicineAvgAggregateOutputType = {
   pricePoisha: number | null
   popularity: number | null
+  reorderLevel: number | null
 }
 
 export type MedicineSumAggregateOutputType = {
   pricePoisha: number | null
   popularity: number | null
+  reorderLevel: number | null
 }
 
 export type MedicineMinAggregateOutputType = {
@@ -51,6 +53,7 @@ export type MedicineMinAggregateOutputType = {
   description: string | null
   imageUrl: string | null
   popularity: number | null
+  reorderLevel: number | null
   categoryId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -71,6 +74,7 @@ export type MedicineMaxAggregateOutputType = {
   description: string | null
   imageUrl: string | null
   popularity: number | null
+  reorderLevel: number | null
   categoryId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -91,6 +95,7 @@ export type MedicineCountAggregateOutputType = {
   description: number
   imageUrl: number
   popularity: number
+  reorderLevel: number
   categoryId: number
   createdAt: number
   updatedAt: number
@@ -101,11 +106,13 @@ export type MedicineCountAggregateOutputType = {
 export type MedicineAvgAggregateInputType = {
   pricePoisha?: true
   popularity?: true
+  reorderLevel?: true
 }
 
 export type MedicineSumAggregateInputType = {
   pricePoisha?: true
   popularity?: true
+  reorderLevel?: true
 }
 
 export type MedicineMinAggregateInputType = {
@@ -123,6 +130,7 @@ export type MedicineMinAggregateInputType = {
   description?: true
   imageUrl?: true
   popularity?: true
+  reorderLevel?: true
   categoryId?: true
   createdAt?: true
   updatedAt?: true
@@ -143,6 +151,7 @@ export type MedicineMaxAggregateInputType = {
   description?: true
   imageUrl?: true
   popularity?: true
+  reorderLevel?: true
   categoryId?: true
   createdAt?: true
   updatedAt?: true
@@ -163,6 +172,7 @@ export type MedicineCountAggregateInputType = {
   description?: true
   imageUrl?: true
   popularity?: true
+  reorderLevel?: true
   categoryId?: true
   createdAt?: true
   updatedAt?: true
@@ -270,6 +280,7 @@ export type MedicineGroupByOutputType = {
   description: string
   imageUrl: string
   popularity: number
+  reorderLevel: number
   categoryId: string
   createdAt: Date
   updatedAt: Date
@@ -313,6 +324,7 @@ export type MedicineWhereInput = {
   description?: Prisma.StringFilter<"Medicine"> | string
   imageUrl?: Prisma.StringFilter<"Medicine"> | string
   popularity?: Prisma.IntFilter<"Medicine"> | number
+  reorderLevel?: Prisma.IntFilter<"Medicine"> | number
   categoryId?: Prisma.StringFilter<"Medicine"> | string
   createdAt?: Prisma.DateTimeFilter<"Medicine"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Medicine"> | Date | string
@@ -336,6 +348,7 @@ export type MedicineOrderByWithRelationInput = {
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -362,6 +375,7 @@ export type MedicineWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"Medicine"> | string
   imageUrl?: Prisma.StringFilter<"Medicine"> | string
   popularity?: Prisma.IntFilter<"Medicine"> | number
+  reorderLevel?: Prisma.IntFilter<"Medicine"> | number
   categoryId?: Prisma.StringFilter<"Medicine"> | string
   createdAt?: Prisma.DateTimeFilter<"Medicine"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Medicine"> | Date | string
@@ -385,6 +399,7 @@ export type MedicineOrderByWithAggregationInput = {
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -413,6 +428,7 @@ export type MedicineScalarWhereWithAggregatesInput = {
   description?: Prisma.StringWithAggregatesFilter<"Medicine"> | string
   imageUrl?: Prisma.StringWithAggregatesFilter<"Medicine"> | string
   popularity?: Prisma.IntWithAggregatesFilter<"Medicine"> | number
+  reorderLevel?: Prisma.IntWithAggregatesFilter<"Medicine"> | number
   categoryId?: Prisma.StringWithAggregatesFilter<"Medicine"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Medicine"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Medicine"> | Date | string
@@ -433,6 +449,7 @@ export type MedicineCreateInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutMedicinesInput
@@ -455,6 +472,7 @@ export type MedicineUncheckedCreateInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -477,6 +495,7 @@ export type MedicineUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutMedicinesNestedInput
@@ -499,6 +518,7 @@ export type MedicineUncheckedUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -521,6 +541,7 @@ export type MedicineCreateManyInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -541,6 +562,7 @@ export type MedicineUpdateManyMutationInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -560,6 +582,7 @@ export type MedicineUncheckedUpdateManyInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -590,6 +613,7 @@ export type MedicineCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -598,6 +622,7 @@ export type MedicineCountOrderByAggregateInput = {
 export type MedicineAvgOrderByAggregateInput = {
   pricePoisha?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
 }
 
 export type MedicineMaxOrderByAggregateInput = {
@@ -615,6 +640,7 @@ export type MedicineMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -635,6 +661,7 @@ export type MedicineMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -643,6 +670,7 @@ export type MedicineMinOrderByAggregateInput = {
 export type MedicineSumOrderByAggregateInput = {
   pricePoisha?: Prisma.SortOrder
   popularity?: Prisma.SortOrder
+  reorderLevel?: Prisma.SortOrder
 }
 
 export type MedicineScalarRelationFilter = {
@@ -735,6 +763,7 @@ export type MedicineCreateWithoutCategoryInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   batches?: Prisma.BatchCreateNestedManyWithoutMedicineInput
@@ -756,6 +785,7 @@ export type MedicineUncheckedCreateWithoutCategoryInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   batches?: Prisma.BatchUncheckedCreateNestedManyWithoutMedicineInput
@@ -806,6 +836,7 @@ export type MedicineScalarWhereInput = {
   description?: Prisma.StringFilter<"Medicine"> | string
   imageUrl?: Prisma.StringFilter<"Medicine"> | string
   popularity?: Prisma.IntFilter<"Medicine"> | number
+  reorderLevel?: Prisma.IntFilter<"Medicine"> | number
   categoryId?: Prisma.StringFilter<"Medicine"> | string
   createdAt?: Prisma.DateTimeFilter<"Medicine"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Medicine"> | Date | string
@@ -826,6 +857,7 @@ export type MedicineCreateWithoutBatchesInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutMedicinesInput
@@ -847,6 +879,7 @@ export type MedicineUncheckedCreateWithoutBatchesInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -884,6 +917,7 @@ export type MedicineUpdateWithoutBatchesInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutMedicinesNestedInput
@@ -905,6 +939,7 @@ export type MedicineUncheckedUpdateWithoutBatchesInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -926,6 +961,7 @@ export type MedicineCreateWithoutOrderItemsInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutMedicinesInput
@@ -947,6 +983,7 @@ export type MedicineUncheckedCreateWithoutOrderItemsInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -984,6 +1021,7 @@ export type MedicineUpdateWithoutOrderItemsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutMedicinesNestedInput
@@ -1005,6 +1043,7 @@ export type MedicineUncheckedUpdateWithoutOrderItemsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1026,6 +1065,7 @@ export type MedicineCreateManyCategoryInput = {
   description?: string
   imageUrl?: string
   popularity?: number
+  reorderLevel?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1045,6 +1085,7 @@ export type MedicineUpdateWithoutCategoryInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   batches?: Prisma.BatchUpdateManyWithoutMedicineNestedInput
@@ -1066,6 +1107,7 @@ export type MedicineUncheckedUpdateWithoutCategoryInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   batches?: Prisma.BatchUncheckedUpdateManyWithoutMedicineNestedInput
@@ -1087,6 +1129,7 @@ export type MedicineUncheckedUpdateManyWithoutCategoryInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   popularity?: Prisma.IntFieldUpdateOperationsInput | number
+  reorderLevel?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1146,6 +1189,7 @@ export type MedicineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   description?: boolean
   imageUrl?: boolean
   popularity?: boolean
+  reorderLevel?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1170,6 +1214,7 @@ export type MedicineSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   description?: boolean
   imageUrl?: boolean
   popularity?: boolean
+  reorderLevel?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1191,6 +1236,7 @@ export type MedicineSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   description?: boolean
   imageUrl?: boolean
   popularity?: boolean
+  reorderLevel?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1212,12 +1258,13 @@ export type MedicineSelectScalar = {
   description?: boolean
   imageUrl?: boolean
   popularity?: boolean
+  reorderLevel?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type MedicineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "genericName" | "manufacturer" | "form" | "strength" | "packSize" | "pricePoisha" | "isRx" | "isActive" | "description" | "imageUrl" | "popularity" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["medicine"]>
+export type MedicineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "genericName" | "manufacturer" | "form" | "strength" | "packSize" | "pricePoisha" | "isRx" | "isActive" | "description" | "imageUrl" | "popularity" | "reorderLevel" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["medicine"]>
 export type MedicineInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   batches?: boolean | Prisma.Medicine$batchesArgs<ExtArgs>
@@ -1253,6 +1300,10 @@ export type $MedicinePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     description: string
     imageUrl: string
     popularity: number
+    /**
+     * Below this many in-date units, the medicine shows in the admin low-stock list.
+     */
+    reorderLevel: number
     categoryId: string
     createdAt: Date
     updatedAt: Date
@@ -1696,6 +1747,7 @@ export interface MedicineFieldRefs {
   readonly description: Prisma.FieldRef<"Medicine", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Medicine", 'String'>
   readonly popularity: Prisma.FieldRef<"Medicine", 'Int'>
+  readonly reorderLevel: Prisma.FieldRef<"Medicine", 'Int'>
   readonly categoryId: Prisma.FieldRef<"Medicine", 'String'>
   readonly createdAt: Prisma.FieldRef<"Medicine", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Medicine", 'DateTime'>

@@ -1,6 +1,7 @@
 'use client';
 
 import { formatTk } from '@albarakah/domain';
+import { haptic } from '@albarakah/ui';
 import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
 import { cart, type Medicine } from '@/lib/cart';
@@ -54,7 +55,8 @@ export function ProductCard({ medicine }: { medicine: Medicine }) {
             type="button"
             className="btn small primary"
             aria-label={`Add ${medicine.name}`}
-            onClick={() =>
+            onClick={() => {
+              haptic('light');
               cart.add({
                 id: medicine.id,
                 slug: medicine.slug,
@@ -63,8 +65,8 @@ export function ProductCard({ medicine }: { medicine: Medicine }) {
                 strength: medicine.strength,
                 pricePoisha: medicine.pricePoisha,
                 isRx: medicine.isRx,
-              })
-            }
+              });
+            }}
           >
             Add
           </button>

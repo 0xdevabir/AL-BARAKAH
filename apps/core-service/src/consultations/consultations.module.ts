@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Inject, Injectable, Module, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import { availabilitySchema, bookConsultationSchema, consultationStatusSchema, doctorSchema, staffSchema } from '@albarakah/contracts';
+import { availabilitySchema, bookConsultationSchema, consultationStatusSchema, doctorProfileSchema, doctorSchema, staffActiveSchema, staffSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import { consultationSlots } from '@albarakah/domain';
 import type { z } from 'zod';
@@ -127,7 +127,7 @@ export class ConsultationsController {
 
   // ---- doctor portal: only their own bookings ----
   private async doctorFor(userId: string) {
-    const d = await this.prisma.doctor.findUnique({ where: { userId }, include: { availability: true } });
+    const d = await this.prisma.doctor.findUnique({ where: { userId }, include: { availability: { orderBy: [{ weekday: 'asc' }, { startMinute: 'asc' }] }, user: { select: { name: true, phone: true } } } });
     if (!d) throw notFound('Doctor profile not found');
     return d;
   }
@@ -139,23 +139,74 @@ export class ConsultationsController {
   }
 
   @RequirePermission('doctor:work')
-  @Get('doctor/bookings')
-  async doctorBookings(@CurrentUser() u: AuthUser) {
+  @Get('doctor/summary')
+  async doctorSummary(@CurrentUser() u: AuthUser) {
     const d = await this.doctorFor(u.id);
+    const now = new Date();
+    const dayStart = new Date(now);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart.getTime() + 86_400_000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const [today, next, completedMonth, noShowMonth, patients, earned] = await Promise.all([
+      this.prisma.consultation.count({ where: { doctorId: d.id, status: { in: ['CONFIRMED', 'COMPLETED', 'NO_SHOW'] }, startsAt: { gte: dayStart, lt: dayEnd } } }),
+      this.prisma.consultation.findFirst({
+        where: { doctorId: d.id, status: 'CONFIRMED', endsAt: { gte: now } },
+        orderBy: { startsAt: 'asc' },
+        select: { id: true, code: true, startsAt: true, endsAt: true, channel: true, reason: true, patientPhone: true, customerId: true, customer: { select: { name: true } } },
+      }),
+      this.prisma.consultation.count({ where: { doctorId: d.id, status: 'COMPLETED', startsAt: { gte: monthStart } } }),
+      this.prisma.consultation.count({ where: { doctorId: d.id, status: 'NO_SHOW', startsAt: { gte: monthStart } } }),
+      this.prisma.consultation.groupBy({ by: ['customerId'], where: { doctorId: d.id, status: 'COMPLETED' } }),
+      this.prisma.consultation.aggregate({ where: { doctorId: d.id, status: 'COMPLETED', startsAt: { gte: monthStart } }, _sum: { feePoisha: true } }),
+    ]);
+    return {
+      today, next, completedMonth, noShowMonth, patients: patients.length,
+      earnedMonthPoisha: earned._sum.feePoisha ?? 0,
+      hasAvailability: d.availability.length > 0,
+    };
+  }
+
+  @RequirePermission('doctor:work')
+  @Get('doctor/bookings')
+  async doctorBookings(@CurrentUser() u: AuthUser, @Query('scope') scope?: string) {
+    const d = await this.doctorFor(u.id);
+    const now = new Date();
+    const past = scope === 'past';
     return this.prisma.consultation.findMany({
-      where: { doctorId: d.id, status: { in: ['CONFIRMED', 'COMPLETED', 'NO_SHOW'] } },
-      orderBy: { startsAt: 'asc' },
+      where: past
+        ? { doctorId: d.id, OR: [{ status: { in: ['COMPLETED', 'NO_SHOW'] } }, { status: 'CONFIRMED', endsAt: { lt: new Date(now.getTime() - 6 * 3_600_000) } }] }
+        : { doctorId: d.id, status: 'CONFIRMED', endsAt: { gte: new Date(now.getTime() - 6 * 3_600_000) } },
+      orderBy: { startsAt: past ? 'desc' : 'asc' },
       take: 100,
-      select: { id: true, code: true, startsAt: true, endsAt: true, status: true, channel: true, reason: true, patientPhone: true, notes: true, customer: { select: { name: true } } },
+      select: { id: true, code: true, startsAt: true, endsAt: true, status: true, channel: true, reason: true, patientPhone: true, notes: true, prescription: true, customerId: true, customer: { select: { name: true } } },
     });
+  }
+
+  /** A doctor may only see the history of a patient who has booked them. */
+  @RequirePermission('doctor:work')
+  @Get('doctor/patients/:customerId')
+  async patientHistory(@CurrentUser() u: AuthUser, @Param('customerId') customerId: string) {
+    const d = await this.doctorFor(u.id);
+    const visits = await this.prisma.consultation.findMany({
+      where: { doctorId: d.id, customerId, status: { in: ['CONFIRMED', 'COMPLETED', 'NO_SHOW'] } },
+      orderBy: { startsAt: 'desc' },
+      take: 50,
+      select: { id: true, code: true, startsAt: true, status: true, channel: true, reason: true, notes: true, prescription: true, patientPhone: true },
+    });
+    if (!visits.length) throw notFound('Patient not found');
+    const patient = await this.prisma.user.findUnique({ where: { id: customerId }, select: { name: true, createdAt: true } });
+    return { patient: { id: customerId, name: patient?.name ?? '', phone: visits[0]!.patientPhone, since: patient?.createdAt }, visits };
   }
 
   @RequirePermission('doctor:work')
   @Patch('doctor/bookings/:id')
   async doctorUpdate(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(consultationStatusSchema)) body: z.output<typeof consultationStatusSchema>) {
     const d = await this.doctorFor(u.id);
-    const r = await this.prisma.consultation.updateMany({ where: { id, doctorId: d.id, status: 'CONFIRMED' }, data: { status: body.status, notes: body.notes } });
-    if (r.count === 0) throw notFound('Booking not found');
+    const r = await this.prisma.consultation.updateMany({
+      where: { id, doctorId: d.id, status: 'CONFIRMED', startsAt: { lte: new Date(Date.now() + 15 * 60_000) } },
+      data: { status: body.status, notes: body.notes, ...(body.status === 'COMPLETED' && body.prescription ? { prescription: body.prescription } : {}) },
+    });
+    if (r.count === 0) throw conflict('NOT_YET', 'This booking cannot be closed yet — it has not started, or it is already closed');
     return { ok: true };
   }
 
@@ -163,6 +214,13 @@ export class ConsultationsController {
   @Put('doctor/availability')
   async setAvailability(@CurrentUser() u: AuthUser, @Body(new ZodPipe(availabilitySchema)) body: z.output<typeof availabilitySchema>) {
     const d = await this.doctorFor(u.id);
+    const byDay = new Map<number, { s: number; e: number }[]>();
+    for (const w of body.windows) {
+      const list = byDay.get(w.weekday) ?? [];
+      if (list.some((x) => w.startMinute < x.e && x.s < w.endMinute)) throw badRequest('OVERLAP', 'Two of your hours overlap on the same day');
+      list.push({ s: w.startMinute, e: w.endMinute });
+      byDay.set(w.weekday, list);
+    }
     await this.prisma.$transaction([
       this.prisma.availability.deleteMany({ where: { doctorId: d.id } }),
       this.prisma.availability.createMany({ data: body.windows.map((w) => ({ ...w, doctorId: d.id })) }),
@@ -170,13 +228,34 @@ export class ConsultationsController {
     return { ok: true };
   }
 
+  @RequirePermission('doctor:work')
+  @Put('doctor/profile')
+  async setProfile(@CurrentUser() u: AuthUser, @Body(new ZodPipe(doctorProfileSchema)) body: z.output<typeof doctorProfileSchema>) {
+    const d = await this.doctorFor(u.id);
+    if (d.channels.includes('GOOGLE_MEET') && !body.meetLink) throw badRequest('MEET_REQUIRED', 'You take Google Meet calls, so add a Meet link');
+    if (d.channels.includes('WHATSAPP') && !body.whatsapp) throw badRequest('WHATSAPP_REQUIRED', 'You take WhatsApp calls, so add a WhatsApp number');
+    await this.prisma.doctor.update({ where: { id: d.id }, data: { bio: body.bio, meetLink: body.meetLink || null, whatsapp: body.whatsapp || null } });
+    return { ok: true };
+  }
+
   // ---- admin: onboarding and staff ----
   @RequirePermission('staff:manage')
   @Get('admin/doctors')
   adminDoctors() {
-    return this.prisma.doctor.findMany({ include: { user: { select: { name: true, phone: true, isActive: true } } }, orderBy: { createdAt: 'desc' } });
+    return this.prisma.doctor.findMany({
+      include: { user: { select: { name: true, phone: true, isActive: true } }, _count: { select: { consultations: { where: { status: 'COMPLETED' } } } } },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
+  @RequirePermission('staff:manage')
+  @Patch('admin/doctors/:id/active')
+  async setDoctorActive(@CurrentUser() actor: AuthUser, @Param('id') id: string, @Body(new ZodPipe(staffActiveSchema)) body: z.output<typeof staffActiveSchema>) {
+    const r = await this.prisma.doctor.updateMany({ where: { id }, data: { isActive: body.isActive } });
+    if (r.count === 0) throw notFound('Doctor not found');
+    await this.prisma.auditLog.create({ data: { actorId: actor.id, action: 'doctor.active', entity: 'Doctor', entityId: id, data: { isActive: body.isActive } } });
+    return { ok: true };
+  }
   @RequirePermission('staff:manage')
   @Post('admin/doctors')
   async onboard(@CurrentUser() actor: AuthUser, @Body(new ZodPipe(doctorSchema)) body: z.output<typeof doctorSchema>) {
@@ -198,9 +277,9 @@ export class ConsultationsController {
   @RequirePermission('staff:manage')
   @Get('admin/staff')
   staff(@Query('role') role?: string) {
-    const roles = role === 'RIDER' || role === 'ADMIN' ? [role] : ['RIDER', 'ADMIN'];
+    const roles = role === 'RIDER' || role === 'ADMIN' || role === 'DOCTOR' ? [role] : ['RIDER', 'ADMIN', 'DOCTOR'];
     return this.prisma.user.findMany({
-      where: { role: { in: roles as ('RIDER' | 'ADMIN')[] } }, orderBy: { name: 'asc' },
+      where: { role: { in: roles as ('RIDER' | 'ADMIN' | 'DOCTOR')[] } }, orderBy: { name: 'asc' },
       select: { id: true, phone: true, name: true, role: true, isActive: true, totpEnabled: true },
     });
   }

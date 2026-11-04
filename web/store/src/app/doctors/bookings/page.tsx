@@ -1,6 +1,6 @@
 'use client';
 
-import { fmtWhen } from '@albarakah/ui';
+import { fmtWhen, statusLabel, statusTone } from '@albarakah/ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -57,7 +57,7 @@ export default function BookingsPage() {
                 <strong>{r.doctor.user.name}</strong>
                 <span className="muted small" style={{ display: 'block' }}>{fmtWhen(r.startsAt)}</span>
               </span>
-              <span className="chip">{r.status}</span>
+              <span className={`chip ${statusTone(r.status)}`}>{statusLabel(r.status)}</span>
             </Link>
           ))}
         </div>

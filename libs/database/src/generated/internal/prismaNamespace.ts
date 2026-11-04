@@ -1947,6 +1947,7 @@ export const MedicineScalarFieldEnum = {
   description: 'description',
   imageUrl: 'imageUrl',
   popularity: 'popularity',
+  reorderLevel: 'reorderLevel',
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2013,6 +2014,10 @@ export const OrderScalarFieldEnum = {
   riderId: 'riderId',
   prescriptionKey: 'prescriptionKey',
   notes: 'notes',
+  handoverCode: 'handoverCode',
+  deliveredAt: 'deliveredAt',
+  rating: 'rating',
+  feedback: 'feedback',
   idempotencyKey: 'idempotencyKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2116,6 +2121,7 @@ export const ConsultationScalarFieldEnum = {
   reason: 'reason',
   patientPhone: 'patientPhone',
   notes: 'notes',
+  prescription: 'prescription',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

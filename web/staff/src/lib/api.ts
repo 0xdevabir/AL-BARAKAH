@@ -1,7 +1,7 @@
 'use client';
 
-import { ApiClient } from '@albarakah/ui';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { ApiClient, type QueryResult, useQuery } from '@albarakah/ui';
+import { useEffect, useSyncExternalStore } from 'react';
 
 const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -18,11 +18,16 @@ export function useApi() {
     () => api.ready,
     () => false,
   );
-  const [booting, setBooting] = useState(true);
 
+  // restore() is memoised inside the client, so this costs nothing after the first screen.
   useEffect(() => {
-    void api.restore().finally(() => setBooting(false));
+    void api.restore();
   }, []);
 
-  return { api, user, ready: ready && !booting };
+  return { api, user, ready };
+}
+
+/** Cached GET: instant on revisit, quietly refreshed in the background. */
+export function useGet<T>(path: string | null, opts?: { staleMs?: number; pollMs?: number }): QueryResult<T> {
+  return useQuery<T>(path, () => api.get<T>(path!), opts);
 }

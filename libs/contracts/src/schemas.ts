@@ -60,6 +60,8 @@ export const medicineSchema = z.object({
   isActive: z.boolean().default(true),
   categoryId: z.string().min(1),
   description: z.string().trim().max(2000).default(''),
+  imageUrl: z.string().trim().max(500).default(''),
+  reorderLevel: z.number().int().min(0).max(100_000).default(10),
 });
 export const batchSchema = z.object({
   batchNo: z.string().trim().min(1).max(40),
@@ -105,12 +107,20 @@ export const adminTransitionSchema = z.object({
 export const riderTransitionSchema = z.object({
   to: z.enum(['OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED']),
   note: z.string().trim().max(300).optional(),
+  /** The customer's 4-digit handover code, required to mark an order delivered. */
+  code: z.string().regex(/^\d{4}$/).optional(),
+});
+export const riderOnlineSchema = z.object({ online: z.boolean() });
+export const rateOrderSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  feedback: z.string().trim().max(500).optional(),
 });
 export const staffSchema = z.object({
   phone: phoneSchema,
   name: z.string().trim().min(1).max(80),
   role: z.enum(['ADMIN', 'RIDER']),
 });
+export const staffActiveSchema = z.object({ isActive: z.boolean() });
 export const consultationChannelSchema = z.enum(['GOOGLE_MEET', 'WHATSAPP']);
 export const doctorSchema = z.object({
   phone: phoneSchema,
@@ -139,9 +149,30 @@ export const bookConsultationSchema = z.object({
   reason: z.string().trim().max(500).optional(),
   patientPhone: phoneSchema.optional(),
 });
+export const prescriptionItemSchema = z.object({
+  medicine: z.string().trim().min(1).max(160),
+  dose: z.string().trim().max(60).default(''),
+  /** e.g. 1+0+1 — morning, noon, night. */
+  frequency: z.string().trim().max(40).default(''),
+  days: z.number().int().min(0).max(365).default(0),
+  instructions: z.string().trim().max(200).default(''),
+});
+export const ePrescriptionSchema = z.object({
+  diagnosis: z.string().trim().max(300).default(''),
+  items: z.array(prescriptionItemSchema).max(20).default([]),
+  advice: z.string().trim().max(1000).default(''),
+  followUpDays: z.number().int().min(0).max(365).default(0),
+});
+export type EPrescription = z.infer<typeof ePrescriptionSchema>;
 export const consultationStatusSchema = z.object({
   status: z.enum(['COMPLETED', 'NO_SHOW']),
   notes: z.string().trim().max(2000).optional(),
+  prescription: ePrescriptionSchema.optional(),
+});
+export const doctorProfileSchema = z.object({
+  bio: z.string().trim().max(1000).default(''),
+  meetLink: z.union([z.literal(''), z.url().startsWith('https://')]).default(''),
+  whatsapp: z.union([z.literal(''), phoneSchema]).default(''),
 });
 export const paymentStartSchema = z.object({
   purpose: z.enum(['ORDER', 'CONSULTATION']),
@@ -153,3 +184,4 @@ export const prescriptionUploadSchema = z.object({
 export const settleSchema = z.object({ amountPoisha: z.number().int().min(1), note: z.string().trim().max(200).optional() });
 
 
+export const writeOffSchema = z.object({ qty: z.number().int().min(1).max(1_000_000), reason: z.string().trim().min(1).max(200) });

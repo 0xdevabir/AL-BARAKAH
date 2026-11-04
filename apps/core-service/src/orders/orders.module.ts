@@ -1,19 +1,29 @@
 import { randomBytes } from 'node:crypto';
-import { Body, Controller, Delete, Get, Inject, MessageEvent, Module, Param, Patch, Post, Query, Sse } from '@nestjs/common';
-import { addressSchema, adminTransitionSchema, placeOrderSchema, prescriptionUploadSchema, riderTransitionSchema, settleSchema } from '@albarakah/contracts';
-import type { OrderStatus, PrismaClient } from '@albarakah/database';
+import { Body, Controller, Delete, Get, Inject, MessageEvent, Module, Param, Patch, Post, Put, Query, Sse } from '@nestjs/common';
+import { addressSchema, adminTransitionSchema, placeOrderSchema, prescriptionUploadSchema, rateOrderSchema, riderOnlineSchema, riderTransitionSchema, settleSchema } from '@albarakah/contracts';
+import type { OrderStatus, Prisma, PrismaClient } from '@albarakah/database';
 import { Redis } from 'ioredis';
 import { Observable } from 'rxjs';
 import type { z } from 'zod';
-import { type AuthUser, CurrentUser, Public, RequirePermission } from '@albarakah/nest-common';
+import { type AuthUser, badRequest, conflict, CurrentUser, Public, RequirePermission } from '@albarakah/nest-common';
 import { notFound, unauthorized, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA, REDIS } from '@albarakah/nest-common';
 import { ENV, type Env } from '@albarakah/nest-common';
 import { SettingsModule } from '../settings/settings.module.js';
 import { StorageModule, StorageService } from '../storage/storage.module.js';
-import { orderChannel, OrdersService } from './orders.service.js';
+import { ADMIN_CHANNEL, orderChannel, OrdersService, riderChannel } from './orders.service.js';
 
 const PAGE = 30;
+const ACTIVE: OrderStatus[] = ['PLACED', 'CONFIRMED', 'PACKED', 'ASSIGNED', 'OUT_FOR_DELIVERY'];
+/** A rider's "online" flag lapses on its own if their phone dies, so the admin never assigns to a ghost. */
+const ONLINE_TTL = 15 * 60;
+export const riderOnlineKey = (id: string) => `rider:online:${id}`;
+
+function startOfDay(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
 
 @Controller()
 export class OrdersController {
@@ -67,13 +77,16 @@ export class OrdersController {
 
   @RequirePermission('order:read-own')
   @Get('orders')
-  mine(@CurrentUser() u: AuthUser, @Query('page') page?: string) {
+  mine(@CurrentUser() u: AuthUser, @Query('page') page?: string, @Query('scope') scope?: string) {
+    const where: Prisma.OrderWhereInput = { customerId: u.id };
+    if (scope === 'active') where.status = { in: ACTIVE };
+    if (scope === 'past') where.status = { notIn: ACTIVE };
     return this.prisma.order.findMany({
-      where: { customerId: u.id },
+      where,
       orderBy: { createdAt: 'desc' },
       skip: (Math.max(Number(page) || 1, 1) - 1) * PAGE,
       take: PAGE,
-      select: { id: true, code: true, status: true, type: true, totalPoisha: true, promisedBy: true, slotStart: true, slotEnd: true, createdAt: true, paymentMethod: true, paymentStatus: true, addressSnapshot: true, items: { select: { nameSnapshot: true, qty: true } } },
+      select: { id: true, code: true, status: true, type: true, totalPoisha: true, promisedBy: true, slotStart: true, slotEnd: true, createdAt: true, paymentMethod: true, paymentStatus: true, addressSnapshot: true, rating: true, items: { select: { nameSnapshot: true, qty: true } } },
     });
   }
 
@@ -82,12 +95,13 @@ export class OrdersController {
   async mineOne(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     const o = await this.prisma.order.findFirst({
       where: { id, customerId: u.id },
-      include: { items: true, events: { orderBy: { createdAt: 'asc' } }, rider: { select: { name: true, phone: true } } },
+      include: { items: { include: { medicine: { select: { slug: true, imageUrl: true } } } }, events: { orderBy: { createdAt: 'asc' } }, rider: { select: { name: true, phone: true } } },
     });
     if (!o) throw notFound('Order not found');
-    const { riderPayoutPoisha: _hidden, idempotencyKey: _key, ...rest } = o;
-    // The rider's phone is only useful, and only shared, while the order is on its way.
-    return { ...rest, rider: o.status === 'OUT_FOR_DELIVERY' ? o.rider : null };
+    const { riderPayoutPoisha: _hidden, idempotencyKey: _key, handoverCode, ...rest } = o;
+    const onTheWay = o.status === 'OUT_FOR_DELIVERY';
+    // The rider's phone and the handover code are only useful, and only shared, while the order is on its way.
+    return { ...rest, rider: onTheWay ? o.rider : null, handoverCode: onTheWay ? handoverCode : null };
   }
 
   @RequirePermission('order:read-own')
@@ -96,26 +110,72 @@ export class OrdersController {
     return this.orders.transition(id, 'CANCELLED', 'CUSTOMER', u.id);
   }
 
+  @RequirePermission('order:read-own')
+  @Post('orders/:id/rate')
+  async rate(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(rateOrderSchema)) body: z.output<typeof rateOrderSchema>) {
+    const r = await this.prisma.order.updateMany({
+      where: { id, customerId: u.id, status: 'DELIVERED', rating: null },
+      data: { rating: body.rating, feedback: body.feedback },
+    });
+    if (r.count === 0) throw conflict('CANNOT_RATE', 'Only a delivered order can be rated, and only once');
+    return { ok: true };
+  }
+
+  /** What can be put straight back into the cart: active medicines at today's price. */
+  @RequirePermission('order:read-own')
+  @Get('orders/:id/reorder')
+  async reorder(@CurrentUser() u: AuthUser, @Param('id') id: string) {
+    const o = await this.prisma.order.findFirst({ where: { id, customerId: u.id }, select: { items: { select: { medicineId: true, qty: true } } } });
+    if (!o) throw notFound('Order not found');
+    const meds = await this.prisma.medicine.findMany({
+      where: { id: { in: o.items.map((i) => i.medicineId) }, isActive: true },
+      select: { id: true, slug: true, name: true, strength: true, form: true, pricePoisha: true, isRx: true, imageUrl: true },
+    });
+    const byId = new Map(meds.map((m) => [m.id, m]));
+    return {
+      items: o.items.flatMap((i) => (byId.has(i.medicineId) ? [{ medicine: byId.get(i.medicineId)!, qty: i.qty }] : [])),
+      unavailable: o.items.length - o.items.filter((i) => byId.has(i.medicineId)).length,
+    };
+  }
+
   /** Browsers cannot set headers on EventSource, so a 60-second one-use ticket keeps tokens out of URLs. */
   @RequirePermission('order:read-own')
   @Post('orders/:id/events/ticket')
   async ticket(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     const owned = await this.prisma.order.count({ where: { id, customerId: u.id } });
     if (!owned) throw notFound('Order not found');
+    return this.issueTicket(orderChannel(id));
+  }
+
+  @RequirePermission('order:manage')
+  @Post('admin/orders/events/ticket')
+  adminTicket() {
+    return this.issueTicket(ADMIN_CHANNEL);
+  }
+
+  @RequirePermission('delivery:work')
+  @Post('delivery/events/ticket')
+  riderTicket(@CurrentUser() u: AuthUser) {
+    return this.issueTicket(riderChannel(u.id));
+  }
+
+  private async issueTicket(channel: string) {
     const ticket = randomBytes(24).toString('base64url');
-    await this.redis.set(`sse:${ticket}`, id, 'EX', 60);
+    await this.redis.set(`sse:${ticket}`, channel, 'EX', 60);
     return { ticket };
   }
 
   @Public()
   @Sse('orders/events/stream')
   async stream(@Query('ticket') ticket?: string): Promise<Observable<MessageEvent>> {
-    const orderId = ticket ? await this.redis.getdel(`sse:${ticket}`) : null;
-    if (!orderId) throw unauthorized('Invalid or expired ticket');
+    const stored = ticket ? await this.redis.getdel(`sse:${ticket}`) : null;
+    if (!stored) throw unauthorized('Invalid or expired ticket');
+    // Tickets issued before channels were stored held a bare order id.
+    const channel = stored.includes(':') ? stored : orderChannel(stored);
     return new Observable<MessageEvent>((sub) => {
       // Subscribing needs its own connection, and works across every API instance.
       const listener = new Redis(this.env.REDIS_URL);
-      void listener.subscribe(orderChannel(orderId));
+      void listener.subscribe(channel);
       listener.on('message', (_c, msg) => sub.next({ data: msg }));
       const beat = setInterval(() => sub.next({ type: 'ping', data: '' }), 25_000);
       return () => {
@@ -128,9 +188,31 @@ export class OrdersController {
   // ---- admin ----
   @RequirePermission('order:manage')
   @Get('admin/orders')
-  adminList(@Query('status') status?: string, @Query('page') page?: string) {
+  adminList(
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('q') q?: string,
+    @Query('type') type?: string,
+    @Query('late') late?: string,
+  ) {
+    const where: Prisma.OrderWhereInput = {};
+    if (status === 'ACTIVE') where.status = { in: ACTIVE };
+    else if (status) where.status = status as OrderStatus;
+    if (type === 'EMERGENCY' || type === 'NORMAL') where.type = type;
+    if (late === '1') {
+      where.status = { in: ACTIVE };
+      where.promisedBy = { lt: new Date() };
+    }
+    const term = q?.trim();
+    if (term) {
+      where.OR = [
+        { code: { contains: term.toUpperCase() } },
+        { customer: { phone: { contains: term.replace(/\s/g, '') } } },
+        { customer: { name: { contains: term, mode: 'insensitive' } } },
+      ];
+    }
     return this.prisma.order.findMany({
-      where: status ? { status: status as OrderStatus } : {},
+      where,
       orderBy: [{ promisedBy: 'asc' }],
       skip: (Math.max(Number(page) || 1, 1) - 1) * PAGE,
       take: PAGE,
@@ -139,6 +221,37 @@ export class OrdersController {
         payments: { where: { status: 'PAID' }, select: { id: true } },
       },
     });
+  }
+
+  @RequirePermission('order:manage')
+  @Get('admin/orders/counts')
+  async adminCounts() {
+    const [groups, late] = await Promise.all([
+      this.prisma.order.groupBy({ by: ['status'], where: { OR: [{ status: { in: ACTIVE } }, { updatedAt: { gte: startOfDay() } }] }, _count: true }),
+      this.prisma.order.count({ where: { status: { in: ACTIVE }, promisedBy: { lt: new Date() } } }),
+    ]);
+    const counts: Record<string, number> = Object.fromEntries(groups.map((g) => [g.status, g._count]));
+    return { counts, late, active: ACTIVE.reduce((n, s) => n + (counts[s] ?? 0), 0) };
+  }
+
+  @RequirePermission('order:manage')
+  @Get('admin/orders/:id')
+  async adminOne(@Param('id') id: string) {
+    const o = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: { include: { allocations: { include: { batch: { select: { batchNo: true, expiresAt: true } } } } } },
+        events: { orderBy: { createdAt: 'asc' } },
+        customer: { select: { id: true, name: true, phone: true, createdAt: true, _count: { select: { orders: true } } } },
+        rider: { select: { id: true, name: true, phone: true } },
+        payments: { orderBy: { createdAt: 'desc' }, select: { id: true, status: true, amountPoisha: true, trxId: true, createdAt: true } },
+      },
+    });
+    if (!o) throw notFound('Order not found');
+    const actorIds = [...new Set(o.events.map((e) => e.actorId).filter(Boolean))] as string[];
+    const actors = await this.prisma.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true, role: true } });
+    const { idempotencyKey: _key, ...rest } = o;
+    return { ...rest, actors };
   }
 
   @RequirePermission('order:manage')
@@ -157,25 +270,98 @@ export class OrdersController {
     return { url: await this.storage.signedReadUrl(o.prescriptionKey) };
   }
 
+  /** Riders for the assign sheet, with their live load and whether they are on shift. */
+  @RequirePermission('order:manage')
+  @Get('admin/riders')
+  async riders() {
+    const riders = await this.prisma.user.findMany({
+      where: { role: 'RIDER', isActive: true },
+      select: { id: true, name: true, phone: true, _count: { select: { deliveries: { where: { status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } } } } } },
+      orderBy: { name: 'asc' },
+    });
+    const online = riders.length ? await this.redis.mget(...riders.map((r) => riderOnlineKey(r.id))) : [];
+    return riders
+      .map((r, i) => ({ id: r.id, name: r.name, phone: r.phone, activeJobs: r._count.deliveries, online: !!online[i] }))
+      .sort((a, b) => Number(b.online) - Number(a.online) || a.activeJobs - b.activeJobs);
+  }
+
   // ---- rider: only ever their own jobs, and never prescriptions ----
   @RequirePermission('delivery:work')
   @Get('delivery/jobs')
   jobs(@CurrentUser() u: AuthUser) {
     return this.prisma.order.findMany({
       where: { riderId: u.id, status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } },
-      orderBy: { promisedBy: 'asc' },
+      orderBy: [{ type: 'desc' }, { promisedBy: 'asc' }],
       select: {
         id: true, code: true, status: true, type: true, promisedBy: true, slotStart: true, slotEnd: true, addressSnapshot: true,
-        totalPoisha: true, paymentMethod: true, paymentStatus: true, riderPayoutPoisha: true, notes: true,
+        totalPoisha: true, paymentMethod: true, paymentStatus: true, riderPayoutPoisha: true, notes: true, updatedAt: true,
         customer: { select: { name: true } }, items: { select: { nameSnapshot: true, qty: true } },
       },
     });
   }
 
   @RequirePermission('delivery:work')
+  @Get('delivery/history')
+  history(@CurrentUser() u: AuthUser, @Query('page') page?: string) {
+    return this.prisma.order.findMany({
+      where: { riderId: u.id, status: { in: ['DELIVERED', 'FAILED'] } },
+      orderBy: { updatedAt: 'desc' },
+      skip: (Math.max(Number(page) || 1, 1) - 1) * PAGE,
+      take: PAGE,
+      select: {
+        id: true, code: true, status: true, type: true, promisedBy: true, deliveredAt: true, updatedAt: true, addressSnapshot: true,
+        totalPoisha: true, paymentMethod: true, riderPayoutPoisha: true, rating: true,
+      },
+    });
+  }
+
+  @RequirePermission('delivery:work')
+  @Get('delivery/summary')
+  async summary(@CurrentUser() u: AuthUser) {
+    const today = startOfDay();
+    const weekAgo = new Date(today.getTime() - 6 * 86_400_000);
+    const [active, deliveredToday, failedToday, earnedToday, week, ledger, online, ratings, onTime] = await Promise.all([
+      this.prisma.order.count({ where: { riderId: u.id, status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } } }),
+      this.prisma.order.count({ where: { riderId: u.id, status: 'DELIVERED', deliveredAt: { gte: today } } }),
+      this.prisma.order.count({ where: { riderId: u.id, status: 'FAILED', updatedAt: { gte: today } } }),
+      this.prisma.riderLedgerEntry.aggregate({ where: { riderId: u.id, type: 'EARNING', createdAt: { gte: today } }, _sum: { amountPoisha: true } }),
+      this.prisma.riderLedgerEntry.findMany({ where: { riderId: u.id, type: 'EARNING', createdAt: { gte: weekAgo } }, select: { amountPoisha: true, createdAt: true } }),
+      this.ledgerTotals(u.id),
+      this.redis.get(riderOnlineKey(u.id)),
+      this.prisma.order.aggregate({ where: { riderId: u.id, rating: { not: null } }, _avg: { rating: true }, _count: { rating: true } }),
+      this.prisma.$queryRaw<{ total: bigint; ontime: bigint }[]>`
+        SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE "deliveredAt" <= "promisedBy") AS ontime
+        FROM "Order" WHERE "riderId" = ${u.id} AND status = 'DELIVERED' AND "deliveredAt" IS NOT NULL`,
+    ]);
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekAgo.getTime() + i * 86_400_000);
+      const next = d.getTime() + 86_400_000;
+      return { date: d.toISOString(), poisha: week.filter((e) => e.createdAt.getTime() >= d.getTime() && e.createdAt.getTime() < next).reduce((s, e) => s + e.amountPoisha, 0) };
+    });
+    const total = Number(onTime[0]?.total ?? 0);
+    return {
+      online: !!online, active, deliveredToday, failedToday,
+      earnedTodayPoisha: earnedToday._sum.amountPoisha ?? 0,
+      week: days,
+      cashHeldPoisha: ledger.cashHeldPoisha,
+      rating: ratings._avg.rating, ratingCount: ratings._count.rating,
+      onTimeRate: total ? Number(onTime[0]!.ontime) / total : null,
+    };
+  }
+
+  @RequirePermission('delivery:work')
+  @Put('delivery/online')
+  async setOnline(@CurrentUser() u: AuthUser, @Body(new ZodPipe(riderOnlineSchema)) body: z.output<typeof riderOnlineSchema>) {
+    if (body.online) await this.redis.set(riderOnlineKey(u.id), '1', 'EX', ONLINE_TTL);
+    else await this.redis.del(riderOnlineKey(u.id));
+    return { online: body.online };
+  }
+
+  @RequirePermission('delivery:work')
   @Patch('delivery/jobs/:id/status')
   riderTransition(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(riderTransitionSchema)) body: z.output<typeof riderTransitionSchema>) {
-    return this.orders.transition(id, body.to, 'RIDER', u.id, { note: body.note });
+    if (body.to === 'FAILED' && !body.note) throw badRequest('REASON_REQUIRED', 'Say why the delivery failed');
+    return this.orders.transition(id, body.to, 'RIDER', u.id, { note: body.note, code: body.code });
   }
 
   @RequirePermission('delivery:work')
@@ -184,11 +370,18 @@ export class OrdersController {
     return this.ledgerFor(u.id);
   }
 
-  private async ledgerFor(riderId: string) {
+  private async ledgerTotals(riderId: string) {
     const groups = await this.prisma.riderLedgerEntry.groupBy({ by: ['type'], where: { riderId }, _sum: { amountPoisha: true } });
     const sum = (t: string) => groups.find((g) => g.type === t)?._sum.amountPoisha ?? 0;
-    const entries = await this.prisma.riderLedgerEntry.findMany({ where: { riderId }, orderBy: { createdAt: 'desc' }, take: 50 });
-    return { earnedPoisha: sum('EARNING'), codCollectedPoisha: sum('COD_COLLECTED'), settledPoisha: sum('SETTLEMENT'), cashHeldPoisha: sum('COD_COLLECTED') - sum('SETTLEMENT'), entries };
+    return { earnedPoisha: sum('EARNING'), codCollectedPoisha: sum('COD_COLLECTED'), settledPoisha: sum('SETTLEMENT'), cashHeldPoisha: sum('COD_COLLECTED') - sum('SETTLEMENT') };
+  }
+
+  private async ledgerFor(riderId: string) {
+    const [totals, entries] = await Promise.all([
+      this.ledgerTotals(riderId),
+      this.prisma.riderLedgerEntry.findMany({ where: { riderId }, orderBy: { createdAt: 'desc' }, take: 50, include: { order: { select: { code: true } } } }),
+    ]);
+    return { ...totals, entries };
   }
 
   @RequirePermission('ledger:manage')
@@ -200,6 +393,8 @@ export class OrdersController {
   @RequirePermission('ledger:manage')
   @Post('admin/riders/:id/settle')
   async settle(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(settleSchema)) body: z.output<typeof settleSchema>) {
+    const { cashHeldPoisha } = await this.ledgerTotals(id);
+    if (body.amountPoisha > cashHeldPoisha) throw badRequest('OVER_SETTLE', 'That is more than the cash this rider is holding');
     const entry = await this.prisma.riderLedgerEntry.create({ data: { riderId: id, type: 'SETTLEMENT', amountPoisha: body.amountPoisha, note: body.note } });
     await this.prisma.auditLog.create({ data: { actorId: u.id, action: 'rider.settle', entity: 'User', entityId: id, data: { amountPoisha: body.amountPoisha } } });
     return entry;

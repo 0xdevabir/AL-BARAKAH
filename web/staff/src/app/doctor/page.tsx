@@ -1,114 +1,107 @@
 'use client';
 
-import { fmtWhen } from '@albarakah/ui';
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
-import { message, statusLabel } from '@/lib/app';
+import { formatTk } from '@albarakah/domain';
+import { EmptyState, fmtTime, LargeTitle, SkeletonList, StatTile } from '@albarakah/ui';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { BookingSheet } from '@/components/Consult';
+import { Icon } from '@/components/Icon';
+import { useApi, useGet } from '@/lib/api';
+import { pct } from '@/lib/app';
+import { type Booking, CHANNEL, type DoctorMe, type DoctorSummary, joinLink } from '@/lib/doctor';
 
-interface Booking {
-  id: string;
-  startsAt: string;
-  status: string;
-  channel: string;
-  reason: string | null;
-  patientPhone: string;
-  notes: string | null;
-  customer: { name: string };
+function countdown(ms: number) {
+  if (ms <= 0) return 'Now';
+  const m = Math.ceil(ms / 60_000);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  return h < 24 ? `${h} h ${m % 60} min` : `${Math.round(h / 24)} days`;
 }
 
-export default function DoctorBookingsPage() {
-  const [rows, setRows] = useState<Booking[] | null>(null);
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [meetLink, setMeetLink] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
+const dhakaDay = (d: string | number | Date) => new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Dhaka' });
 
-  async function load() {
-    try {
-      setRows(await api.get<Booking[]>('/doctor/bookings'));
-    } catch (err) {
-      setError(message(err));
-    }
-  }
-
+export default function DoctorToday() {
+  const { user } = useApi();
+  const { data: s } = useGet<DoctorSummary>('/doctor/summary', { pollMs: 120_000 });
+  const { data: me } = useGet<DoctorMe>('/doctor/me', { staleMs: 300_000 });
+  const { data: upcoming, pending } = useGet<Booking[]>('/doctor/bookings?scope=upcoming', { pollMs: 60_000 });
+  const [open, setOpen] = useState<Booking | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    void load();
-    void api
-      .get<{ meetLink: string | null }>('/doctor/me')
-      .then((r) => setMeetLink(r.meetLink))
-      .catch((err) => setError(message(err)));
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(t);
   }, []);
 
-  async function finish(b: Booking, status: 'COMPLETED' | 'NO_SHOW') {
-    setBusy(true);
-    setError('');
-    const notes = drafts[b.id]?.trim();
-    try {
-      await api.patch(`/doctor/bookings/${b.id}`, { status, ...(notes ? { notes } : {}) });
-      await load();
-    } catch (err) {
-      setError(message(err));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const today = useMemo(() => {
+    const d = dhakaDay(now);
+    return (upcoming ?? []).filter((b) => dhakaDay(b.startsAt) === d);
+  }, [upcoming, now]);
+  const next = upcoming?.find((b) => new Date(b.endsAt).getTime() >= now) ?? null;
+  const toStart = next ? new Date(next.startsAt).getTime() - now : 0;
+  const inCall = next && toStart <= 0;
+  const join = next ? joinLink(next.channel, me, next.patientPhone) : null;
+  const hour = Number(new Date(now).toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Asia/Dhaka' }));
+  const hello = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const closed = s ? s.completedMonth + s.noShowMonth : 0;
 
   return (
-    <div className="page stack">
-      <h1 className="title">Bookings</h1>
-      {error ? <p className="error" role="alert">{error}</p> : null}
-      {rows?.length === 0 ? <p className="empty">No bookings yet</p> : null}
-      {(rows ?? []).map((b) => (
-        <article key={b.id} className="card stack">
-          <div className="row wrap">
-            <strong>{fmtWhen(b.startsAt)}</strong>
-            <span className="chip">{statusLabel(b.status)}</span>
+    <>
+      <LargeTitle sub={`${hello}${user ? `, ${user.name.replace(/^Dr\.?\s*/i, 'Dr. ')}` : ''}`}>Today</LargeTitle>
+
+      {s && !s.hasAvailability ? (
+        <Link href="/doctor/availability" className="notice bad row" style={{ gap: 10 }}>
+          <Icon name="clock" size={18} /> <span className="grow">Patients cannot book you until you set your hours.</span> ›
+        </Link>
+      ) : null}
+
+      {next ? (
+        <div className="hero-card" style={{ marginTop: 12 }}>
+          <span className="muted small">{inCall ? 'In progress' : 'Next patient'} · {CHANNEL[next.channel]}</span>
+          <div className="big-num">{inCall ? 'Now' : countdown(toStart)}</div>
+          <strong>{next.customer.name || 'Patient'}</strong>
+          <span className="muted small" style={{ display: 'block' }}>
+            {fmtTime(next.startsAt)} – {fmtTime(next.endsAt)}{next.reason ? ` · ${next.reason}` : ''}
+          </span>
+          <div className="actions" style={{ marginTop: 14 }}>
+            <button className="btn" onClick={() => setOpen(next)}>Open</button>
+            {join ? <a className="btn primary" href={join} target="_blank" rel="noreferrer"><Icon name="video" size={18} /> Join</a> : null}
           </div>
-          <div>
-            <p>
-              {b.customer.name || 'Patient'} ·{' '}
-              <a className="mono" href={`tel:${b.patientPhone}`}>
-                {b.patientPhone}
-              </a>
-            </p>
-            <p className="muted small">{statusLabel(b.channel)}</p>
-            {b.reason ? <p className="small">{b.reason}</p> : null}
-          </div>
-          {b.status === 'CONFIRMED' ? (
-            <>
-              {b.channel === 'WHATSAPP' ? (
-                <a className="btn" href={`https://wa.me/${b.patientPhone.replace('+', '')}`} rel="noopener" target="_blank">
-                  Open WhatsApp
-                </a>
-              ) : null}
-              {b.channel === 'GOOGLE_MEET' && meetLink ? (
-                <a className="btn" href={meetLink} rel="noopener" target="_blank">
-                  Open Google Meet
-                </a>
-              ) : null}
-              <label className="field">
-                <span>Private notes (optional)</span>
-                <textarea
-                  className="input"
-                  value={drafts[b.id] ?? ''}
-                  onChange={(e) => setDrafts({ ...drafts, [b.id]: e.target.value })}
-                  maxLength={2000}
-                />
-              </label>
-              <div className="row wrap">
-                <button className="btn primary grow" type="button" disabled={busy} onClick={() => void finish(b, 'COMPLETED')}>
-                  Mark completed
-                </button>
-                <button className="btn danger" type="button" disabled={busy} onClick={() => void finish(b, 'NO_SHOW')}>
-                  Patient missed it
-                </button>
-              </div>
-            </>
-          ) : b.notes ? (
-            <p className="small muted">{b.notes}</p>
-          ) : null}
-        </article>
-      ))}
-    </div>
+        </div>
+      ) : null}
+
+      {s ? (
+        <div className="stats" style={{ marginTop: 14 }}>
+          <StatTile label="Today" value={s.today} hint="booked" />
+          <StatTile label="Seen this month" value={s.completedMonth} />
+          <StatTile label="Earned this month" value={formatTk(s.earnedMonthPoisha)} />
+          <StatTile label="No-show rate" value={closed ? pct(s.noShowMonth / closed) : '—'} tone={closed && s.noShowMonth / closed > 0.2 ? 'warn' : undefined} hint={`${s.patients} patients`} />
+        </div>
+      ) : null}
+
+      <p className="group-label">Schedule</p>
+      {pending ? <SkeletonList rows={4} /> : null}
+      {upcoming && !today.length ? <EmptyState icon="🩺" title="Nothing booked today">{upcoming.length ? `Your next booking is on ${new Date(upcoming[0]!.startsAt).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'Asia/Dhaka' })}.` : 'New bookings show up here.'}</EmptyState> : null}
+      {today.length ? (
+        <div className="group stagger">
+          {today.map((b) => {
+            const past = new Date(b.endsAt).getTime() < now;
+            const nowOn = !past && new Date(b.startsAt).getTime() <= now;
+            return (
+              <button key={b.id} className="press" onClick={() => setOpen(b)} style={past ? { opacity: 0.6 } : undefined}>
+                <span className={`cell-icon${nowOn ? ' live' : ''}`}><Icon name={b.channel === 'GOOGLE_MEET' ? 'video' : 'phone'} size={18} /></span>
+                <span className="cell-main">
+                  <strong>{fmtTime(b.startsAt)} · {b.customer.name || 'Patient'}</strong>
+                  <span className="cell-sub">{b.reason || CHANNEL[b.channel]}</span>
+                </span>
+                {nowOn ? <span className="chip live">Now</span> : past ? <span className="chip warn">To close</span> : null}
+                <span className="chev" />
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <BookingSheet booking={open} onClose={() => setOpen(null)} />
+    </>
   );
 }

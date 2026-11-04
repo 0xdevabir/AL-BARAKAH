@@ -10,6 +10,7 @@ import {
   Public,
   REDIS,
 } from '@albarakah/nest-common';
+import { AdminModule } from './admin/admin.module.js';
 import { CatalogModule } from './catalog/catalog.module.js';
 import { ConsultationsModule } from './consultations/consultations.module.js';
 import { OrdersModule } from './orders/orders.module.js';
@@ -42,6 +43,7 @@ export class AppModule {
         OrdersModule,
         PaymentsModule,
         ConsultationsModule,
+        AdminModule,
         ...(role === 'api' ? [] : [WorkerModule]),
       ],
       controllers: [HealthController],

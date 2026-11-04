@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import type { placeOrderSchema } from '@albarakah/contracts';
 import type { OrderStatus, Prisma, PrismaClient } from '@albarakah/database';
@@ -10,6 +10,9 @@ import { PRISMA, REDIS } from '@albarakah/nest-common';
 import { SettingsService } from '../settings/settings.module.js';
 
 export const orderChannel = (orderId: string) => `order:${orderId}`;
+export const riderChannel = (riderId: string) => `rider:${riderId}`;
+/** Every order change, for the admin live board. */
+export const ADMIN_CHANNEL = 'orders:all';
 /** Excludes look-alike characters, because customers read codes out over the phone. */
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export function shortCode(prefix: string): string {
@@ -143,11 +146,19 @@ export class OrdersService {
   }
 
   /** The single path for status changes: checks the actor, restocks, writes the ledger, audits, notifies. */
-  async transition(orderId: string, to: OrderStatus, actor: OrderActor, actorId: string, opts: { riderId?: string; note?: string } = {}) {
+  async transition(
+    orderId: string,
+    to: OrderStatus,
+    actor: OrderActor,
+    actorId: string,
+    opts: { riderId?: string; note?: string; code?: string } = {},
+  ) {
+    let previousRider: string | null = null;
     const updated = await this.prisma.$transaction(async (tx) => {
       const [locked] = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
       if (!locked) throw notFound('Order not found');
       const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+      previousRider = order.riderId;
       if (actor === 'CUSTOMER' && order.customerId !== actorId) throw notFound('Order not found');
       if (actor === 'RIDER' && order.riderId !== actorId) throw notFound('Order not found');
       if (!canTransition(order.status, to, actor)) throw conflict('INVALID_TRANSITION', `An order that is ${order.status.toLowerCase().replaceAll('_', ' ')} cannot be changed to that status`);
@@ -159,6 +170,11 @@ export class OrdersService {
         if (!rider) throw badRequest('RIDER_INVALID', 'That delivery person is not available');
         data.rider = { connect: { id: rider.id } };
       }
+      // Proof of delivery: the customer only sees this code in their app, so a rider cannot fake a handover.
+      if (to === 'OUT_FOR_DELIVERY') data.handoverCode = handoverCode();
+      if (to === 'DELIVERED' && actor === 'RIDER' && order.handoverCode && !safeEqual(order.handoverCode, opts.code ?? '')) {
+        throw badRequest('HANDOVER_CODE', 'That code does not match. Ask the customer for the 4-digit code in their app.');
+      }
       if (restoresStock(to)) {
         const allocations = await tx.orderAllocation.findMany({ where: { orderItem: { orderId } } });
         for (const a of allocations) await tx.batch.update({ where: { id: a.batchId }, data: { qtyRemaining: { increment: a.qty } } });
@@ -169,6 +185,7 @@ export class OrdersService {
         await tx.auditLog.create({ data: { actorId, action: 'payment.needs_refund', entity: 'Order', entityId: orderId } });
       }
       if (to === 'DELIVERED') {
+        data.deliveredAt = new Date();
         await tx.riderLedgerEntry.create({ data: { riderId: order.riderId!, orderId, type: 'EARNING', amountPoisha: order.riderPayoutPoisha } });
         if (order.paymentMethod === 'COD') {
           await tx.riderLedgerEntry.create({ data: { riderId: order.riderId!, orderId, type: 'COD_COLLECTED', amountPoisha: order.totalPoisha } });
@@ -178,12 +195,27 @@ export class OrdersService {
       await tx.orderEvent.create({ data: { orderId, fromStatus: order.status, toStatus: to, actorId, note: opts.note } });
       return tx.order.update({ where: { id: orderId }, data });
     });
-    await this.publish(updated.id, updated.status);
+    await this.publish(updated.id, updated.status, [updated.riderId, previousRider]);
     return updated;
   }
 
-  /** Live updates are best-effort: a Redis hiccup must not fail a change that is already saved. */
-  async publish(orderId: string, status: string) {
-    await this.redis.publish(orderChannel(orderId), JSON.stringify({ orderId, status, at: Date.now() })).catch(() => undefined);
+  /**
+   * Live updates are best-effort: a Redis hiccup must not fail a change that is already saved.
+   * One message fans out to the order's own channel, the admin board, and every rider it concerns.
+   */
+  async publish(orderId: string, status: string, riders: (string | null | undefined)[] = []) {
+    const msg = JSON.stringify({ orderId, status, at: Date.now() });
+    const channels = new Set([orderChannel(orderId), ADMIN_CHANNEL, ...riders.filter(Boolean).map((r) => riderChannel(r!))]);
+    await Promise.all([...channels].map((c) => this.redis.publish(c, msg).catch(() => undefined)));
   }
+}
+
+function handoverCode() {
+  return String(randomInt(0, 10_000)).padStart(4, '0');
+}
+
+function safeEqual(a: string, b: string) {
+  const x = Buffer.from(a);
+  const y = Buffer.from(b);
+  return x.length === y.length && timingSafeEqual(x, y);
 }

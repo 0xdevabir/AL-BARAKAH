@@ -1,29 +1,21 @@
-import Link from 'next/link';
+'use client';
 
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useApi } from '@/lib/api';
+import { homeFor } from '@/lib/app';
+
+/** Staff land straight in their own portal; there is nothing to browse here. */
 export default function StaffHome() {
+  const { user, ready } = useApi();
+  const router = useRouter();
+  useEffect(() => {
+    if (!ready) return;
+    router.replace(user && !(user.role === 'ADMIN' && !user.mfa) ? homeFor(user.role) : '/login');
+  }, [ready, user, router]);
   return (
-    <div className="stack">
-      <div className="staff-hero">
-        <h1 className="title">Staff portals</h1>
-        <p className="muted">Quiet tools for the people who keep BarakaBari running — never shipped to customers.</p>
-      </div>
-      <div className="portal-grid">
-        <Link className="portal-card" href="/admin">
-          <strong>Admin</strong>
-          <span className="muted small">Catalog, people, settings, and consultations.</span>
-          <span className="go">Open admin</span>
-        </Link>
-        <Link className="portal-card" href="/delivery">
-          <strong>Delivery</strong>
-          <span className="muted small">Assigned runs and rider earnings.</span>
-          <span className="go">Open delivery</span>
-        </Link>
-        <Link className="portal-card" href="/doctor">
-          <strong>Doctor</strong>
-          <span className="muted small">Upcoming consultations and notes.</span>
-          <span className="go">Open doctor</span>
-        </Link>
-      </div>
+    <div className="boot" aria-busy="true">
+      <span className="boot-mark">+</span>
     </div>
   );
 }

@@ -134,7 +134,15 @@ export class ApiClient {
     return this.refreshing;
   }
 
-  async restore() {
+  private restoring: Promise<void> | null = null;
+
+  /** Safe to call from every screen: the session is restored once per page load, not once per mount. */
+  restore(): Promise<void> {
+    this.restoring ??= this.doRestore();
+    return this.restoring;
+  }
+
+  private async doRestore() {
     try {
       const signedIn = this.vault
         ? await Promise.race([
@@ -181,6 +189,17 @@ export class ApiClient {
 
   async verifyOtp(phone: string, code: string, name?: string) {
     await this.adopt(await this.post<Session>('/auth/otp/verify', { phone, code, ...(name ? { name } : {}) }));
+    return this.user!;
+  }
+
+  totpSetup() {
+    return this.post<{ secret: string; otpauthUrl: string }>('/auth/totp/setup');
+  }
+
+  /** Upgrades the current sign-in to a two-factor session. */
+  async totpVerify(code: string) {
+    const refreshToken = this.vault ? await this.vault.get() : undefined;
+    await this.adopt(await this.post<Session>('/auth/totp/verify', { code, ...(refreshToken ? { refreshToken } : {}) }));
     return this.user!;
   }
 

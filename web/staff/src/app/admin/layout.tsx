@@ -1,16 +1,26 @@
 'use client';
 
-import { Portal } from '@/components/Portal';
-
-const tabs = [
-  { href: '/admin', label: 'Orders' },
-  { href: '/admin/medicines', label: 'Medicines' },
-  { href: '/admin/people', label: 'People' },
-  { href: '/admin/consultations', label: 'Consultations' },
-  { href: '/admin/settings', label: 'Settings' },
-];
+import { Portal, type Tab } from '@/components/Portal';
+import { useApi, useGet } from '@/lib/api';
+import type { Counts } from '@/lib/types';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useApi();
+  const isAdmin = user?.role === 'ADMIN' && !!user.mfa;
+  const { data: counts } = useGet<Counts>(isAdmin ? '/admin/orders/counts' : null, { pollMs: 30_000 });
+
+  const tabs: Tab[] = [
+    { href: '/admin', label: 'Dashboard', icon: 'chart' },
+    { href: '/admin/orders', label: 'Orders', icon: 'bag', badge: counts?.counts.PLACED },
+    { href: '/admin/medicines', label: 'Catalog', icon: 'pill' },
+    { href: '/admin/people', label: 'Team', icon: 'users' },
+    { href: '/admin/customers', label: 'Customers', icon: 'person' },
+    { href: '/admin/consultations', label: 'Consultations', icon: 'stetho' },
+    { href: '/admin/zones', label: 'Zones', icon: 'map2' },
+    { href: '/admin/settings', label: 'Settings', icon: 'gear' },
+    { href: '/admin/audit', label: 'Audit log', icon: 'shield' },
+  ];
+
   return (
     <Portal role="ADMIN" tabs={tabs}>
       {children}
