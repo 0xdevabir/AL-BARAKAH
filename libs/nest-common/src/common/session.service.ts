@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { PrismaClient } from '@albarakah/database';
-import { PRISMA } from './infra.module.js';
+import { PRISMA } from './tokens.js';
 
 /** Shared so core can invalidate sessions after staff role changes without calling auth-service. */
 @Injectable()

@@ -43,7 +43,7 @@ export default function BookingDetailPage() {
 
   return (
     <div className="page stack screen">
-      <Link className="btn ghost small" href="/doctors/bookings" style={{ alignSelf: 'flex-start', paddingLeft: 0 }}>‹ Bookings</Link>
+      <Link className="btn small back glass" href="/doctors/bookings">‹ Bookings</Link>
       <div>
         <span className={`chip ${statusTone(b.status)}`}>{statusLabel(b.status)}</span>
         <h1 className="title" style={{ marginTop: 8 }}>{b.doctor.name}</h1>

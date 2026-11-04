@@ -143,7 +143,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="page stack">
-      <button className="btn ghost small" type="button" onClick={() => (step === 0 ? router.back() : setStep((s) => s - 1))} style={{ alignSelf: 'flex-start', paddingLeft: 0 }}>
+      <button className="btn small back glass" type="button" onClick={() => (step === 0 ? router.back() : setStep((s) => s - 1))}>
         ‹ Back
       </button>
 

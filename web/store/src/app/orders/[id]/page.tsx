@@ -111,7 +111,7 @@ function OrderInner() {
 
   return (
     <div className="page stack screen">
-      <Link className="btn ghost small" href="/orders" style={{ alignSelf: 'flex-start', paddingLeft: 0 }}>‹ Orders</Link>
+      <Link className="btn small back glass" href="/orders">‹ Orders</Link>
 
       <div>
         <span className={`chip ${statusTone(order.status)}`}>{statusLabel(order.status)}</span>

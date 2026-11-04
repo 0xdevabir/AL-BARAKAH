@@ -19,7 +19,8 @@ export {
   notFound,
   unauthorized,
 } from './common/errors.js';
-export { InfraModule, PRISMA, REDIS } from './common/infra.module.js';
+export { InfraModule } from './common/infra.module.js';
+export { PRISMA, REDIS } from './common/tokens.js';
 export { SessionService } from './common/session.service.js';
 export { ENV, loadEnv, type Env } from './config/env.js';
 export { createNestApp } from './bootstrap.js';

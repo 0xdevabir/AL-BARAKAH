@@ -36,7 +36,7 @@ export default function BookingsPage() {
 
   return (
     <div className="page">
-      <Link className="btn ghost small" href="/doctors" style={{ paddingLeft: 0 }}>
+      <Link className="btn small back glass" href="/doctors">
         ‹ Doctors
       </Link>
       <h1 className="title">My bookings</h1>

@@ -1,7 +1,9 @@
 'use client';
 
+import { haptic, useScrollChrome } from '@albarakah/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import { useApi } from '@/lib/api';
 import { useCart } from '@/lib/useCart';
 
@@ -59,36 +61,73 @@ const tabs = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   useApi();
+  useScrollChrome();
   const { count } = useCart();
   const hideBar = pathname.startsWith('/login') || pathname.startsWith('/checkout');
   const showCart = !hideBar && count > 0 && !pathname.startsWith('/cart');
+  const activeIndex = tabs.findIndex((tab) => (tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href)));
+
+  // Every new screen starts with the full tab bar showing.
+  useEffect(() => {
+    document.documentElement.dataset.compact = '0';
+  }, [pathname]);
 
   return (
-    <div className="shell">
-      <main className="shell-main">{children}</main>
-      {showCart && (
-        <Link className="dock cart-dock" href="/cart">
-          <span className="grow">
-            <span className="muted small">Cart</span>
-            <strong>
-              {count} item{count === 1 ? '' : 's'}
-            </strong>
-          </span>
-          <span className="btn primary small">View</span>
-        </Link>
-      )}
+    <div className={`shell${hideBar ? ' bare' : ''}`}>
+      <div className="statusbar" aria-hidden="true" />
+      <main className="shell-main">
+        <div className="screen" key={pathname}>
+          {children}
+        </div>
+      </main>
       {!hideBar && (
-        <nav className="tabbar" aria-label="Primary">
-          {tabs.map((tab) => {
-            const active = tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href);
-            return (
-              <Link key={tab.href} href={tab.href} data-active={active} aria-current={active ? 'page' : undefined}>
-                {tab.icon}
-                {tab.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="chrome">
+          {showCart && (
+            <Link className="cart-dock glass" href="/cart">
+              <span className="cart-dock-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 8h14l-1.2 11.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9L5 8Z" />
+                  <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+                </svg>
+                <span className="cart-dock-count mono" key={count}>
+                  {count}
+                </span>
+              </span>
+              <span className="grow">
+                <strong>Cart</strong>
+                <span className="muted small">
+                  {count} item{count === 1 ? '' : 's'}
+                </span>
+              </span>
+              <span className="cart-dock-go">View</span>
+            </Link>
+          )}
+          <nav
+            className="tabbar glass"
+            aria-label="Primary"
+            style={{ '--n': tabs.length, '--i': Math.max(0, activeIndex) } as React.CSSProperties}
+          >
+            <span className="tab-lens" data-on={activeIndex >= 0} aria-hidden="true" />
+            {tabs.map((tab, i) => {
+              const active = i === activeIndex;
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  data-active={active}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => {
+                    if (active) window.scrollTo({ top: 0, behavior: 'smooth' });
+                    else haptic('light');
+                  }}
+                >
+                  {tab.icon}
+                  <span className="tab-label">{tab.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       )}
     </div>
   );

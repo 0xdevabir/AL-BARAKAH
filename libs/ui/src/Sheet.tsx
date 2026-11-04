@@ -50,8 +50,10 @@ export function Sheet({
 
   function onTouchStart(e: React.TouchEvent) {
     if (!dismissible || window.matchMedia('(min-width: 720px)').matches) return;
-    // Only start a drag from the top of the content, so inner scrolling still works.
-    if ((body.current?.scrollTop ?? 0) > 0) return;
+    // Drag from the grabber/header any time, or from the content once it is scrolled to the top,
+    // so inner scrolling still works.
+    const onHandle = (e.target as HTMLElement).closest('.grab, .sheet-head');
+    if (!onHandle && (body.current?.scrollTop ?? 0) > 0) return;
     drag.current = { y: e.touches[0]!.clientY, t: Date.now(), dy: 0 };
   }
   function onTouchMove(e: React.TouchEvent) {
@@ -60,12 +62,10 @@ export function Sheet({
     if (!d || !el) return;
     const dy = e.touches[0]!.clientY - d.y;
     d.dy = dy;
-    if (dy <= 0) {
-      el.style.transform = '';
-      return;
-    }
+    // Pulling up past the resting point resists, like a rubber band.
+    const shown = dy >= 0 ? dy : -Math.sqrt(-dy) * 2.2;
     el.style.transition = 'none';
-    el.style.transform = `translateY(${dy}px)`;
+    el.style.transform = `translateY(${shown}px)`;
   }
   function onTouchEnd() {
     const d = drag.current;
@@ -73,11 +73,12 @@ export function Sheet({
     drag.current = null;
     if (!d || !el) return;
     const velocity = d.dy / Math.max(1, Date.now() - d.t);
-    el.style.transition = 'transform 0.32s var(--ease)';
     if (d.dy > 140 || (d.dy > 40 && velocity > 0.6)) {
-      el.style.transform = 'translateY(100%)';
+      el.style.transition = 'transform 0.26s cubic-bezier(0.32, 0.72, 0, 1)';
+      el.style.transform = 'translateY(110%)';
       setTimeout(onClose, 220);
     } else {
+      el.style.transition = 'transform 0.5s cubic-bezier(0.22, 1.25, 0.36, 1)';
       el.style.transform = '';
     }
   }

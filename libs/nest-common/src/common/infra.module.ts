@@ -4,9 +4,7 @@ import { Redis } from 'ioredis';
 import { ENV, type Env, loadEnv } from '../config/env.js';
 import { TokenService } from './auth.js';
 import { SessionService } from './session.service.js';
-
-export const PRISMA = Symbol('PRISMA');
-export const REDIS = Symbol('REDIS');
+import { PRISMA, REDIS } from './tokens.js';
 
 @Injectable()
 export class InfraLifecycle implements OnModuleDestroy {

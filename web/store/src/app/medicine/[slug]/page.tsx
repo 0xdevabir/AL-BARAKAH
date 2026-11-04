@@ -47,7 +47,7 @@ export default function MedicinePage() {
 
   return (
     <div className="page stack screen">
-      <button className="btn ghost small" type="button" onClick={() => router.back()} style={{ alignSelf: 'flex-start', paddingLeft: 0 }}>‹ Back</button>
+      <button className="btn small back glass" type="button" onClick={() => router.back()}>‹ Back</button>
       <div className="row" style={{ alignItems: 'center' }}>
         {med.imageUrl && !photoFailed ? (
           <img className="med-photo" src={med.imageUrl} alt="" width={120} height={120} referrerPolicy="no-referrer" onError={() => setPhotoFailed(true)} />
