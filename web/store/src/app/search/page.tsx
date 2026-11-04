@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { ProductGrid } from '@/components/ProductGrid';
 import { api } from '@/lib/api';
 
 function SearchInner() {
-  const router = useRouter();
   const params = useSearchParams();
   const category = params.get('category') ?? '';
   const [q, setQ] = useState(params.get('q') ?? '');
@@ -19,17 +18,18 @@ function SearchInner() {
   }, []);
 
   useEffect(() => {
+    const term = q.trim();
     const t = setTimeout(() => {
-      setAppliedQ(q);
+      setAppliedQ(term);
       const next = new URLSearchParams({
-        ...(q.trim() ? { q: q.trim() } : {}),
+        ...(term ? { q: term } : {}),
         ...(category ? { category } : {}),
       });
-      const target = `/search${next.size ? `?${next}` : ''}`;
-      router.replace(target);
-    }, q ? 150 : 0);
+      // Shallow URL update: keeps the link shareable without a Next.js navigation per keystroke.
+      window.history.replaceState(null, '', `/search${next.size ? `?${next}` : ''}`);
+    }, term ? 250 : 0);
     return () => clearTimeout(t);
-  }, [q, category, router]);
+  }, [q, category]);
 
   const chipHref = (slug: string) => {
     const next = new URLSearchParams({

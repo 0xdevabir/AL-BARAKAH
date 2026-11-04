@@ -33,6 +33,8 @@ export async function createNestApp(
     credentials: true,
     allowedHeaders: ['authorization', 'content-type', 'x-client', 'x-request-id'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    // Cache preflights so signed-in requests (Authorization header) don't pay an extra OPTIONS round trip each time.
+    maxAge: 7200,
   });
   if (opts.rateLimit !== false) {
     await app.register(rateLimit, {
