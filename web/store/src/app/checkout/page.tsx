@@ -1,7 +1,7 @@
 'use client';
 
 import { formatTk } from '@albarakah/domain';
-import { fmtWindow, hasPoint, MapView, Segmented, Sheet } from '@albarakah/ui';
+import { fmtShortDay, fmtTime, fmtWeekday, fmtWindow, hasPoint, MapView, Segmented, Sheet } from '@albarakah/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
@@ -9,6 +9,9 @@ import { useCart } from '@/lib/useCart';
 import { type Address, AddressComposer } from '@/components/AddressComposer';
 
 interface Slot { start: string; end: string }
+
+const dayKeyFmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' });
+const dayKey = (d: string | Date) => dayKeyFmt.format(new Date(d));
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -29,6 +32,25 @@ export default function CheckoutPage() {
   const [sheet, setSheet] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [ready, setReady] = useState(false);
+  const [day, setDay] = useState('');
+
+  const days = useMemo(() => {
+    const today = dayKey(new Date());
+    const tomorrow = dayKey(new Date(Date.now() + 86_400_000));
+    const byDay = new Map<string, Slot[]>();
+    for (const s of slots) {
+      const k = dayKey(s.start);
+      byDay.set(k, [...(byDay.get(k) ?? []), s]);
+    }
+    return [...byDay].map(([key, list]) => ({
+      key,
+      slots: list,
+      label: key === today ? 'Today' : key === tomorrow ? 'Tomorrow' : fmtWeekday(list[0]!.start),
+    }));
+  }, [slots]);
+  const activeDay = day || (slotStart ? dayKey(slotStart) : (days[0]?.key ?? ''));
+  const daySlots = days.find((d) => d.key === activeDay)?.slots ?? [];
+  const chosen = slots.find((s) => s.start === slotStart);
 
   const address = addresses.find((a) => a.id === addressId);
   const deliveryFee = address?.zone.deliveryFeePoisha ?? 0;
@@ -191,15 +213,45 @@ export default function CheckoutPage() {
             </div>
           ) : (
             <>
-              <p className="muted small">Earliest available windows first.</p>
-              <div className="group" role="radiogroup" aria-label="Choose a slot">
-                {slots.map((s) => (
-                  <button key={s.start} type="button" role="radio" aria-checked={slotStart === s.start} onClick={() => setSlotStart(s.start)}>
-                    <span className="grow">{fmtWindow(s.start, s.end)}</span>
-                    <span className={`mark${slotStart === s.start ? ' on' : ''}`} />
-                  </button>
-                ))}
-              </div>
+              {slots.length === 0 ? (
+                <p className="muted">No delivery windows are open right now. Try emergency delivery.</p>
+              ) : (
+                <>
+                  <div className="day-tabs" role="tablist" aria-label="Delivery day">
+                    {days.map((d) => (
+                      <button
+                        key={d.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={d.key === activeDay}
+                        className={`day-tab${d.key === activeDay ? ' on' : ''}`}
+                        onClick={() => {
+                          setDay(d.key);
+                          if (!slotStart || dayKey(slotStart) !== d.key) setSlotStart(d.slots[0]!.start);
+                        }}
+                      >
+                        <span className="small">{d.label}</span>
+                        <strong>{fmtShortDay(d.slots[0]!.start)}</strong>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="slot-grid" role="radiogroup" aria-label="Choose a time">
+                    {daySlots.map((s) => (
+                      <button
+                        key={s.start}
+                        type="button"
+                        role="radio"
+                        aria-checked={slotStart === s.start}
+                        className={`slot${slotStart === s.start ? ' on' : ''}`}
+                        onClick={() => setSlotStart(s.start)}
+                      >
+                        {fmtTime(s.start)} – {fmtTime(s.end)}
+                      </button>
+                    ))}
+                  </div>
+                  {chosen ? <p className="slot-pick">Arrives {fmtWindow(chosen.start, chosen.end)}</p> : null}
+                </>
+              )}
             </>
           )}
         </>
