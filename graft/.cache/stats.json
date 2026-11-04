@@ -1,16 +1,17 @@
 {
-  "nodeCount": 506,
-  "edgeCount": 1201,
+  "nodeCount": 2714,
+  "edgeCount": 3416,
   "languages": [
     "java",
     "javascript",
+    "tsx",
     "typescript"
   ],
-  "totalCount": 506,
+  "totalCount": 2714,
   "readyCount": 0,
   "staleCount": 0,
   "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-03T17:10:40.747Z",
-  "lastFile": "_patch_layout.py"
+  "syncedAt": "2026-11-04T06:02:36.111Z",
+  "lastFile": "polish-ui-css.mjs"
 }

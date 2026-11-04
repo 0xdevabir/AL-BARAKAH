@@ -1,6 +1,7 @@
 packages:
   - apps/*
-  - packages/*
+  - libs/*
+  - web/*
 allowBuilds:
   esbuild: true
   prisma: true

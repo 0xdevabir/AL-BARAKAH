@@ -1,0 +1,15 @@
+{
+  "name": "@albarakah/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo 'worker reuses @albarakah/core-service build'",
+    "typecheck": "echo 'ok'",
+    "dev": "pnpm --filter @albarakah/core-service exec env SERVICE_ROLE=worker PORT=${WORKER_PORT:-4030} node --env-file=../../.env --watch dist/main.js",
+    "start": "pnpm --filter @albarakah/core-service exec env SERVICE_ROLE=worker node dist/main.js"
+  },
+  "dependencies": {
+    "@albarakah/core-service": "workspace:*"
+  }
+}

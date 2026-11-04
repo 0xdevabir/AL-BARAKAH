@@ -1,0 +1,11 @@
+const CROSS =
+  'M28 15H36Q39 15 39 18V22Q39 25 42 25H46Q49 25 49 28V36Q49 39 46 39H42Q39 39 39 42V46Q39 49 36 49H28Q25 49 25 46V42Q25 39 22 39H18Q15 39 15 36V28Q15 25 18 25H22Q25 25 25 22V18Q25 15 28 15Z';
+
+export function Mark({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+      <rect width="56" height="56" x="4" y="4" rx="16" fill="currentColor" />
+      <path d={CROSS} fill="#fff" />
+    </svg>
+  );
+}

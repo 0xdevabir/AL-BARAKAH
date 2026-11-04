@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-const STORE = 'http://localhost:5173';
-const STAFF = 'http://localhost:5174';
+const STORE = 'http://localhost:3000';
+const STAFF = 'http://localhost:3001';
 
 test('store offers only the customer demo button, and it signs in', async ({ page }) => {
   await page.goto(`${STORE}/login?next=/account`);

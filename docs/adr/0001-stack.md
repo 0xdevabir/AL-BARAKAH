@@ -1,15 +1,19 @@
 # 1. Stack and shape of the system
 
-**Status:** accepted, November 2026
+**Status:** accepted, November 2026 (revised)
 
 ## Decision
-- **Frontend:** SvelteKit and Svelte 5, for very little JavaScript on low-end phones. The store is server-rendered on the web and static inside Capacitor. Staff portals are a separate app, so admin code never reaches customers.
-- **Backend:** a single NestJS modular monolith on Fastify. One image runs as the API or the worker, so background jobs can't slow customer requests.
+- **Frontend:** Next.js (App Router) for the customer store and the staff portals. Store and staff are separate apps under `web/`, so admin code never reaches customers. The store can still ship as a Capacitor Android app via a static export.
+- **Backend:** Falcon-style NestJS services under `apps/`:
+  - `gateway` — public API entry (local / edge), routes `/auth` → auth-service and everything else → core-service
+  - `auth-service` — OTP, sessions, TOTP, SMS/email workers
+  - `core-service` — catalog, orders, payments, consultations, settings, storage
+  - `worker` — core background jobs (`SERVICE_ROLE=worker`) so queue work cannot slow customer requests
+- **Shared libs:** `libs/contracts`, `libs/database`, `libs/domain`, `libs/ui`, `libs/nest-common`
 - **Data:** PostgreSQL through PgBouncer in transaction mode, with reviewed Prisma migrations. Migrations connect directly to Postgres. `pg_trgm` handles medicine search.
 - **Jobs:** Redis and BullMQ.
-- **Files:** SeaweedFS behind the S3 API, so any S3 service can replace it. The plan named MinIO, but its image couldn't be pulled during the build.
-- **Calling later:** LiveKit can be added as a new consultation channel, without changing how booking works.
+- **Files:** SeaweedFS behind the S3 API, so any S3 service can replace it.
 
 ## Trade-offs
-- Svelte has a smaller ecosystem than React. We accept that for bundle size: the store's first load is about 42 KB of JS, against about 846 KB measured on FalconAI's React shell.
-- One service means one deploy can affect everything. Split a service out only when measurements justify it.
+- Next.js is heavier than the previous SvelteKit store. We accept that for one React ecosystem across store, staff, and shared UI, matching the FalconAI frontend/backend split.
+- Multiple Nest processes add ops surface. A gateway keeps one public API URL for cookies and clients. Split further only when measurements justify it.

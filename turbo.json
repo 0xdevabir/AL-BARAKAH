@@ -1,8 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["BUILD_TARGET", "PUBLIC_API_URL", "API_INTERNAL_URL"],
+  "globalEnv": ["BUILD_TARGET", "PUBLIC_API_URL", "API_INTERNAL_URL", "AUTH_PORT", "CORE_PORT", "GATEWAY_PORT", "WORKER_PORT", "NEXT_PUBLIC_API_URL"],
   "tasks": {
-    "build": { "dependsOn": ["^build"], "outputs": ["dist/**", "build/**", ".svelte-kit/**", "src/generated/**"] },
+    "build": { "dependsOn": ["^build"], "outputs": ["dist/**", ".next/**", "!.next/cache/**", "out/**", "src/generated/**"] },
     "typecheck": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build"], "cache": false },
     "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true }

@@ -33,7 +33,7 @@ services:
   migrate:
     <<: *backend
     restart: "no"
-    working_dir: /app/packages/database
+    working_dir: /app/libs/database
     command: ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/bootstrap.js"]
     environment:
       <<: *backend-env
@@ -68,7 +68,7 @@ services:
   store:
     image: albarakah-app:${APP_VERSION:-local}
     restart: unless-stopped
-    command: ["node", "apps/store/build/index.js"]
+    command: ["node", "web/store/build/index.js"]
     environment:
       NODE_ENV: production
       PORT: "3000"

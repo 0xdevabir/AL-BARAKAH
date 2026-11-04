@@ -1,0 +1,135 @@
+.staff-shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background:
+    radial-gradient(80% 45% at 0% 0%, color-mix(in srgb, var(--sage) 22%, transparent), transparent 55%),
+    radial-gradient(60% 35% at 100% 0%, color-mix(in srgb, var(--surface) 90%, transparent), transparent 50%),
+    var(--bg);
+}
+
+.staff-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--raised) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(1.15);
+}
+
+.staff-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--accent-ink);
+}
+
+.staff-brand span.mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: white;
+  font-size: 0.85rem;
+}
+
+.staff-top nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.staff-top a {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 650;
+  color: var(--muted);
+  transition: background-color 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.staff-top a:hover { background: var(--surface); color: var(--ink); }
+.staff-top a[data-active='true'] {
+  color: var(--accent-ink);
+  background: var(--sage-soft);
+}
+
+.staff-main {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 56px;
+  animation: staff-in 0.5s var(--ease) both;
+}
+
+.staff-hero {
+  margin-bottom: 28px;
+}
+
+.staff-hero .title {
+  font-size: clamp(2.1rem, 5vw, 2.8rem);
+  letter-spacing: -0.04em;
+}
+
+.portal-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.portal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 148px;
+  padding: 22px;
+  border-radius: var(--r);
+  background: var(--raised);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  box-shadow: var(--shadow);
+  transition: transform 0.22s var(--ease), border-color 0.22s var(--ease), box-shadow 0.22s var(--ease);
+}
+
+.portal-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+  box-shadow: 0 1px 2px rgb(40 36 24 / 0.04), 0 16px 32px rgb(40 36 24 / 0.08);
+}
+
+.portal-card:active { transform: translateY(-1px) scale(0.995); }
+.portal-card strong { font-size: 1.25rem; letter-spacing: -0.025em; }
+.portal-card .go {
+  margin-top: auto;
+  color: var(--accent-ink);
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.login-stack {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-stack .btn.primary {
+  transition: transform 0.18s var(--ease), background-color 0.18s var(--ease);
+}
+
+@keyframes staff-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-main { animation: none !important; }
+  .portal-card { transition: none !important; }
+}

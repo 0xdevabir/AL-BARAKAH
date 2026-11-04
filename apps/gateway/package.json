@@ -1,0 +1,20 @@
+{
+  "name": "@albarakah/gateway",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "dev": "node --env-file=../../.env --watch dist/main.js",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "fastify": "5.12.7",
+    "@fastify/http-proxy": "11.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3"
+  }
+}

@@ -5,15 +5,16 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev --parallel --filter=@albarakah/gateway --filter=@albarakah/auth-service --filter=@albarakah/core-service --filter=@albarakah/worker --filter=@albarakah/store --filter=@albarakah/staff",
+    "dev:services": "turbo run dev --parallel --filter=@albarakah/gateway --filter=@albarakah/auth-service --filter=@albarakah/core-service --filter=@albarakah/worker",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "infra:up": "docker compose -p albarakah -f infra/compose.storage.yml --env-file .env up -d --wait",
     "infra:down": "docker compose -p albarakah -f infra/compose.storage.yml down",
     "db:migrate": "pnpm --filter @albarakah/database migrate:deploy",
     "db:seed": "pnpm --filter @albarakah/database seed",
-    "catalog:crawl": "node packages/database/scripts/crawl-catalog.mjs",
-    "catalog:load": "node --env-file=.env packages/database/scripts/load-catalog.mjs"
+    "catalog:crawl": "node libs/database/scripts/crawl-catalog.mjs",
+    "catalog:load": "node --env-file=.env libs/database/scripts/load-catalog.mjs"
   },
   "devDependencies": { "turbo": "2.11.10", "typescript": "5.9.3" }
 }

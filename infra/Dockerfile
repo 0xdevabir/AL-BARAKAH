@@ -5,10 +5,12 @@ WORKDIR /app
 ENV CI=true
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm turbo run build --filter=@albarakah/api --filter=@albarakah/store --filter=@albarakah/staff
+RUN pnpm turbo run build --filter=@albarakah/gateway --filter=@albarakah/auth-service --filter=@albarakah/core-service --filter=@albarakah/store --filter=@albarakah/staff
 ENV NODE_ENV=production
-# The API, worker, store and migration job all use this image with a different command.
-CMD ["node", "apps/api/dist/main.js"]
+# Services pick a command: gateway, auth-service, core-service, or worker (SERVICE_ROLE=worker).
+CMD ["node", "apps/gateway/dist/main.js"]
 
 FROM nginx:1.28.0-alpine AS edge
-COPY --from=app /app/apps/staff/build /srv/staff
+COPY --from=app /app/web/staff/.next/standalone /srv/staff
+COPY --from=app /app/web/store/.next/standalone /srv/store
+COPY infra/nginx /etc/nginx/templates

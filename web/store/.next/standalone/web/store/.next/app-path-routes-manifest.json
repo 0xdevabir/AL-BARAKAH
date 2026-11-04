@@ -1,0 +1,9 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/account/page": "/account",
+  "/doctors/page": "/doctors",
+  "/login/page": "/login",
+  "/orders/page": "/orders",
+  "/page": "/",
+  "/search/page": "/search"
+}

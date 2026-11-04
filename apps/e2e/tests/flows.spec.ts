@@ -3,8 +3,8 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
-const STORE = 'http://localhost:5173';
-const STAFF = 'http://localhost:5174';
+const STORE = 'http://localhost:3000';
+const STAFF = 'http://localhost:3001';
 const RUN = resolve(import.meta.dirname, '../.run');
 const PHONE = { customer: '01711111111', admin: '01700000001', rider: '01700000002', doctor: '01700000003' };
 const PHONE_VIEW = { width: 390, height: 844 };
