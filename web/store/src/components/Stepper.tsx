@@ -15,7 +15,7 @@ export function Stepper({
         −
       </button>
       <span className="mono qty" aria-live="polite">
-        {qty}
+        <span key={qty}>{qty}</span>
       </span>
       <button type="button" className="btn small" aria-label={`More ${label}`} onClick={() => onChange(qty + 1)} disabled={qty >= 50}>
         +

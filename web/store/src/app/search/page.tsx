@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import { BrandLockup } from '@/components/BrandLockup';
 import { ProductGrid } from '@/components/ProductGrid';
 import { api } from '@/lib/api';
 
@@ -42,30 +41,31 @@ function SearchInner() {
 
   return (
     <div className="page wide">
-      <BrandLockup size={26} />
       <h1 className="title">Search</h1>
-      <input
-        className="input find"
-        type="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search by brand or generic name"
-        aria-label="Search"
-        autoComplete="off"
-        enterKeyHint="search"
-      />
-      {categories.length > 0 ? (
-        <div className="chips">
-          <Link className={`btn small${!category ? ' primary' : ''}`} href={chipHref('')}>
-            All
-          </Link>
-          {categories.map((c) => (
-            <Link key={c.id} className={`btn small${category === c.slug ? ' primary' : ''}`} href={chipHref(c.slug)}>
-              {c.name}
+      <div className="search-head">
+        <input
+          className="input find"
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search by brand or generic name"
+          aria-label="Search"
+          autoComplete="off"
+          enterKeyHint="search"
+        />
+        {categories.length > 0 ? (
+          <div className="chips">
+            <Link className={`btn small${!category ? ' primary' : ''}`} href={chipHref('')}>
+              All
             </Link>
-          ))}
-        </div>
-      ) : null}
+            {categories.map((c) => (
+              <Link key={c.id} className={`btn small${category === c.slug ? ' primary' : ''}`} href={chipHref(c.slug)}>
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+      </div>
       {!appliedQ.trim() ? <p className="hint muted">Type a name to search the full catalogue. Without a query you see popular picks.</p> : null}
       <div className="results">
         <ProductGrid q={appliedQ} category={category} />

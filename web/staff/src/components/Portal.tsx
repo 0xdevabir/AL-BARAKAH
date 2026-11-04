@@ -1,6 +1,6 @@
 'use client';
 
-import { chooseAction, clearQueries, confirmAction, initials } from '@albarakah/ui';
+import { chooseAction, clearQueries, confirmAction, haptic, initials, useScrollChrome } from '@albarakah/ui';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -27,6 +27,11 @@ export function Portal({ role, tabs, children }: { role: keyof typeof ROLE_NAME;
   const router = useRouter();
   const pathname = usePathname();
   const allowed = !!user && user.role === role && (role !== 'ADMIN' || !!user.mfa);
+  useScrollChrome();
+
+  useEffect(() => {
+    document.documentElement.dataset.compact = '0';
+  }, [pathname]);
 
   useEffect(() => {
     if (!ready || allowed) return;
@@ -50,6 +55,7 @@ export function Portal({ role, tabs, children }: { role: keyof typeof ROLE_NAME;
   const primary = tabs.length > MOBILE_TABS + 1 ? tabs.slice(0, MOBILE_TABS) : tabs;
   const overflow = tabs.length > MOBILE_TABS + 1 ? tabs.slice(MOBILE_TABS) : [];
   const overflowOn = overflow.some((t) => isOn(t.href));
+  const lensAt = overflowOn ? primary.length : primary.findIndex((t) => isOn(t.href));
 
   async function signOut() {
     if (!(await confirmAction({ title: 'Sign out?', message: 'You will need your phone to sign in again.', confirm: 'Sign out', destructive: true }))) return;
@@ -102,14 +108,20 @@ export function Portal({ role, tabs, children }: { role: keyof typeof ROLE_NAME;
         </div>
       </main>
 
-      <nav className="tabbar" aria-label={`${ROLE_NAME[role]} tabs`}>
+      <div className="statusbar" aria-hidden="true" />
+      <nav
+        className="tabbar glass"
+        aria-label={`${ROLE_NAME[role]} tabs`}
+        style={{ '--n': primary.length + (overflow.length ? 1 : 0), '--i': Math.max(0, lensAt) } as React.CSSProperties}
+      >
+        <span className="tab-lens" data-on={lensAt >= 0} aria-hidden="true" />
         {primary.map((t) => (
-          <Link key={t.href} href={t.href} className="tab" aria-current={isOn(t.href) ? 'page' : undefined}>
+          <Link key={t.href} href={t.href} className="tab" aria-current={isOn(t.href) ? 'page' : undefined} onClick={() => haptic('light')}>
             <span className="tab-icon">
               <Icon name={t.icon} />
               {t.badge ? <span className="badge">{t.badge > 99 ? '99+' : t.badge}</span> : null}
             </span>
-            {t.label}
+            <span className="tab-label">{t.label}</span>
           </Link>
         ))}
         {overflow.length ? (
@@ -118,7 +130,7 @@ export function Portal({ role, tabs, children }: { role: keyof typeof ROLE_NAME;
               <Icon name="list" />
               {overflow.some((t) => t.badge) ? <span className="badge dot" /> : null}
             </span>
-            More
+            <span className="tab-label">More</span>
           </button>
         ) : null}
       </nav>
