@@ -57,6 +57,9 @@ export default async function HomePage() {
 
   return (
     <div className="home-bleed">
+      <div className="home-msearch">
+        <SearchBox />
+      </div>
       <section className="home-banner" aria-label="Welcome">
         <div className="hero-copy">
           <BrandLockup size={34} tone="light" />

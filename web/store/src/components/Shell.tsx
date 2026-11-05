@@ -4,17 +4,19 @@ import { haptic, useScrollChrome } from '@albarakah/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { BrandLockup } from '@/components/BrandLockup';
+import { SearchBox } from '@/components/SearchBox';
 import { useApi } from '@/lib/api';
 import { useCart } from '@/lib/useCart';
 
 const tabs = [
   {
-    href: '/search',
-    label: 'Search',
+    href: '/catering',
+    label: 'Catering',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="11" cy="11" r="6.5" />
-        <path d="M16.5 16.5 21 21" />
+        <path d="M4 17a8 8 0 0 1 16 0Z" />
+        <path d="M12 9V7.5M10.5 7.5h3M2.5 17h19M7 20h10" />
       </svg>
     ),
   },
@@ -75,6 +77,38 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className={`shell${hideBar ? ' bare' : ''}`}>
       <div className="statusbar" aria-hidden="true" />
+      {!hideBar && (
+        <header className="topbar">
+          <div className="topbar-in">
+            <Link href="/" className="topbar-brand" aria-label="BarakaBari home">
+              <BrandLockup size={30} />
+            </Link>
+            <div className="topbar-search">{!pathname.startsWith('/search') && <SearchBox />}</div>
+            <nav className="topbar-nav" aria-label="Main">
+              {tabs
+                .filter((tab) => tab.href !== '/')
+                .map((tab) => (
+                  <Link key={tab.href} href={tab.href} aria-current={pathname.startsWith(tab.href) ? 'page' : undefined}>
+                    {tab.icon}
+                    <span>{tab.label}</span>
+                  </Link>
+                ))}
+              <Link href="/cart" className="topbar-cart" aria-current={pathname.startsWith('/cart') ? 'page' : undefined}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 8h14l-1.2 11.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9L5 8Z" />
+                  <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+                </svg>
+                <span>Cart</span>
+                {count > 0 && (
+                  <span className="topbar-count mono" key={count}>
+                    {count}
+                  </span>
+                )}
+              </Link>
+            </nav>
+          </div>
+        </header>
+      )}
       <main className="shell-main">
         <div className="screen" key={pathname}>
           {children}
