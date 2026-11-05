@@ -1002,3 +1002,65 @@ html[data-scrolled='1'] .search-head {
   .topbar-nav a:not(.topbar-cart) span { display: none; }
   .topbar-nav a:not(.topbar-cart) { padding: 0 10px; }
 }
+
+/* —— polish pass —— */
+/* Phones: the pinned search band fades into the page instead of ending on a hard line,
+   and the category line fades at the edge to show it scrolls. */
+@media (max-width: 899px) {
+  .home-msearch { padding-bottom: 14px; }
+  html[data-scrolled='1'] .home-msearch {
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    box-shadow: none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 10px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 10px), transparent);
+  }
+  .home-msearch .input { transition: box-shadow 0.25s var(--ease); }
+  .home-msearch .input:focus { outline: none; box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent); }
+  .cat-section .cat-rail {
+    padding-block: 2px 4px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  }
+  .cat-section .cat-tile { padding-block: 5px; }
+  .cat-section .cat-glyph { width: 30px; height: 30px; }
+}
+
+@media (min-width: 900px) {
+  /* The top bar already carries the brand. */
+  .hero-copy .lockup { display: none; }
+  .topbar-brand { transition: opacity 0.2s var(--ease); }
+  .topbar-brand:hover { opacity: 0.8; }
+  .topbar-nav a:active { transform: scale(0.96); }
+  .topbar-count { animation: count-pop 0.45s var(--spring) both; }
+}
+@media (min-width: 1200px) {
+  .home-side { top: calc(var(--top-h) + 20px); max-height: calc(100dvh - var(--top-h) - 40px); }
+  .home-side .cat-tile { min-width: 0; }
+  .home-side .cat-tile strong { min-width: 0; }
+}
+
+/* Catering: coming-soon card */
+.soon-card {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 44px 24px 36px; border-radius: var(--r-lg); text-align: center;
+  background: var(--raised); box-shadow: inset 0 0 0 0.5px var(--glass-line), var(--shadow);
+  animation: rise 0.5s var(--ease) both;
+}
+.soon-glyph {
+  display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: 6px;
+  border-radius: 24px; background: var(--sage-soft); color: var(--accent-ink);
+}
+.soon-glyph svg { width: 38px; height: 38px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.soon-chip {
+  padding: 4px 12px; border-radius: 999px; background: var(--warn-soft); color: var(--warn);
+  font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.soon-card h2 { margin: 4px 0 0; font-size: 1.35rem; letter-spacing: -0.02em; }
+.soon-card p { max-width: 34ch; margin: 0 0 10px; color: var(--muted); line-height: 1.5; }
+@media (prefers-reduced-motion: reduce) { .soon-card, .topbar-count { animation: none !important; } }
+@media (min-width: 1200px) {
+  .home-side .cat-tile { width: 100%; max-width: 100%; }
+  .home-side .cat-tile strong { flex: 1 1 0; display: block; }
+}
+/* Phones already have search pinned on top, so the section link is noise. */
+@media (max-width: 899px) { .meds-section .section a { display: none; } }
