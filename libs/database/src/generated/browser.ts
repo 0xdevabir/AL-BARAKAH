@@ -88,6 +88,11 @@ export type Payment = Prisma.PaymentModel
  */
 export type Doctor = Prisma.DoctorModel
 /**
+ * Model DoctorInvite
+ * An admin's email invitation. The doctor verifies a phone from the link, and the Doctor row is created from it.
+ */
+export type DoctorInvite = Prisma.DoctorInviteModel
+/**
  * Model Availability
  * 
  */

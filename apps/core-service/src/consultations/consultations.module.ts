@@ -3,11 +3,13 @@ import { availabilitySchema, bookConsultationSchema, consultationStatusSchema, d
 import type { PrismaClient } from '@albarakah/database';
 import { consultationSlots } from '@albarakah/domain';
 import type { z } from 'zod';
-import { type AuthUser, CurrentUser, Public, RequirePermission, SessionService } from '@albarakah/nest-common';
+import { type AuthUser, CurrentUser, MailService, Public, RequirePermission, SessionService } from '@albarakah/nest-common';
 import { badRequest, conflict, notFound, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA } from '@albarakah/nest-common';
 import { shortCode } from '../orders/orders.service.js';
 import { SettingsModule, SettingsService } from '../settings/settings.module.js';
+import { StorageModule } from '../storage/storage.module.js';
+import { DoctorOnboardingController } from './doctor-onboarding.controller.js';
 
 const HOLD_MS = 10 * 60_000;
 const BOOKING_DAYS = 14;
@@ -26,7 +28,7 @@ export class ConsultationsService {
 
   async slots(doctorId: string, now = new Date()) {
     await this.releaseExpiredHolds(doctorId);
-    const doctor = await this.prisma.doctor.findFirst({ where: { id: doctorId, isActive: true }, include: { availability: true } });
+    const doctor = await this.prisma.doctor.findFirst({ where: { id: doctorId, isActive: true, onboardedAt: { not: null } }, include: { availability: true } });
     if (!doctor) throw notFound('Doctor not found');
     const taken = await this.prisma.consultation.findMany({
       where: { doctorId, startsAt: { gte: now }, status: { in: ['HOLD', 'CONFIRMED', 'COMPLETED', 'NO_SHOW'] } },
@@ -73,8 +75,12 @@ export class ConsultationsController {
   @Get('doctors')
   async doctors() {
     const rows = await this.prisma.doctor.findMany({
-      where: { isActive: true, user: { isActive: true } },
-      select: { id: true, specialty: true, bio: true, bmdcNo: true, feePoisha: true, channels: true, user: { select: { name: true } } },
+      where: { isActive: true, onboardedAt: { not: null }, user: { isActive: true } },
+      select: {
+        id: true, specialty: true, bio: true, bmdcNo: true, feePoisha: true, channels: true,
+        photoUrl: true, qualifications: true, experienceYears: true, workplace: true, languages: true, onboardedAt: true,
+        user: { select: { name: true } },
+      },
       orderBy: { createdAt: 'asc' },
     });
     // "Next free" lets patients pick the soonest doctor without opening each one.
@@ -243,9 +249,25 @@ export class ConsultationsController {
   @Put('doctor/profile')
   async setProfile(@CurrentUser() u: AuthUser, @Body(new ZodPipe(doctorProfileSchema)) body: z.output<typeof doctorProfileSchema>) {
     const d = await this.doctorFor(u.id);
-    if (d.channels.includes('GOOGLE_MEET') && !body.meetLink) throw badRequest('MEET_REQUIRED', 'You take Google Meet calls, so add a Meet link');
-    if (d.channels.includes('WHATSAPP') && !body.whatsapp) throw badRequest('WHATSAPP_REQUIRED', 'You take WhatsApp calls, so add a WhatsApp number');
-    await this.prisma.doctor.update({ where: { id: d.id }, data: { bio: body.bio, meetLink: body.meetLink || null, whatsapp: body.whatsapp || null } });
+    if (d.onboardedAt && d.channels.includes('GOOGLE_MEET') && !body.meetLink) throw badRequest('MEET_REQUIRED', 'You take Google Meet calls, so add a Meet link');
+    if (d.onboardedAt && d.channels.includes('WHATSAPP') && !body.whatsapp) throw badRequest('WHATSAPP_REQUIRED', 'You take WhatsApp calls, so add a WhatsApp number');
+    // Once live, a doctor must keep the basics a patient chooses by.
+    if (d.onboardedAt && body.qualifications !== undefined && !body.qualifications) throw badRequest('QUALIFICATIONS_REQUIRED', 'Patients need to see your qualifications');
+    const languages = body.languages ? [...new Set(body.languages)] : undefined;
+    await this.prisma.$transaction([
+      this.prisma.doctor.update({
+        where: { id: d.id },
+        data: {
+          bio: body.bio, meetLink: body.meetLink || null, whatsapp: body.whatsapp || null,
+          ...(body.photoUrl !== undefined ? { photoUrl: body.photoUrl } : {}),
+          ...(body.qualifications !== undefined ? { qualifications: body.qualifications } : {}),
+          ...(body.experienceYears !== undefined ? { experienceYears: body.experienceYears } : {}),
+          ...(body.workplace !== undefined ? { workplace: body.workplace } : {}),
+          ...(languages ? { languages } : {}),
+        },
+      }),
+      ...(body.name ? [this.prisma.user.update({ where: { id: u.id }, data: { name: body.name } })] : []),
+    ]);
     return { ok: true };
   }
 
@@ -254,7 +276,11 @@ export class ConsultationsController {
   @Get('admin/doctors')
   adminDoctors() {
     return this.prisma.doctor.findMany({
-      include: { user: { select: { name: true, phone: true, isActive: true } }, _count: { select: { consultations: { where: { status: 'COMPLETED' } } } } },
+      include: {
+        user: { select: { name: true, phone: true, email: true, isActive: true } },
+        availability: { select: { id: true } },
+        _count: { select: { consultations: { where: { status: 'COMPLETED' } } } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -276,7 +302,7 @@ export class ConsultationsController {
     const { phone, name, ...profile } = body;
     const doctor = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.upsert({ where: { phone }, update: { role: 'DOCTOR', name }, create: { phone, name, role: 'DOCTOR' } });
-      const d = await tx.doctor.create({ data: { ...profile, userId: user.id } });
+      const d = await tx.doctor.create({ data: { ...profile, userId: user.id, onboardedAt: new Date() } });
       await tx.auditLog.create({ data: { actorId: actor.id, action: 'doctor.onboard', entity: 'Doctor', entityId: d.id } });
       return d;
     });
@@ -335,9 +361,9 @@ export class ConsultationsController {
 }
 
 @Module({
-  imports: [SettingsModule],
-  controllers: [ConsultationsController],
-  providers: [ConsultationsService],
+  imports: [SettingsModule, StorageModule],
+  controllers: [ConsultationsController, DoctorOnboardingController],
+  providers: [ConsultationsService, MailService],
   exports: [ConsultationsService],
 })
 export class ConsultationsModule {}

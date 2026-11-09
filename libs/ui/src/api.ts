@@ -192,6 +192,12 @@ export class ApiClient {
     return this.user!;
   }
 
+  /** Accepts a doctor invitation; the phone code proves the number and the response signs the doctor in. */
+  async acceptDoctorInvite(token: string, phone: string, code: string) {
+    await this.adopt(await this.post<Session>(`/auth/doctor-invite/${encodeURIComponent(token)}/accept`, { phone, code }));
+    return this.user!;
+  }
+
   totpSetup() {
     return this.post<{ secret: string; otpauthUrl: string }>('/auth/totp/setup');
   }

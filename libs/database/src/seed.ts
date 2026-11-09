@@ -81,7 +81,9 @@ async function main() {
     update: {},
     create: {
       userId: docUser.id, bmdcNo: 'DEMO-0001', specialty: 'General Physician',
-      bio: 'Demo profile for local development.', channels: ['GOOGLE_MEET', 'WHATSAPP'],
+      bio: 'Family physician with a focus on fever, diabetes, blood pressure and everyday illness. I explain clearly and keep follow-ups simple.',
+      qualifications: 'MBBS, FCPS (Medicine)', experienceYears: 8, workplace: 'Dhaka Medical College Hospital',
+      languages: ['Bangla', 'English'], onboardedAt: new Date(), channels: ['GOOGLE_MEET', 'WHATSAPP'],
       meetLink: 'https://meet.google.com/demo-link', whatsapp: '+8801700000003',
     },
   });

@@ -65,6 +65,7 @@ export const ModelName = {
   OrderEvent: 'OrderEvent',
   Payment: 'Payment',
   Doctor: 'Doctor',
+  DoctorInvite: 'DoctorInvite',
   Availability: 'Availability',
   Consultation: 'Consultation',
   RiderLedgerEntry: 'RiderLedgerEntry',
@@ -301,11 +302,39 @@ export const DoctorScalarFieldEnum = {
   channels: 'channels',
   meetLink: 'meetLink',
   whatsapp: 'whatsapp',
+  photoUrl: 'photoUrl',
+  qualifications: 'qualifications',
+  experienceYears: 'experienceYears',
+  workplace: 'workplace',
+  languages: 'languages',
   isActive: 'isActive',
+  onboardedAt: 'onboardedAt',
   createdAt: 'createdAt'
 } as const
 
 export type DoctorScalarFieldEnum = (typeof DoctorScalarFieldEnum)[keyof typeof DoctorScalarFieldEnum]
+
+
+export const DoctorInviteScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  bmdcNo: 'bmdcNo',
+  specialty: 'specialty',
+  feePoisha: 'feePoisha',
+  channels: 'channels',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  sentCount: 'sentCount',
+  lastSentAt: 'lastSentAt',
+  acceptedAt: 'acceptedAt',
+  revokedAt: 'revokedAt',
+  invitedById: 'invitedById',
+  doctorId: 'doctorId',
+  createdAt: 'createdAt'
+} as const
+
+export type DoctorInviteScalarFieldEnum = (typeof DoctorInviteScalarFieldEnum)[keyof typeof DoctorInviteScalarFieldEnum]
 
 
 export const AvailabilityScalarFieldEnum = {

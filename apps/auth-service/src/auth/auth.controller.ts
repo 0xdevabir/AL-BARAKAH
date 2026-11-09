@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpCode, Inject, Module, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Module, Param, Post, Req, Res } from '@nestjs/common';
 import { RouteConfig } from '@nestjs/platform-fastify';
-import { emailOtpRequestSchema, emailOtpVerifySchema, otpRequestSchema, otpVerifySchema, totpCodeSchema } from '@albarakah/contracts';
+import { doctorInviteAcceptSchema, doctorInviteOtpSchema, emailOtpRequestSchema, emailOtpVerifySchema, otpRequestSchema, otpVerifySchema, totpCodeSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { Authenticated, type AuthUser, CurrentUser, Public } from '@albarakah/ne
 import { AppError, forbidden, unauthorized, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA } from '@albarakah/nest-common';
 import { ENV, type Env } from '@albarakah/nest-common';
-import { MailService } from '../notifications/mail.service.js';
+import { MailService } from '@albarakah/nest-common';
 import { SmsAdminController } from '../notifications/sms.controller.js';
 import { SmsService } from '../notifications/sms.service.js';
 import { AuthService, DEMO_PHONES, type Session } from './auth.service.js';
@@ -94,6 +94,37 @@ export class AuthController {
   ) {
     this.assertOrigin(req);
     return this.respond(req, res, await this.auth.verifyEmailOtp(body.email, body.phone, body.code, body.name));
+  }
+
+  // ---- doctor invitation: link from the email → confirm the login phone by SMS → doctor account ----
+
+  @Public()
+  @OtpLimit()
+  @Get('doctor-invite/:token')
+  async invite(@Param('token') token: string) {
+    return this.auth.inviteInfo(token);
+  }
+
+  @Public()
+  @OtpLimit()
+  @Post('doctor-invite/:token/otp')
+  async inviteOtp(@Param('token') token: string, @Body(new ZodPipe(doctorInviteOtpSchema)) body: z.output<typeof doctorInviteOtpSchema>) {
+    await this.auth.requestInviteOtp(token, body.phone);
+    return { ok: true };
+  }
+
+  @Public()
+  @OtpLimit()
+  @Post('doctor-invite/:token/accept')
+  @HttpCode(200)
+  async inviteAccept(
+    @Param('token') token: string,
+    @Body(new ZodPipe(doctorInviteAcceptSchema)) body: z.output<typeof doctorInviteAcceptSchema>,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    this.assertOrigin(req);
+    return this.respond(req, res, await this.auth.acceptInvite(token, body.phone, body.code));
   }
 
   /** Empty unless DEMO_LOGIN is on, so the sign-in pages know whether to show the demo buttons. */

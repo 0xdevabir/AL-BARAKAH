@@ -37,6 +37,8 @@ const schema = z.object({
   CORS_ORIGINS: z.string().transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
   PUBLIC_API_BASE: z.url(),
   STORE_URL: z.url(),
+  /** Staff portal address, used in doctor invitation links. */
+  STAFF_URL: z.url().default('http://localhost:3001'),
   SMS_PROVIDER: z.enum(['console', 'bulksmsbd']).default('console'),
   SMS_API_KEY: z.string().optional(),
   /** The sender ID approved on the BulkSMSBD account. */

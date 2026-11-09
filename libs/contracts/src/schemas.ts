@@ -185,10 +185,35 @@ export const consultationStatusSchema = z.object({
   notes: z.string().trim().max(2000).optional(),
   prescription: ePrescriptionSchema.optional(),
 });
+/** What the doctor controls about their public profile. BMDC, specialty, fee and call types stay with admins. */
 export const doctorProfileSchema = z.object({
+  name: z.string().trim().min(2).max(80).optional(),
   bio: z.string().trim().max(1000).default(''),
   meetLink: z.union([z.literal(''), z.url().startsWith('https://')]).default(''),
   whatsapp: z.union([z.literal(''), phoneSchema]).default(''),
+  photoUrl: z.union([z.literal(''), z.url().startsWith('https://'), z.url().startsWith('http://localhost')]).optional(),
+  qualifications: z.string().trim().max(160).optional(),
+  experienceYears: z.number().int().min(0).max(70).optional(),
+  workplace: z.string().trim().max(120).optional(),
+  languages: z.array(z.string().trim().min(1).max(30)).max(8).optional(),
+});
+
+/** A superadmin invites a doctor by email; the doctor finishes their own account from the link. */
+export const doctorInviteSchema = z.object({
+  email: emailSchema,
+  name: z.string().trim().min(2).max(80),
+  bmdcNo: z.string().trim().min(1).max(30),
+  specialty: z.string().trim().min(1).max(80),
+  feePoisha: z.number().int().min(0).max(10_000_000).optional(),
+  channels: z.array(consultationChannelSchema).min(1),
+});
+export const doctorInviteOtpSchema = z.object({ phone: phoneSchema });
+export const doctorInviteAcceptSchema = z.object({ phone: phoneSchema, code: z.string().regex(/^\d{6}$/) });
+/** Admin edits to a doctor's listing. */
+export const doctorAdminUpdateSchema = z.object({
+  specialty: z.string().trim().min(1).max(80).optional(),
+  feePoisha: z.number().int().min(0).max(10_000_000).nullable().optional(),
+  channels: z.array(consultationChannelSchema).min(1).optional(),
 });
 export const paymentStartSchema = z.object({
   purpose: z.enum(['ORDER', 'CONSULTATION']),

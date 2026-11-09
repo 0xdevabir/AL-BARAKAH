@@ -58,10 +58,10 @@ export class StorageService implements OnModuleInit {
   }
 
   /** A signed upload into the public images bucket, plus the permanent address to save on the medicine. */
-  async productImageUploadUrl(contentType: string) {
+  async productImageUploadUrl(contentType: string, folder: 'products' | 'doctors' = 'products') {
     const { S3_IMAGES_BUCKET: bucket, S3_IMAGES_PUBLIC_URL: base } = this.env;
     if (!bucket || !base) throw conflict('IMAGES_NOT_CONFIGURED', 'Image uploads are not set up. Paste an image link instead.');
-    const key = `products/${randomUUID()}.${EXT[contentType]}`;
+    const key = `${folder}/${randomUUID()}.${EXT[contentType]}`;
     const url = await getSignedUrl(
       this.signer,
       new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, CacheControl: 'public, max-age=31536000, immutable' }),

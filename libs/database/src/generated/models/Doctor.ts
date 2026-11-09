@@ -28,10 +28,12 @@ export type AggregateDoctor = {
 
 export type DoctorAvgAggregateOutputType = {
   feePoisha: number | null
+  experienceYears: number | null
 }
 
 export type DoctorSumAggregateOutputType = {
   feePoisha: number | null
+  experienceYears: number | null
 }
 
 export type DoctorMinAggregateOutputType = {
@@ -43,7 +45,12 @@ export type DoctorMinAggregateOutputType = {
   feePoisha: number | null
   meetLink: string | null
   whatsapp: string | null
+  photoUrl: string | null
+  qualifications: string | null
+  experienceYears: number | null
+  workplace: string | null
   isActive: boolean | null
+  onboardedAt: Date | null
   createdAt: Date | null
 }
 
@@ -56,7 +63,12 @@ export type DoctorMaxAggregateOutputType = {
   feePoisha: number | null
   meetLink: string | null
   whatsapp: string | null
+  photoUrl: string | null
+  qualifications: string | null
+  experienceYears: number | null
+  workplace: string | null
   isActive: boolean | null
+  onboardedAt: Date | null
   createdAt: Date | null
 }
 
@@ -70,7 +82,13 @@ export type DoctorCountAggregateOutputType = {
   channels: number
   meetLink: number
   whatsapp: number
+  photoUrl: number
+  qualifications: number
+  experienceYears: number
+  workplace: number
+  languages: number
   isActive: number
+  onboardedAt: number
   createdAt: number
   _all: number
 }
@@ -78,10 +96,12 @@ export type DoctorCountAggregateOutputType = {
 
 export type DoctorAvgAggregateInputType = {
   feePoisha?: true
+  experienceYears?: true
 }
 
 export type DoctorSumAggregateInputType = {
   feePoisha?: true
+  experienceYears?: true
 }
 
 export type DoctorMinAggregateInputType = {
@@ -93,7 +113,12 @@ export type DoctorMinAggregateInputType = {
   feePoisha?: true
   meetLink?: true
   whatsapp?: true
+  photoUrl?: true
+  qualifications?: true
+  experienceYears?: true
+  workplace?: true
   isActive?: true
+  onboardedAt?: true
   createdAt?: true
 }
 
@@ -106,7 +131,12 @@ export type DoctorMaxAggregateInputType = {
   feePoisha?: true
   meetLink?: true
   whatsapp?: true
+  photoUrl?: true
+  qualifications?: true
+  experienceYears?: true
+  workplace?: true
   isActive?: true
+  onboardedAt?: true
   createdAt?: true
 }
 
@@ -120,7 +150,13 @@ export type DoctorCountAggregateInputType = {
   channels?: true
   meetLink?: true
   whatsapp?: true
+  photoUrl?: true
+  qualifications?: true
+  experienceYears?: true
+  workplace?: true
+  languages?: true
   isActive?: true
+  onboardedAt?: true
   createdAt?: true
   _all?: true
 }
@@ -221,7 +257,13 @@ export type DoctorGroupByOutputType = {
   channels: $Enums.ConsultationChannel[]
   meetLink: string | null
   whatsapp: string | null
+  photoUrl: string
+  qualifications: string
+  experienceYears: number
+  workplace: string
+  languages: string[]
   isActive: boolean
+  onboardedAt: Date | null
   createdAt: Date
   _count: DoctorCountAggregateOutputType | null
   _avg: DoctorAvgAggregateOutputType | null
@@ -258,11 +300,18 @@ export type DoctorWhereInput = {
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"Doctor">
   meetLink?: Prisma.StringNullableFilter<"Doctor"> | string | null
   whatsapp?: Prisma.StringNullableFilter<"Doctor"> | string | null
+  photoUrl?: Prisma.StringFilter<"Doctor"> | string
+  qualifications?: Prisma.StringFilter<"Doctor"> | string
+  experienceYears?: Prisma.IntFilter<"Doctor"> | number
+  workplace?: Prisma.StringFilter<"Doctor"> | string
+  languages?: Prisma.StringNullableListFilter<"Doctor">
   isActive?: Prisma.BoolFilter<"Doctor"> | boolean
+  onboardedAt?: Prisma.DateTimeNullableFilter<"Doctor"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Doctor"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   availability?: Prisma.AvailabilityListRelationFilter
   consultations?: Prisma.ConsultationListRelationFilter
+  invite?: Prisma.XOR<Prisma.DoctorInviteNullableScalarRelationFilter, Prisma.DoctorInviteWhereInput> | null
 }
 
 export type DoctorOrderByWithRelationInput = {
@@ -275,11 +324,18 @@ export type DoctorOrderByWithRelationInput = {
   channels?: Prisma.SortOrder
   meetLink?: Prisma.SortOrderInput | Prisma.SortOrder
   whatsapp?: Prisma.SortOrderInput | Prisma.SortOrder
+  photoUrl?: Prisma.SortOrder
+  qualifications?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
+  workplace?: Prisma.SortOrder
+  languages?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  onboardedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   availability?: Prisma.AvailabilityOrderByRelationAggregateInput
   consultations?: Prisma.ConsultationOrderByRelationAggregateInput
+  invite?: Prisma.DoctorInviteOrderByWithRelationInput
 }
 
 export type DoctorWhereUniqueInput = Prisma.AtLeast<{
@@ -295,11 +351,18 @@ export type DoctorWhereUniqueInput = Prisma.AtLeast<{
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"Doctor">
   meetLink?: Prisma.StringNullableFilter<"Doctor"> | string | null
   whatsapp?: Prisma.StringNullableFilter<"Doctor"> | string | null
+  photoUrl?: Prisma.StringFilter<"Doctor"> | string
+  qualifications?: Prisma.StringFilter<"Doctor"> | string
+  experienceYears?: Prisma.IntFilter<"Doctor"> | number
+  workplace?: Prisma.StringFilter<"Doctor"> | string
+  languages?: Prisma.StringNullableListFilter<"Doctor">
   isActive?: Prisma.BoolFilter<"Doctor"> | boolean
+  onboardedAt?: Prisma.DateTimeNullableFilter<"Doctor"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Doctor"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   availability?: Prisma.AvailabilityListRelationFilter
   consultations?: Prisma.ConsultationListRelationFilter
+  invite?: Prisma.XOR<Prisma.DoctorInviteNullableScalarRelationFilter, Prisma.DoctorInviteWhereInput> | null
 }, "id" | "userId" | "bmdcNo">
 
 export type DoctorOrderByWithAggregationInput = {
@@ -312,7 +375,13 @@ export type DoctorOrderByWithAggregationInput = {
   channels?: Prisma.SortOrder
   meetLink?: Prisma.SortOrderInput | Prisma.SortOrder
   whatsapp?: Prisma.SortOrderInput | Prisma.SortOrder
+  photoUrl?: Prisma.SortOrder
+  qualifications?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
+  workplace?: Prisma.SortOrder
+  languages?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  onboardedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.DoctorCountOrderByAggregateInput
   _avg?: Prisma.DoctorAvgOrderByAggregateInput
@@ -334,7 +403,13 @@ export type DoctorScalarWhereWithAggregatesInput = {
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"Doctor">
   meetLink?: Prisma.StringNullableWithAggregatesFilter<"Doctor"> | string | null
   whatsapp?: Prisma.StringNullableWithAggregatesFilter<"Doctor"> | string | null
+  photoUrl?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
+  qualifications?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
+  experienceYears?: Prisma.IntWithAggregatesFilter<"Doctor"> | number
+  workplace?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
+  languages?: Prisma.StringNullableListFilter<"Doctor">
   isActive?: Prisma.BoolWithAggregatesFilter<"Doctor"> | boolean
+  onboardedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Doctor"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Doctor"> | Date | string
 }
 
@@ -347,11 +422,18 @@ export type DoctorCreateInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutDoctorInput
   availability?: Prisma.AvailabilityCreateNestedManyWithoutDoctorInput
   consultations?: Prisma.ConsultationCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorUncheckedCreateInput = {
@@ -364,10 +446,17 @@ export type DoctorUncheckedCreateInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   availability?: Prisma.AvailabilityUncheckedCreateNestedManyWithoutDoctorInput
   consultations?: Prisma.ConsultationUncheckedCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteUncheckedCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorUpdateInput = {
@@ -379,11 +468,18 @@ export type DoctorUpdateInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutDoctorNestedInput
   availability?: Prisma.AvailabilityUpdateManyWithoutDoctorNestedInput
   consultations?: Prisma.ConsultationUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUpdateOneWithoutDoctorNestedInput
 }
 
 export type DoctorUncheckedUpdateInput = {
@@ -396,10 +492,17 @@ export type DoctorUncheckedUpdateInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   availability?: Prisma.AvailabilityUncheckedUpdateManyWithoutDoctorNestedInput
   consultations?: Prisma.ConsultationUncheckedUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUncheckedUpdateOneWithoutDoctorNestedInput
 }
 
 export type DoctorCreateManyInput = {
@@ -412,7 +515,13 @@ export type DoctorCreateManyInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -425,7 +534,13 @@ export type DoctorUpdateManyMutationInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -439,7 +554,13 @@ export type DoctorUncheckedUpdateManyInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -456,6 +577,14 @@ export type EnumConsultationChannelNullableListFilter<$PrismaModel = never> = {
   isEmpty?: boolean
 }
 
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type DoctorCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -466,12 +595,19 @@ export type DoctorCountOrderByAggregateInput = {
   channels?: Prisma.SortOrder
   meetLink?: Prisma.SortOrder
   whatsapp?: Prisma.SortOrder
+  photoUrl?: Prisma.SortOrder
+  qualifications?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
+  workplace?: Prisma.SortOrder
+  languages?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  onboardedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type DoctorAvgOrderByAggregateInput = {
   feePoisha?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
 }
 
 export type DoctorMaxOrderByAggregateInput = {
@@ -483,7 +619,12 @@ export type DoctorMaxOrderByAggregateInput = {
   feePoisha?: Prisma.SortOrder
   meetLink?: Prisma.SortOrder
   whatsapp?: Prisma.SortOrder
+  photoUrl?: Prisma.SortOrder
+  qualifications?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
+  workplace?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  onboardedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -496,12 +637,18 @@ export type DoctorMinOrderByAggregateInput = {
   feePoisha?: Prisma.SortOrder
   meetLink?: Prisma.SortOrder
   whatsapp?: Prisma.SortOrder
+  photoUrl?: Prisma.SortOrder
+  qualifications?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
+  workplace?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  onboardedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type DoctorSumOrderByAggregateInput = {
   feePoisha?: Prisma.SortOrder
+  experienceYears?: Prisma.SortOrder
 }
 
 export type DoctorScalarRelationFilter = {
@@ -545,9 +692,34 @@ export type DoctorCreatechannelsInput = {
   set: $Enums.ConsultationChannel[]
 }
 
+export type DoctorCreatelanguagesInput = {
+  set: string[]
+}
+
 export type DoctorUpdatechannelsInput = {
   set?: $Enums.ConsultationChannel[]
   push?: $Enums.ConsultationChannel | $Enums.ConsultationChannel[]
+}
+
+export type DoctorUpdatelanguagesInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type DoctorCreateNestedOneWithoutInviteInput = {
+  create?: Prisma.XOR<Prisma.DoctorCreateWithoutInviteInput, Prisma.DoctorUncheckedCreateWithoutInviteInput>
+  connectOrCreate?: Prisma.DoctorCreateOrConnectWithoutInviteInput
+  connect?: Prisma.DoctorWhereUniqueInput
+}
+
+export type DoctorUpdateOneWithoutInviteNestedInput = {
+  create?: Prisma.XOR<Prisma.DoctorCreateWithoutInviteInput, Prisma.DoctorUncheckedCreateWithoutInviteInput>
+  connectOrCreate?: Prisma.DoctorCreateOrConnectWithoutInviteInput
+  upsert?: Prisma.DoctorUpsertWithoutInviteInput
+  disconnect?: Prisma.DoctorWhereInput | boolean
+  delete?: Prisma.DoctorWhereInput | boolean
+  connect?: Prisma.DoctorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DoctorUpdateToOneWithWhereWithoutInviteInput, Prisma.DoctorUpdateWithoutInviteInput>, Prisma.DoctorUncheckedUpdateWithoutInviteInput>
 }
 
 export type DoctorCreateNestedOneWithoutAvailabilityInput = {
@@ -587,10 +759,17 @@ export type DoctorCreateWithoutUserInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   availability?: Prisma.AvailabilityCreateNestedManyWithoutDoctorInput
   consultations?: Prisma.ConsultationCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorUncheckedCreateWithoutUserInput = {
@@ -602,10 +781,17 @@ export type DoctorUncheckedCreateWithoutUserInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   availability?: Prisma.AvailabilityUncheckedCreateNestedManyWithoutDoctorInput
   consultations?: Prisma.ConsultationUncheckedCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteUncheckedCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorCreateOrConnectWithoutUserInput = {
@@ -633,10 +819,17 @@ export type DoctorUpdateWithoutUserInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   availability?: Prisma.AvailabilityUpdateManyWithoutDoctorNestedInput
   consultations?: Prisma.ConsultationUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUpdateOneWithoutDoctorNestedInput
 }
 
 export type DoctorUncheckedUpdateWithoutUserInput = {
@@ -648,7 +841,118 @@ export type DoctorUncheckedUpdateWithoutUserInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  availability?: Prisma.AvailabilityUncheckedUpdateManyWithoutDoctorNestedInput
+  consultations?: Prisma.ConsultationUncheckedUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUncheckedUpdateOneWithoutDoctorNestedInput
+}
+
+export type DoctorCreateWithoutInviteInput = {
+  id?: string
+  bmdcNo: string
+  specialty: string
+  bio?: string
+  feePoisha?: number | null
+  channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
+  meetLink?: string | null
+  whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
+  isActive?: boolean
+  onboardedAt?: Date | string | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutDoctorInput
+  availability?: Prisma.AvailabilityCreateNestedManyWithoutDoctorInput
+  consultations?: Prisma.ConsultationCreateNestedManyWithoutDoctorInput
+}
+
+export type DoctorUncheckedCreateWithoutInviteInput = {
+  id?: string
+  userId: string
+  bmdcNo: string
+  specialty: string
+  bio?: string
+  feePoisha?: number | null
+  channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
+  meetLink?: string | null
+  whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
+  isActive?: boolean
+  onboardedAt?: Date | string | null
+  createdAt?: Date | string
+  availability?: Prisma.AvailabilityUncheckedCreateNestedManyWithoutDoctorInput
+  consultations?: Prisma.ConsultationUncheckedCreateNestedManyWithoutDoctorInput
+}
+
+export type DoctorCreateOrConnectWithoutInviteInput = {
+  where: Prisma.DoctorWhereUniqueInput
+  create: Prisma.XOR<Prisma.DoctorCreateWithoutInviteInput, Prisma.DoctorUncheckedCreateWithoutInviteInput>
+}
+
+export type DoctorUpsertWithoutInviteInput = {
+  update: Prisma.XOR<Prisma.DoctorUpdateWithoutInviteInput, Prisma.DoctorUncheckedUpdateWithoutInviteInput>
+  create: Prisma.XOR<Prisma.DoctorCreateWithoutInviteInput, Prisma.DoctorUncheckedCreateWithoutInviteInput>
+  where?: Prisma.DoctorWhereInput
+}
+
+export type DoctorUpdateToOneWithWhereWithoutInviteInput = {
+  where?: Prisma.DoctorWhereInput
+  data: Prisma.XOR<Prisma.DoctorUpdateWithoutInviteInput, Prisma.DoctorUncheckedUpdateWithoutInviteInput>
+}
+
+export type DoctorUpdateWithoutInviteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
+  specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  bio?: Prisma.StringFieldUpdateOperationsInput | string
+  feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
+  meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutDoctorNestedInput
+  availability?: Prisma.AvailabilityUpdateManyWithoutDoctorNestedInput
+  consultations?: Prisma.ConsultationUpdateManyWithoutDoctorNestedInput
+}
+
+export type DoctorUncheckedUpdateWithoutInviteInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
+  specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  bio?: Prisma.StringFieldUpdateOperationsInput | string
+  feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
+  meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   availability?: Prisma.AvailabilityUncheckedUpdateManyWithoutDoctorNestedInput
   consultations?: Prisma.ConsultationUncheckedUpdateManyWithoutDoctorNestedInput
@@ -663,10 +967,17 @@ export type DoctorCreateWithoutAvailabilityInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutDoctorInput
   consultations?: Prisma.ConsultationCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorUncheckedCreateWithoutAvailabilityInput = {
@@ -679,9 +990,16 @@ export type DoctorUncheckedCreateWithoutAvailabilityInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   consultations?: Prisma.ConsultationUncheckedCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteUncheckedCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorCreateOrConnectWithoutAvailabilityInput = {
@@ -709,10 +1027,17 @@ export type DoctorUpdateWithoutAvailabilityInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutDoctorNestedInput
   consultations?: Prisma.ConsultationUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUpdateOneWithoutDoctorNestedInput
 }
 
 export type DoctorUncheckedUpdateWithoutAvailabilityInput = {
@@ -725,9 +1050,16 @@ export type DoctorUncheckedUpdateWithoutAvailabilityInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consultations?: Prisma.ConsultationUncheckedUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUncheckedUpdateOneWithoutDoctorNestedInput
 }
 
 export type DoctorCreateWithoutConsultationsInput = {
@@ -739,10 +1071,17 @@ export type DoctorCreateWithoutConsultationsInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutDoctorInput
   availability?: Prisma.AvailabilityCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorUncheckedCreateWithoutConsultationsInput = {
@@ -755,9 +1094,16 @@ export type DoctorUncheckedCreateWithoutConsultationsInput = {
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: string | null
   whatsapp?: string | null
+  photoUrl?: string
+  qualifications?: string
+  experienceYears?: number
+  workplace?: string
+  languages?: Prisma.DoctorCreatelanguagesInput | string[]
   isActive?: boolean
+  onboardedAt?: Date | string | null
   createdAt?: Date | string
   availability?: Prisma.AvailabilityUncheckedCreateNestedManyWithoutDoctorInput
+  invite?: Prisma.DoctorInviteUncheckedCreateNestedOneWithoutDoctorInput
 }
 
 export type DoctorCreateOrConnectWithoutConsultationsInput = {
@@ -785,10 +1131,17 @@ export type DoctorUpdateWithoutConsultationsInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutDoctorNestedInput
   availability?: Prisma.AvailabilityUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUpdateOneWithoutDoctorNestedInput
 }
 
 export type DoctorUncheckedUpdateWithoutConsultationsInput = {
@@ -801,9 +1154,16 @@ export type DoctorUncheckedUpdateWithoutConsultationsInput = {
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
   meetLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   whatsapp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  qualifications?: Prisma.StringFieldUpdateOperationsInput | string
+  experienceYears?: Prisma.IntFieldUpdateOperationsInput | number
+  workplace?: Prisma.StringFieldUpdateOperationsInput | string
+  languages?: Prisma.DoctorUpdatelanguagesInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   availability?: Prisma.AvailabilityUncheckedUpdateManyWithoutDoctorNestedInput
+  invite?: Prisma.DoctorInviteUncheckedUpdateOneWithoutDoctorNestedInput
 }
 
 
@@ -856,11 +1216,18 @@ export type DoctorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   channels?: boolean
   meetLink?: boolean
   whatsapp?: boolean
+  photoUrl?: boolean
+  qualifications?: boolean
+  experienceYears?: boolean
+  workplace?: boolean
+  languages?: boolean
   isActive?: boolean
+  onboardedAt?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   availability?: boolean | Prisma.Doctor$availabilityArgs<ExtArgs>
   consultations?: boolean | Prisma.Doctor$consultationsArgs<ExtArgs>
+  invite?: boolean | Prisma.Doctor$inviteArgs<ExtArgs>
   _count?: boolean | Prisma.DoctorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["doctor"]>
 
@@ -874,7 +1241,13 @@ export type DoctorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   channels?: boolean
   meetLink?: boolean
   whatsapp?: boolean
+  photoUrl?: boolean
+  qualifications?: boolean
+  experienceYears?: boolean
+  workplace?: boolean
+  languages?: boolean
   isActive?: boolean
+  onboardedAt?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["doctor"]>
@@ -889,7 +1262,13 @@ export type DoctorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   channels?: boolean
   meetLink?: boolean
   whatsapp?: boolean
+  photoUrl?: boolean
+  qualifications?: boolean
+  experienceYears?: boolean
+  workplace?: boolean
+  languages?: boolean
   isActive?: boolean
+  onboardedAt?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["doctor"]>
@@ -904,15 +1283,22 @@ export type DoctorSelectScalar = {
   channels?: boolean
   meetLink?: boolean
   whatsapp?: boolean
+  photoUrl?: boolean
+  qualifications?: boolean
+  experienceYears?: boolean
+  workplace?: boolean
+  languages?: boolean
   isActive?: boolean
+  onboardedAt?: boolean
   createdAt?: boolean
 }
 
-export type DoctorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bmdcNo" | "specialty" | "bio" | "feePoisha" | "channels" | "meetLink" | "whatsapp" | "isActive" | "createdAt", ExtArgs["result"]["doctor"]>
+export type DoctorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bmdcNo" | "specialty" | "bio" | "feePoisha" | "channels" | "meetLink" | "whatsapp" | "photoUrl" | "qualifications" | "experienceYears" | "workplace" | "languages" | "isActive" | "onboardedAt" | "createdAt", ExtArgs["result"]["doctor"]>
 export type DoctorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   availability?: boolean | Prisma.Doctor$availabilityArgs<ExtArgs>
   consultations?: boolean | Prisma.Doctor$consultationsArgs<ExtArgs>
+  invite?: boolean | Prisma.Doctor$inviteArgs<ExtArgs>
   _count?: boolean | Prisma.DoctorCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DoctorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -928,6 +1314,7 @@ export type $DoctorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     user: Prisma.$UserPayload<ExtArgs>
     availability: Prisma.$AvailabilityPayload<ExtArgs>[]
     consultations: Prisma.$ConsultationPayload<ExtArgs>[]
+    invite: Prisma.$DoctorInvitePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -942,7 +1329,25 @@ export type $DoctorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     channels: $Enums.ConsultationChannel[]
     meetLink: string | null
     whatsapp: string | null
+    /**
+     * Public profile photo; empty shows initials.
+     */
+    photoUrl: string
+    /**
+     * Degrees as printed on a prescription pad, e.g. "MBBS, FCPS (Medicine)".
+     */
+    qualifications: string
+    experienceYears: number
+    /**
+     * Current hospital or chamber.
+     */
+    workplace: string
+    languages: string[]
     isActive: boolean
+    /**
+     * Set when the doctor finishes the setup wizard. Until then they are not listed or bookable.
+     */
+    onboardedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["doctor"]>
   composites: {}
@@ -1341,6 +1746,7 @@ export interface Prisma__DoctorClient<T, Null = never, ExtArgs extends runtime.T
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   availability<T extends Prisma.Doctor$availabilityArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Doctor$availabilityArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   consultations<T extends Prisma.Doctor$consultationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Doctor$consultationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConsultationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invite<T extends Prisma.Doctor$inviteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Doctor$inviteArgs<ExtArgs>>): Prisma.Prisma__DoctorInviteClient<runtime.Types.Result.GetResult<Prisma.$DoctorInvitePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1379,7 +1785,13 @@ export interface DoctorFieldRefs {
   readonly channels: Prisma.FieldRef<"Doctor", 'ConsultationChannel[]'>
   readonly meetLink: Prisma.FieldRef<"Doctor", 'String'>
   readonly whatsapp: Prisma.FieldRef<"Doctor", 'String'>
+  readonly photoUrl: Prisma.FieldRef<"Doctor", 'String'>
+  readonly qualifications: Prisma.FieldRef<"Doctor", 'String'>
+  readonly experienceYears: Prisma.FieldRef<"Doctor", 'Int'>
+  readonly workplace: Prisma.FieldRef<"Doctor", 'String'>
+  readonly languages: Prisma.FieldRef<"Doctor", 'String[]'>
   readonly isActive: Prisma.FieldRef<"Doctor", 'Boolean'>
+  readonly onboardedAt: Prisma.FieldRef<"Doctor", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Doctor", 'DateTime'>
 }
     
@@ -1827,6 +2239,25 @@ export type Doctor$consultationsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.ConsultationScalarFieldEnum | Prisma.ConsultationScalarFieldEnum[]
+}
+
+/**
+ * Doctor.invite
+ */
+export type Doctor$inviteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DoctorInvite
+   */
+  select?: Prisma.DoctorInviteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DoctorInvite
+   */
+  omit?: Prisma.DoctorInviteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DoctorInviteInclude<ExtArgs> | null
+  where?: Prisma.DoctorInviteWhereInput
 }
 
 /**

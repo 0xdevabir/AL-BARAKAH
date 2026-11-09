@@ -22,6 +22,7 @@ export {
 export { InfraModule } from './common/infra.module.js';
 export { PRISMA, REDIS } from './common/tokens.js';
 export { SessionService } from './common/session.service.js';
+export { MailService } from './common/mail.service.js';
 export { ENV, loadEnv, type Env } from './config/env.js';
 export { createNestApp } from './bootstrap.js';
 

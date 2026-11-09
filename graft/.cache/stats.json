@@ -10,8 +10,8 @@
   "totalCount": 3197,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-05T05:26:09.019Z",
-  "lastFile": "page.tsx"
+  "lastFile": "DoctorCard.tsx"
 }

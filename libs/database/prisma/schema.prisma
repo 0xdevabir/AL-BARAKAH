@@ -96,6 +96,7 @@ model User {
   consultations     Consultation[]
   ledger            RiderLedgerEntry[]
   auditLogs         AuditLog[]
+  doctorInvites     DoctorInvite[]
 }
 
 model OtpCode {
@@ -329,11 +330,48 @@ model Doctor {
   channels   ConsultationChannel[]
   meetLink   String?
   whatsapp   String?
+  /// Public profile photo; empty shows initials.
+  photoUrl        String   @default("")
+  /// Degrees as printed on a prescription pad, e.g. "MBBS, FCPS (Medicine)".
+  qualifications  String   @default("")
+  experienceYears Int      @default(0)
+  /// Current hospital or chamber.
+  workplace       String   @default("")
+  languages       String[] @default([])
   isActive   Boolean               @default(true)
+  /// Set when the doctor finishes the setup wizard. Until then they are not listed or bookable.
+  onboardedAt DateTime?
   createdAt  DateTime              @default(now())
 
   availability  Availability[]
   consultations Consultation[]
+  invite        DoctorInvite?
+}
+
+/// An admin's email invitation. The doctor verifies a phone from the link, and the Doctor row is created from it.
+model DoctorInvite {
+  id          String                @id @default(cuid())
+  email       String
+  name        String
+  bmdcNo      String
+  specialty   String
+  feePoisha   Int?
+  channels    ConsultationChannel[]
+  /// Only the hash is kept; the raw token lives in the emailed link.
+  tokenHash   String                @unique
+  expiresAt   DateTime
+  sentCount   Int                   @default(1)
+  lastSentAt  DateTime              @default(now())
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  invitedById String
+  invitedBy   User                  @relation(fields: [invitedById], references: [id])
+  doctorId    String?               @unique
+  doctor      Doctor?               @relation(fields: [doctorId], references: [id])
+  createdAt   DateTime              @default(now())
+
+  @@index([email])
+  @@index([bmdcNo])
 }
 
 model Availability {

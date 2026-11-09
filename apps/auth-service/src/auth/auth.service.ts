@@ -3,11 +3,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { PrismaClient } from '@albarakah/database';
 import type { Role } from '@albarakah/contracts';
 import { authenticator } from 'otplib';
-import { AppError, badRequest, unauthorized } from '@albarakah/nest-common';
+import { AppError, badRequest, conflict, unauthorized } from '@albarakah/nest-common';
 import { PRISMA } from '@albarakah/nest-common';
 import { type AuthUser, SessionService, TokenService } from '@albarakah/nest-common';
 import { ENV, type Env } from '@albarakah/nest-common';
-import { MailService } from '../notifications/mail.service.js';
+import { MailService } from '@albarakah/nest-common';
 import { SmsService } from '../notifications/sms.service.js';
 
 const OTP_TTL_MS = 5 * 60_000;
@@ -63,7 +63,8 @@ export class AuthService {
     await this.sms.send(phone, `Your BarakaBari OTP is ${code}`);
   }
 
-  async verifyOtp(phone: string, code: string, name?: string): Promise<Session> {
+  /** Checks and burns the latest SMS code for this phone. Throws OTP_INVALID on any mismatch. */
+  private async consumeOtp(phone: string, code: string): Promise<void> {
     const otp = await this.prisma.otpCode.findFirst({
       where: { phone, consumedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { createdAt: 'desc' },
@@ -81,6 +82,10 @@ export class AuthService {
     if (!timingSafeEqual(a, b)) throw invalid();
     const consumed = await this.prisma.otpCode.updateMany({ where: { id: otp.id, consumedAt: null }, data: { consumedAt: new Date() } });
     if (consumed.count === 0) throw invalid();
+  }
+
+  async verifyOtp(phone: string, code: string, name?: string): Promise<Session> {
+    await this.consumeOtp(phone, code);
 
     const user = await this.prisma.user.upsert({
       where: { phone },
@@ -156,6 +161,73 @@ export class AuthService {
         });
     if (!user.isActive) throw new AppError(403, 'ACCOUNT_DISABLED', 'This account has been disabled');
     return this.issue(user.id, false, randomBytes(16).toString('hex'));
+  }
+
+  // ---- doctor invitations: the emailed link proves the address, the SMS code binds the login phone ----
+
+  private async liveInvite(token: string) {
+    const inv = await this.prisma.doctorInvite.findUnique({
+      where: { tokenHash: sha256(token) },
+      include: { invitedBy: { select: { name: true } } },
+    });
+    if (!inv || inv.revokedAt) throw new AppError(404, 'INVITE_INVALID', 'This invitation link is not valid. Ask the BarakaBari team for a new one.');
+    if (inv.acceptedAt) throw new AppError(410, 'INVITE_USED', 'This invitation has already been used. Sign in with your mobile number instead.');
+    if (inv.expiresAt < new Date()) throw new AppError(410, 'INVITE_EXPIRED', 'This invitation has expired. Ask the BarakaBari team to send a new one.');
+    return inv;
+  }
+
+  async inviteInfo(token: string) {
+    const inv = await this.liveInvite(token);
+    return {
+      name: inv.name, email: inv.email, bmdcNo: inv.bmdcNo, specialty: inv.specialty, feePoisha: inv.feePoisha,
+      channels: inv.channels, expiresAt: inv.expiresAt, invitedBy: inv.invitedBy.name,
+    };
+  }
+
+  /** A doctor's login phone may be a customer account (it is upgraded) but never another staff account. */
+  private async assertPhoneFreeForDoctor(phone: string) {
+    const u = await this.prisma.user.findUnique({ where: { phone } });
+    if (u && u.role !== 'CUSTOMER') throw conflict('PHONE_IN_USE', 'This number already belongs to a staff account. Use a different number.');
+    if (u && !u.isActive) throw new AppError(403, 'ACCOUNT_DISABLED', 'This account has been disabled');
+  }
+
+  async requestInviteOtp(token: string, phone: string): Promise<void> {
+    await this.liveInvite(token);
+    await this.assertPhoneFreeForDoctor(phone);
+    await this.requestOtp(phone);
+  }
+
+  async acceptInvite(token: string, phone: string, code: string): Promise<Session> {
+    const inv = await this.liveInvite(token);
+    await this.assertPhoneFreeForDoctor(phone);
+    await this.consumeOtp(phone, code);
+    const emailOwner = await this.prisma.user.findUnique({ where: { email: inv.email } });
+
+    const userId = await this.prisma.$transaction(async (tx) => {
+      // Claiming first means two tabs racing on one link create one account.
+      const claimed = await tx.doctorInvite.updateMany({ where: { id: inv.id, acceptedAt: null, revokedAt: null }, data: { acceptedAt: new Date() } });
+      if (claimed.count === 0) throw new AppError(410, 'INVITE_USED', 'This invitation has already been used. Sign in with your mobile number instead.');
+      if (await tx.doctor.findUnique({ where: { bmdcNo: inv.bmdcNo } })) throw conflict('BMDC_IN_USE', 'This BMDC number is already registered. Contact the BarakaBari team.');
+      const existing = await tx.user.findUnique({ where: { phone } });
+      if (existing && existing.role !== 'CUSTOMER') throw conflict('PHONE_IN_USE', 'This number already belongs to a staff account. Use a different number.');
+      // The invite email becomes the account email unless another account already owns it.
+      const email = !emailOwner || emailOwner.phone === phone ? inv.email : undefined;
+      const user = existing
+        ? await tx.user.update({ where: { id: existing.id }, data: { role: 'DOCTOR', name: inv.name, ...(email && !existing.email ? { email } : {}) } })
+        : await tx.user.create({ data: { phone, name: inv.name, role: 'DOCTOR', ...(email ? { email } : {}) } });
+      const doctor = await tx.doctor.create({
+        data: {
+          userId: user.id, bmdcNo: inv.bmdcNo, specialty: inv.specialty, feePoisha: inv.feePoisha, channels: inv.channels,
+          languages: ['Bangla', 'English'], whatsapp: inv.channels.includes('WHATSAPP') ? phone : null,
+        },
+      });
+      await tx.doctorInvite.update({ where: { id: inv.id }, data: { doctorId: doctor.id } });
+      await tx.auditLog.create({ data: { actorId: user.id, action: 'doctor.invite.accept', entity: 'Doctor', entityId: doctor.id } });
+      return user.id;
+    });
+    // A customer session from before the upgrade carries the old role.
+    await this.sessions.revokeAllForUser(userId);
+    return this.issue(userId, false, randomBytes(16).toString('hex'));
   }
 
   /** Only reachable when DEMO_LOGIN is on. The demo admin skips TOTP so testers get straight in. */

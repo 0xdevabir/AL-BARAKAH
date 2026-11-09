@@ -411,6 +411,7 @@ export const ModelName = {
   OrderEvent: 'OrderEvent',
   Payment: 'Payment',
   Doctor: 'Doctor',
+  DoctorInvite: 'DoctorInvite',
   Availability: 'Availability',
   Consultation: 'Consultation',
   RiderLedgerEntry: 'RiderLedgerEntry',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "otpCode" | "refreshToken" | "category" | "medicine" | "batch" | "zone" | "address" | "order" | "orderItem" | "orderAllocation" | "orderEvent" | "payment" | "doctor" | "availability" | "consultation" | "riderLedgerEntry" | "setting" | "auditLog"
+    modelProps: "user" | "otpCode" | "refreshToken" | "category" | "medicine" | "batch" | "zone" | "address" | "order" | "orderItem" | "orderAllocation" | "orderEvent" | "payment" | "doctor" | "doctorInvite" | "availability" | "consultation" | "riderLedgerEntry" | "setting" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1471,6 +1472,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DoctorInvite: {
+      payload: Prisma.$DoctorInvitePayload<ExtArgs>
+      fields: Prisma.DoctorInviteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DoctorInviteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DoctorInviteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>
+        }
+        findFirst: {
+          args: Prisma.DoctorInviteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DoctorInviteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>
+        }
+        findMany: {
+          args: Prisma.DoctorInviteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>[]
+        }
+        create: {
+          args: Prisma.DoctorInviteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>
+        }
+        createMany: {
+          args: Prisma.DoctorInviteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DoctorInviteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>[]
+        }
+        delete: {
+          args: Prisma.DoctorInviteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>
+        }
+        update: {
+          args: Prisma.DoctorInviteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>
+        }
+        deleteMany: {
+          args: Prisma.DoctorInviteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DoctorInviteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DoctorInviteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>[]
+        }
+        upsert: {
+          args: Prisma.DoctorInviteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DoctorInvitePayload>
+        }
+        aggregate: {
+          args: Prisma.DoctorInviteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDoctorInvite>
+        }
+        groupBy: {
+          args: Prisma.DoctorInviteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DoctorInviteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DoctorInviteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DoctorInviteCountAggregateOutputType> | number
+        }
+      }
+    }
     Availability: {
       payload: Prisma.$AvailabilityPayload<ExtArgs>
       fields: Prisma.AvailabilityFieldRefs
@@ -2093,11 +2168,39 @@ export const DoctorScalarFieldEnum = {
   channels: 'channels',
   meetLink: 'meetLink',
   whatsapp: 'whatsapp',
+  photoUrl: 'photoUrl',
+  qualifications: 'qualifications',
+  experienceYears: 'experienceYears',
+  workplace: 'workplace',
+  languages: 'languages',
   isActive: 'isActive',
+  onboardedAt: 'onboardedAt',
   createdAt: 'createdAt'
 } as const
 
 export type DoctorScalarFieldEnum = (typeof DoctorScalarFieldEnum)[keyof typeof DoctorScalarFieldEnum]
+
+
+export const DoctorInviteScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  bmdcNo: 'bmdcNo',
+  specialty: 'specialty',
+  feePoisha: 'feePoisha',
+  channels: 'channels',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  sentCount: 'sentCount',
+  lastSentAt: 'lastSentAt',
+  acceptedAt: 'acceptedAt',
+  revokedAt: 'revokedAt',
+  invitedById: 'invitedById',
+  doctorId: 'doctorId',
+  createdAt: 'createdAt'
+} as const
+
+export type DoctorInviteScalarFieldEnum = (typeof DoctorInviteScalarFieldEnum)[keyof typeof DoctorInviteScalarFieldEnum]
 
 
 export const AvailabilityScalarFieldEnum = {
@@ -2604,6 +2707,7 @@ export type GlobalOmitConfig = {
   orderEvent?: Prisma.OrderEventOmit
   payment?: Prisma.PaymentOmit
   doctor?: Prisma.DoctorOmit
+  doctorInvite?: Prisma.DoctorInviteOmit
   availability?: Prisma.AvailabilityOmit
   consultation?: Prisma.ConsultationOmit
   riderLedgerEntry?: Prisma.RiderLedgerEntryOmit
