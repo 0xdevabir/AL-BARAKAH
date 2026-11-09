@@ -43,10 +43,14 @@ export async function rxCart(prisma: PrismaClient, rx: EPrescription) {
     const perPack = piecesPerPack(m.form, m.packSize);
     const s = stockOf.get(m.id) ?? { packs: 0, loose: 0 };
     let { unit, qty, pieces } = rxCartQty(item.frequency, item.days, perPack);
-    const looseOk = perPack > 0 && (s.packs > 0 || s.loose >= qty);
-    // Out of whole packs but loose pieces left: buy the course loose when it fits.
-    if (unit === 'PACK' && s.packs < qty && perPack && pieces > 0 && pieces <= 50 && s.loose >= pieces) ({ unit, qty } = { unit: 'PIECE', qty: pieces });
-    const inStock = unit === 'PACK' ? s.packs >= qty : looseOk;
+    // Loose pieces come from opened strips first, then by opening whole packs (as allocation does).
+    const piecesAvailable = perPack ? s.loose + s.packs * perPack : 0;
+    // Not enough whole packs, but the exact course is there loose: buy it loose.
+    if (unit === 'PACK' && s.packs < qty && perPack && pieces > 0 && pieces <= 50 && piecesAvailable >= pieces) {
+      unit = 'PIECE';
+      qty = pieces;
+    }
+    const inStock = unit === 'PACK' ? s.packs >= qty : piecesAvailable >= qty;
     return {
       prescribed: item.medicine, dose: item.dose, frequency: item.frequency, days: item.days,
       medicine: { ...m, piecesPerPack: perPack, piecePricePoisha: perPack ? piecePricePoisha(m.pricePoisha, perPack) : 0 },

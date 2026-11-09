@@ -15,7 +15,11 @@ const dayKey = (d: string | Date) => dayKeyFmt.format(new Date(d));
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, lines, subtotal } = useCart();
+  const { cart, lines, subtotal, rx } = useCart();
+  // Rx medicines in the cart that the linked e-prescription does not cover still need an upload.
+  const rxLines = lines.filter((l) => l.isRx);
+  const covered = rxLines.filter((l) => rx?.medicineIds.includes(l.id));
+  const needsUpload = rxLines.length > covered.length;
   const [step, setStep] = useState(0);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -119,6 +123,7 @@ export default function CheckoutPage() {
         paymentMethod,
         ...(type === 'NORMAL' ? { slotStart } : {}),
         ...(prescriptionKey ? { prescriptionKey } : {}),
+        ...(rx && covered.length ? { consultationId: rx.consultationId } : {}),
         ...(notes.trim() ? { notes: notes.trim() } : {}),
         items: lines.map((l) => ({ medicineId: l.id, qty: l.qty, unit: l.unit ?? 'PACK' })),
       });
@@ -269,17 +274,34 @@ export default function CheckoutPage() {
               { value: 'BKASH', label: 'bKash' },
             ]}
           />
-          <label className="field">
-            <span>Prescription</span>
-            {prescriptionKey ? (
-              <span className="chip">Added</span>
-            ) : (
-              <>
-                <input className="input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={uploading} onChange={(e) => void upload(e)} />
-                <small className="muted">Required for Rx medicines. JPEG, PNG, WebP or PDF under 8 MB.</small>
-              </>
-            )}
-          </label>
+          {rx && covered.length ? (
+            <div className="notice row between" style={{ gap: 10 }}>
+              <span>
+                <strong>℞ Covered by {rx.doctor}&rsquo;s prescription</strong>
+                <span className="muted small" style={{ display: 'block' }}>
+                  {covered.length} prescription medicine{covered.length === 1 ? '' : 's'} · consultation <span className="mono">{rx.code}</span>
+                </span>
+              </span>
+              <span className="chip ok">Verified</span>
+            </div>
+          ) : null}
+          {needsUpload || !rxLines.length ? (
+            <label className="field">
+              <span>Prescription</span>
+              {prescriptionKey ? (
+                <span className="chip">Added</span>
+              ) : (
+                <>
+                  <input className="input" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" disabled={uploading} onChange={(e) => void upload(e)} />
+                  <small className="muted">
+                    {covered.length
+                      ? `Needed for ${rxLines.filter((l) => !covered.includes(l)).map((l) => l.name).join(', ')}, which ${rxLines.length - covered.length === 1 ? 'is' : 'are'} not on your doctor's prescription.`
+                      : 'Required for Rx medicines. JPEG, PNG, WebP or PDF under 8 MB.'}
+                  </small>
+                </>
+              )}
+            </label>
+          ) : null}
           <label className="field">
             <span>Notes</span>
             <textarea className="input" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={300} />

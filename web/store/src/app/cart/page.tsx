@@ -10,7 +10,7 @@ import { lineKey } from '@/lib/cart';
 import { useCart } from '@/lib/useCart';
 
 export default function CartPage() {
-  const { cart, lines, subtotal } = useCart();
+  const { cart, lines, subtotal, rx } = useCart();
   const router = useRouter();
   const [going, setGoing] = useState(false);
 
@@ -36,6 +36,12 @@ export default function CartPage() {
         </div>
       ) : (
         <>
+          {rx ? (
+            <div className="notice row between" style={{ gap: 10, marginBottom: 12 }}>
+              <span>℞ From {rx.doctor}&rsquo;s prescription · <span className="mono">{rx.code}</span></span>
+              <button type="button" className="btn small ghost" onClick={() => cart.setRx(null)}>Unlink</button>
+            </div>
+          ) : null}
           <div className="group">
             {lines.map((l) => (
               <div key={lineKey(l)}>
