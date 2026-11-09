@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Inject, Injectable, Module, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { availabilitySchema, bookConsultationSchema, consultationStatusSchema, doctorProfileSchema, doctorSchema, staffActiveSchema, staffSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
-import { consultationSlots } from '@albarakah/domain';
+import { consultationSlots, RX_VALID_DAYS } from '@albarakah/domain';
 import type { z } from 'zod';
 import { type AuthUser, CurrentUser, MailService, Public, RequirePermission, SessionService } from '@albarakah/nest-common';
 import { badRequest, conflict, notFound, ZodPipe } from '@albarakah/nest-common';
@@ -10,6 +10,7 @@ import { shortCode } from '../orders/orders.service.js';
 import { SettingsModule, SettingsService } from '../settings/settings.module.js';
 import { StorageModule } from '../storage/storage.module.js';
 import { DoctorOnboardingController } from './doctor-onboarding.controller.js';
+import { readRx, rxCart } from './rx.js';
 
 const HOLD_MS = 10 * 60_000;
 const BOOKING_DAYS = 14;
@@ -126,20 +127,38 @@ export class ConsultationsController {
   async mineOne(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     const c = await this.prisma.consultation.findFirst({
       where: { id, customerId: u.id },
-      include: { doctor: { select: { specialty: true, meetLink: true, whatsapp: true, user: { select: { name: true } } } } },
+      include: {
+        doctor: { select: { specialty: true, meetLink: true, whatsapp: true, bmdcNo: true, qualifications: true, workplace: true, user: { select: { name: true } } } },
+        orders: { select: { id: true, code: true, status: true, createdAt: true }, orderBy: { createdAt: 'desc' }, take: 5 },
+      },
     });
     if (!c) throw notFound('Booking not found');
     // The call details are only revealed once the booking has been paid for.
     const paid = ['CONFIRMED', 'COMPLETED'].includes(c.status);
+    const writtenAt = c.prescription ? (c.prescribedAt ?? c.updatedAt) : null;
     return {
       ...c,
+      rxValidUntil: writtenAt && c.status === 'COMPLETED' ? new Date(writtenAt.getTime() + RX_VALID_DAYS * 86_400_000) : null,
       doctor: {
         name: c.doctor.user.name,
         specialty: c.doctor.specialty,
+        bmdcNo: c.doctor.bmdcNo,
+        qualifications: c.doctor.qualifications,
+        workplace: c.doctor.workplace,
         meetLink: paid && c.channel === 'GOOGLE_MEET' ? c.doctor.meetLink : null,
         whatsapp: paid && c.channel === 'WHATSAPP' ? c.doctor.whatsapp : null,
       },
     };
+  }
+
+  /** The prescription as ready-to-add cart lines: matched catalogue medicine, course quantity, stock. */
+  @RequirePermission('consultation:book')
+  @Get('consultations/:id/rx-cart')
+  async rxCartFor(@CurrentUser() u: AuthUser, @Param('id') id: string) {
+    const c = await this.prisma.consultation.findFirst({ where: { id, customerId: u.id, status: 'COMPLETED' }, select: { prescription: true } });
+    const rx = readRx(c?.prescription);
+    if (!rx) throw notFound('No prescription on this consultation');
+    return { items: await rxCart(this.prisma, rx) };
   }
 
   // ---- doctor portal: only their own bookings ----
@@ -221,7 +240,7 @@ export class ConsultationsController {
     const d = await this.doctorFor(u.id);
     const r = await this.prisma.consultation.updateMany({
       where: { id, doctorId: d.id, status: 'CONFIRMED', startsAt: { lte: new Date(Date.now() + 15 * 60_000) } },
-      data: { status: body.status, notes: body.notes, ...(body.status === 'COMPLETED' && body.prescription ? { prescription: body.prescription } : {}) },
+      data: { status: body.status, notes: body.notes, ...(body.status === 'COMPLETED' && body.prescription ? { prescription: body.prescription, prescribedAt: new Date() } : {}) },
     });
     if (r.count === 0) throw conflict('NOT_YET', 'This booking cannot be closed yet — it has not started, or it is already closed');
     return { ok: true };

@@ -16,6 +16,8 @@ export interface AdminOrderRow {
   paymentMethod: 'COD' | 'BKASH';
   paymentStatus: string;
   prescriptionKey: string | null;
+  /** Set when an e-prescription from a consultation here authorised the Rx medicines. */
+  consultationId: string | null;
   notes: string | null;
   addressSnapshot: AddressSnap;
   items: { id: string; nameSnapshot: string; qty: number; unitPricePoisha: number }[];
@@ -44,6 +46,10 @@ export interface AdminOrderDetail extends Omit<AdminOrderRow, 'items' | 'custome
   rider: { id: string; name: string; phone: string } | null;
   payments: { id: string; status: string; amountPoisha: number; trxId: string | null; createdAt: string }[];
   actors: { id: string; name: string; role: string }[];
+  consultation: {
+    id: string; code: string; startsAt: string; prescribedAt: string | null; prescription: Rx | null;
+    doctor: { bmdcNo: string; specialty: string; user: { name: string } };
+  } | null;
 }
 
 export interface RiderOption { id: string; name: string; phone: string; activeJobs: number; online: boolean }
@@ -69,5 +75,6 @@ export interface Dashboard {
 export interface LedgerEntry { id: string; type: 'EARNING' | 'COD_COLLECTED' | 'SETTLEMENT'; amountPoisha: number; note: string | null; createdAt: string; order: { code: string } | null }
 export interface Ledger { earnedPoisha: number; codCollectedPoisha: number; settledPoisha: number; cashHeldPoisha: number; entries: LedgerEntry[] }
 
-export interface RxItem { medicine: string; dose: string; frequency: string; days: number; instructions: string }
+/** medicineId: picked from the pharmacy catalogue, so the patient can order exactly it. */
+export interface RxItem { medicine: string; medicineId?: string; dose: string; frequency: string; days: number; instructions: string }
 export interface Rx { diagnosis: string; items: RxItem[]; advice: string; followUpDays: number }

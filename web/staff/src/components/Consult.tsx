@@ -361,6 +361,7 @@ function Composer({ b, me, lastRx, onDone }: { b: Booking; me?: DoctorMe; lastRx
           <div className="rx-item-head span">
             <span className="rx-n">{n + 1}</span>
             <span className="grow" />
+            {it.medicineId ? <span className="chip ok small" title="The patient can order this exact medicine in one tap">In pharmacy</span> : null}
             {n > 0 ? <button type="button" className="bare-btn muted" aria-label="Move up" onClick={() => move(n, -1)}>↑</button> : null}
             {n < rx.items.length - 1 ? <button type="button" className="bare-btn muted" aria-label="Move down" onClick={() => move(n, 1)}>↓</button> : null}
             <button type="button" className="bare-btn muted" aria-label="Remove medicine" onClick={() => removeItem(n)}>✕</button>
@@ -368,8 +369,8 @@ function Composer({ b, me, lastRx, onDone }: { b: Booking; me?: DoctorMe; lastRx
           <MedicineInput
             value={it.medicine}
             index={n}
-            onChange={(v) => setItem(n, { medicine: v })}
-            onPick={(m) => setItem(n, { medicine: m.name, dose: it.dose || (m.strength ?? '') })}
+            onChange={(v) => setItem(n, { medicine: v, medicineId: undefined })}
+            onPick={(m) => setItem(n, { medicine: m.name, medicineId: m.id, dose: it.dose || (m.strength ?? '') })}
           />
           <input className="input" placeholder="Dose (20 mg)" maxLength={60} value={it.dose} onChange={(e) => setItem(n, { dose: e.target.value })} />
           <input className="input" inputMode="numeric" placeholder="Days" aria-label="Days" value={it.days || ''} onChange={(e) => setItem(n, { days: Math.min(365, Number(e.target.value.replace(/\D/g, '')) || 0) })} />

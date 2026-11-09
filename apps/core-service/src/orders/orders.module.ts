@@ -292,6 +292,10 @@ export class OrdersController {
         customer: { select: { id: true, name: true, phone: true, createdAt: true, _count: { select: { orders: true } } } },
         rider: { select: { id: true, name: true, phone: true } },
         payments: { orderBy: { createdAt: 'desc' }, select: { id: true, status: true, amountPoisha: true, trxId: true, createdAt: true } },
+        // The e-prescription that authorised the Rx medicines, so the pharmacist can check it before packing.
+        consultation: {
+          select: { id: true, code: true, startsAt: true, prescribedAt: true, prescription: true, doctor: { select: { bmdcNo: true, specialty: true, user: { select: { name: true } } } } },
+        },
       },
     });
     if (!o) throw notFound('Order not found');

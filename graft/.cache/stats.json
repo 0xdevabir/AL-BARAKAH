@@ -1,17 +1,17 @@
 {
-  "nodeCount": 3197,
-  "edgeCount": 4720,
+  "nodeCount": 3439,
+  "edgeCount": 5114,
   "languages": [
     "java",
     "javascript",
     "tsx",
     "typescript"
   ],
-  "totalCount": 3197,
+  "totalCount": 3439,
   "readyCount": 0,
   "staleCount": 0,
   "dirty": true,
   "syncing": false,
-  "syncedAt": "2026-11-05T05:26:09.019Z",
-  "lastFile": "orders.service.ts"
+  "syncedAt": "2026-11-09T17:18:09.407Z",
+  "lastFile": "cart.ts"
 }

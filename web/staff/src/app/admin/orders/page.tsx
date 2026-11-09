@@ -193,7 +193,7 @@ function OrdersBoard() {
                     <span className="row" style={{ gap: 8 }}>
                       <strong className="mono">{o.code}</strong>
                       {o.type === 'EMERGENCY' ? <span className="chip bad">Emergency</span> : null}
-                      {o.prescriptionKey ? <span className="chip warn">Rx</span> : null}
+                      {o.consultationId ? <span className="chip ok" title="Covered by an e-prescription from a consultation here">e-Rx</span> : o.prescriptionKey ? <span className="chip warn">Rx</span> : null}
                     </span>
                     <span className="cell-sub">
                       {o.customer.name} · {o.items.reduce((n, i) => n + i.qty, 0)} items · {o.addressSnapshot.zone ?? o.addressSnapshot.line}
@@ -406,6 +406,32 @@ function OrderDetail({ id, onDone }: { id: string; onDone: () => void }) {
           </button>
         ) : null}
       </div>
+
+      {order.consultation?.prescription ? (
+        <>
+          <p className="group-label">E-prescription</p>
+          <div className="panel stack" style={{ gap: 8 }}>
+            <div className="row between" style={{ gap: 8 }}>
+              <span>
+                <strong>{order.consultation.doctor.user.name}</strong>
+                <span className="muted small" style={{ display: 'block' }}>
+                  {order.consultation.doctor.specialty} · BMDC {order.consultation.doctor.bmdcNo}
+                </span>
+              </span>
+              <span className="chip ok mono">{order.consultation.code}</span>
+            </div>
+            <span className="muted small">Written {fmtWhen(order.consultation.prescribedAt ?? order.consultation.startsAt)}</span>
+            {order.consultation.prescription.diagnosis ? <span className="small">Diagnosis: <strong>{order.consultation.prescription.diagnosis}</strong></span> : null}
+            <ol className="small" style={{ margin: 0, paddingLeft: 18 }}>
+              {order.consultation.prescription.items.map((i, n) => (
+                <li key={n}>
+                  <strong>{i.medicine}</strong> {i.dose} — {[i.frequency, i.days ? `${i.days} days` : ''].filter(Boolean).join(' × ')}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </>
+      ) : null}
 
       {order.rating ? (
         <>

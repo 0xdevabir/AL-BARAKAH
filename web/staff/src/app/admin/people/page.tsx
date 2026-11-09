@@ -201,50 +201,276 @@ function AddStaff({ role, onDone }: { role: 'ADMIN' | 'RIDER'; onDone: () => voi
   );
 }
 
-function AddDoctor({ onDone }: { onDone: () => void }) {
-  const [f, setF] = useState({ name: '', phone: '', bmdcNo: '', specialty: '', bio: '', fee: '', meet: true, wa: false, meetLink: '', whatsapp: '' });
+const CHANNELS: Channel[] = ['GOOGLE_MEET', 'WHATSAPP'];
+
+/** The doctor pipeline: open invitations first, then everyone who has an account, grouped by stage. */
+function DoctorsView({ docs, invites, onOpen, onToggle }: {
+  docs: DoctorRow[]; invites: Invite[]; onOpen: (d: DoctorRow) => void; onToggle: (d: DoctorRow, v: boolean) => void;
+}) {
+  const by = (s: DoctorStage) => docs.filter((d) => stageOf(d) === s);
+  const live = by('live');
+  const setup = by('setup');
+  const hidden = by('hidden');
+  const pending = invites.filter((i) => i.status === 'PENDING').length;
+  const group = (label: string, rows: DoctorRow[]) =>
+    rows.length ? (
+      <>
+        <p className="group-label">{label} · {rows.length}</p>
+        <div className="group cv">
+          {rows.map((d) => <DoctorItem key={d.id} d={d} onOpen={() => onOpen(d)} onToggle={(v) => onToggle(d, v)} />)}
+        </div>
+      </>
+    ) : null;
+  return (
+    <div className="stack">
+      <div className="stats">
+        <StatTile label="Live" value={String(live.length)} />
+        <StatTile label="Setting up" value={String(setup.length)} tone={setup.length ? 'warn' : undefined} />
+        <StatTile label="Invited" value={String(pending)} />
+        <StatTile label="Hidden" value={String(hidden.length)} />
+      </div>
+      {invites.length ? (
+        <>
+          <p className="group-label">Invitations · {invites.length}</p>
+          <div className="group cv">
+            {invites.map((i) => <InviteItem key={i.id} i={i} />)}
+          </div>
+        </>
+      ) : null}
+      {group('Setting up', setup)}
+      {group('Live', live)}
+      {group('Hidden', hidden)}
+    </div>
+  );
+}
+
+function DoctorItem({ d, onOpen, onToggle }: { d: DoctorRow; onOpen: () => void; onToggle: (v: boolean) => void }) {
+  const stage = stageOf(d);
+  return (
+    <div>
+      <button className="row grow bare-btn" onClick={onOpen}>
+        <DoctorPhoto d={{ id: d.id, name: d.user.name, photoUrl: d.photoUrl }} size={40} />
+        <span className="cell-main">
+          <strong>{d.user.name}</strong>
+          <span className="cell-sub">
+            {d.specialty} · BMDC {d.bmdcNo}
+            {stage === 'setup' ? ` · ${d.availability.length ? 'hours set' : 'no hours yet'}` : ` · ${d._count.consultations} consults`}
+          </span>
+        </span>
+        <span className={`inv-badge ${stage}`}>{STAGE_LABEL[stage]}</span>
+      </button>
+      {stage !== 'setup' ? <Switch label={`${d.user.name} bookable`} checked={d.isActive} onChange={onToggle} /> : null}
+    </div>
+  );
+}
+
+function InviteItem({ i }: { i: Invite }) {
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const channels = [...(f.meet ? ['GOOGLE_MEET'] : []), ...(f.wa ? ['WHATSAPP'] : [])];
-    if (!channels.length) return toast('Pick at least one channel', 'bad');
-    const feePoisha = f.fee ? tkToPoisha(f.fee) : undefined;
-    if (feePoisha === null) return toast('Enter the fee like 500', 'bad');
+  const [link, setLink] = useState<string | null>(null);
+  const expired = i.status === 'EXPIRED';
+  const refresh = () => invalidate('/admin/doctors/invites');
+
+  async function resend() {
     setBusy(true);
     try {
-      await api.post('/admin/doctors', {
-        name: f.name, phone: f.phone, bmdcNo: f.bmdcNo, specialty: f.specialty, bio: f.bio, channels,
-        ...(feePoisha !== undefined ? { feePoisha } : {}),
-        ...(f.meet && f.meetLink ? { meetLink: f.meetLink } : {}),
-        ...(f.wa && f.whatsapp ? { whatsapp: f.whatsapp } : {}),
-      });
-      toast(`Dr ${f.name} onboarded`);
-      invalidate('/admin/doctors');
-      invalidate('/admin/staff');
-      onDone();
+      const r = await api.post<InviteSent>(`/admin/doctors/invites/${i.id}/resend`);
+      setLink(r.link);
+      toast(r.emailed && !r.consoleEmail ? `New invitation emailed to ${i.email}` : 'New link ready. Copy it and send it to the doctor.');
+      refresh();
     } catch (err) {
       toast(message(err), 'bad');
     } finally {
       setBusy(false);
     }
   }
+  async function revoke() {
+    if (!(await confirmAction({ title: `Cancel ${i.name}’s invitation?`, message: 'The link stops working straight away. You can invite them again later.', confirm: 'Cancel invitation', destructive: true }))) return;
+    setBusy(true);
+    try {
+      await api.del(`/admin/doctors/invites/${i.id}`);
+      toast('Invitation cancelled');
+      refresh();
+    } catch (err) {
+      toast(message(err), 'bad');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="stack" style={{ alignItems: 'stretch', gap: 8 }}>
+      <div className="inv-row">
+        <span className="avatar">{initials(i.name)}</span>
+        <span className="cell-main">
+          <strong>{i.name}</strong>
+          <span className="cell-sub">
+            {i.email} · {i.specialty}
+            {' · '}
+            {expired ? `expired ${fmtWhen(i.expiresAt)}` : `sent ${i.sentCount}× · until ${fmtWhen(i.expiresAt)}`}
+          </span>
+        </span>
+        <span className={`inv-badge ${expired ? 'expired' : 'pending'}`}>{expired ? 'Expired' : 'Invited'}</span>
+      </div>
+      {link ? (
+        <div className="inv-link">
+          <span className="grow mono">{link}</span>
+          <button type="button" className="btn small" onClick={() => void copy(link)}>Copy</button>
+        </div>
+      ) : null}
+      <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+        <button type="button" className="btn ghost small" disabled={busy} onClick={() => void revoke()}>Cancel</button>
+        <button type="button" className="btn small" disabled={busy} onClick={() => void resend()}>{expired ? 'Send a new link' : 'Resend'}</button>
+      </div>
+    </div>
+  );
+}
+
+function ChannelPicker({ value, onChange }: { value: Channel[]; onChange: (v: Channel[]) => void }) {
+  return (
+    <div className="group span">
+      {CHANNELS.map((c) => (
+        <div key={c}>
+          <span className="grow">{CHANNEL[c]}</span>
+          <Switch label={CHANNEL[c]} checked={value.includes(c)} onChange={(on) => onChange(on ? [...value, c] : value.filter((x) => x !== c))} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Superadmins invite by email. The doctor confirms their own phone and fills in their own profile. */
+function InviteDoctor({ onDone }: { onDone: () => void }) {
+  const [f, setF] = useState({ email: '', name: '', bmdcNo: '', specialty: '', fee: '' });
+  const [channels, setChannels] = useState<Channel[]>(['GOOGLE_MEET']);
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState<(InviteSent & { email: string; name: string }) | null>(null);
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!channels.length) return toast('Pick at least one way to consult', 'bad');
+    const feePoisha = f.fee.trim() ? tkToPoisha(f.fee) : undefined;
+    if (feePoisha === null) return toast('Enter the fee like 500', 'bad');
+    setBusy(true);
+    try {
+      const r = await api.post<InviteSent>('/admin/doctors/invites', {
+        email: f.email.trim(), name: f.name.trim(), bmdcNo: f.bmdcNo.trim(), specialty: f.specialty.trim(), channels,
+        ...(feePoisha !== undefined ? { feePoisha } : {}),
+      });
+      setSent({ ...r, email: f.email.trim(), name: f.name.trim() });
+      invalidate('/admin/doctors/invites');
+    } catch (err) {
+      toast(message(err), 'bad');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (sent) {
+    const mailed = sent.emailed && !sent.consoleEmail;
+    return (
+      <div className="stack">
+        <div className="join-hero">
+          <span style={{ fontSize: '2rem' }} aria-hidden="true">{mailed ? '✉️' : '🔗'}</span>
+          <strong style={{ fontSize: '1.1rem' }}>{mailed ? `Invitation sent to ${sent.name}` : 'Invitation ready'}</strong>
+          <span className="muted small">
+            {mailed
+              ? `We emailed ${sent.email} a link to set up their account. It works for 7 days.`
+              : sent.consoleEmail
+                ? 'Email isn’t connected on this server, so nothing was sent. Copy the link and send it to the doctor yourself.'
+                : `We couldn’t email ${sent.email}. Copy the link and send it to the doctor yourself.`}
+          </span>
+        </div>
+        <div className="inv-link">
+          <span className="grow mono">{sent.link}</span>
+          <button type="button" className="btn small" onClick={() => void copy(sent.link)}>Copy</button>
+        </div>
+        <p className="muted small">Only share this link with the doctor. Anyone who opens it can claim the account.</p>
+        <div className="row" style={{ gap: 8 }}>
+          <button type="button" className="btn ghost grow" onClick={() => { setSent(null); setF({ email: '', name: '', bmdcNo: '', specialty: '', fee: '' }); }}>Invite another</button>
+          <button type="button" className="btn primary grow" onClick={onDone}>Done</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form className="form-grid two" onSubmit={(e) => void submit(e)}>
-      <label className="field span">Full name<input className="input" required value={f.name} onChange={set('name')} /></label>
-      <label className="field">Mobile number<input className="input" inputMode="tel" required value={f.phone} onChange={set('phone')} /></label>
+      <p className="muted small span">The doctor gets an email with a link. They confirm their mobile number, add their photo, qualifications and hours, then go live.</p>
+      <label className="field span">Email<input className="input" type="email" required autoComplete="off" placeholder="doctor@example.com" value={f.email} onChange={set('email')} /></label>
+      <label className="field span">Full name<input className="input" required minLength={2} placeholder="Dr. Ayesha Rahman" value={f.name} onChange={set('name')} /></label>
       <label className="field">BMDC no.<input className="input" required value={f.bmdcNo} onChange={set('bmdcNo')} /></label>
       <label className="field">Specialty<input className="input" required placeholder="Medicine" value={f.specialty} onChange={set('specialty')} /></label>
-      <label className="field">Fee (Tk)<small>Blank = store default</small><input className="input" inputMode="decimal" value={f.fee} onChange={set('fee')} /></label>
-      <label className="field span">Short bio<textarea className="input" value={f.bio} onChange={set('bio')} /></label>
-      <div className="group span">
-        <div><span className="grow">Google Meet</span><Switch label="Google Meet" checked={f.meet} onChange={(v) => setF({ ...f, meet: v })} /></div>
-        {f.meet ? <div><input className="input" type="url" required placeholder="https://meet.google.com/…" value={f.meetLink} onChange={set('meetLink')} /></div> : null}
-        <div><span className="grow">WhatsApp</span><Switch label="WhatsApp" checked={f.wa} onChange={(v) => setF({ ...f, wa: v })} /></div>
-        {f.wa ? <div><input className="input" inputMode="tel" required placeholder="WhatsApp number" value={f.whatsapp} onChange={set('whatsapp')} /></div> : null}
-      </div>
-      <button className="btn primary block span" disabled={busy}>{busy ? 'Saving…' : 'Onboard doctor'}</button>
+      <label className="field span">Fee (Tk)<small>Blank = store default</small><input className="input" inputMode="decimal" value={f.fee} onChange={set('fee')} /></label>
+      <p className="group-label span">Consults by</p>
+      <ChannelPicker value={channels} onChange={setChannels} />
+      <button className="btn primary block span" disabled={busy}>{busy ? 'Sending…' : 'Send invitation'}</button>
     </form>
+  );
+}
+
+/** What the superadmin controls about a doctor: listing basics and whether patients can book. */
+function DoctorDetail({ d, onToggle }: { d: DoctorRow; onToggle: (v: boolean) => void }) {
+  const init = { specialty: d.specialty, fee: d.feePoisha !== null ? poishaToTk(d.feePoisha) : '' };
+  const [f, setF] = useState(init);
+  const [channels, setChannels] = useState<Channel[]>(d.channels);
+  const [busy, setBusy] = useState(false);
+  const stage = stageOf(d);
+  const dirty = f.specialty !== init.specialty || f.fee !== init.fee || channels.join() !== d.channels.join();
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!channels.length) return toast('Pick at least one way to consult', 'bad');
+    const feePoisha = f.fee.trim() ? tkToPoisha(f.fee) : null;
+    if (f.fee.trim() && feePoisha === null) return toast('Enter the fee like 500', 'bad');
+    setBusy(true);
+    try {
+      await api.patch(`/admin/doctors/${d.id}`, { specialty: f.specialty.trim(), feePoisha, channels });
+      toast('Listing updated');
+      invalidate('/admin/doctors');
+    } catch (err) {
+      toast(message(err), 'bad');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="stack">
+      <div className="inv-row">
+        <DoctorPhoto d={{ id: d.id, name: d.user.name, photoUrl: d.photoUrl }} size={64} ring />
+        <span className="cell-main">
+          <strong>{d.user.name}</strong>
+          <span className="cell-sub">{d.qualifications || 'No qualifications yet'}</span>
+        </span>
+        <span className={`inv-badge ${stage}`}>{STAGE_LABEL[stage]}</span>
+      </div>
+      <div className="group">
+        <div className="cell"><span className="cell-main"><span>Sign-in number</span></span><a className="mono" href={telLink(d.user.phone)}>{d.user.phone}</a></div>
+        {d.user.email ? <div className="cell"><span className="cell-main"><span>Email</span></span><span className="small">{d.user.email}</span></div> : null}
+        <div className="cell"><span className="cell-main"><span>BMDC number</span></span><strong className="mono">{d.bmdcNo}</strong></div>
+        <div className="cell"><span className="cell-main"><span>Completed consults</span></span><strong>{d._count.consultations}</strong></div>
+        <div className="cell"><span className="cell-main"><span>Hours</span></span><strong>{d.availability.length ? `${d.availability.length} window${d.availability.length === 1 ? '' : 's'}` : 'Not set'}</strong></div>
+        {stage === 'setup' ? null : (
+          <div className="cell">
+            <span className="cell-main"><span>Bookable by patients</span></span>
+            <Switch label="Bookable" checked={d.isActive} onChange={onToggle} />
+          </div>
+        )}
+      </div>
+      {stage === 'setup' ? <p className="muted small">{d.user.name} has an account and is still finishing their profile. They appear in the app once they go live.</p> : null}
+
+      <form className="form-grid two" onSubmit={(e) => void save(e)}>
+        <p className="group-label span">Listing</p>
+        <label className="field">Specialty<input className="input" required value={f.specialty} onChange={(e) => setF({ ...f, specialty: e.target.value })} /></label>
+        <label className="field">Fee (Tk)<small>Blank = store default</small><input className="input" inputMode="decimal" value={f.fee} onChange={(e) => setF({ ...f, fee: e.target.value })} /></label>
+        <ChannelPicker value={channels} onChange={setChannels} />
+        {channels.some((c) => !d.channels.includes(c)) && stage !== 'setup' ? (
+          <p className="muted small span">The doctor needs to add the call details for the new channel in their profile.</p>
+        ) : null}
+        <button className="btn primary block span" disabled={busy || !dirty}>{busy ? 'Saving…' : 'Save listing'}</button>
+      </form>
+    </div>
   );
 }
 

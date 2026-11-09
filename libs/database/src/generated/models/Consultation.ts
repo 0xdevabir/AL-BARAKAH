@@ -48,6 +48,7 @@ export type ConsultationMinAggregateOutputType = {
   reason: string | null
   patientPhone: string | null
   notes: string | null
+  prescribedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +67,7 @@ export type ConsultationMaxAggregateOutputType = {
   reason: string | null
   patientPhone: string | null
   notes: string | null
+  prescribedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -85,6 +87,7 @@ export type ConsultationCountAggregateOutputType = {
   patientPhone: number
   notes: number
   prescription: number
+  prescribedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -113,6 +116,7 @@ export type ConsultationMinAggregateInputType = {
   reason?: true
   patientPhone?: true
   notes?: true
+  prescribedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -131,6 +135,7 @@ export type ConsultationMaxAggregateInputType = {
   reason?: true
   patientPhone?: true
   notes?: true
+  prescribedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -150,6 +155,7 @@ export type ConsultationCountAggregateInputType = {
   patientPhone?: true
   notes?: true
   prescription?: true
+  prescribedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -256,6 +262,7 @@ export type ConsultationGroupByOutputType = {
   patientPhone: string
   notes: string | null
   prescription: runtime.JsonValue | null
+  prescribedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: ConsultationCountAggregateOutputType | null
@@ -298,11 +305,13 @@ export type ConsultationWhereInput = {
   patientPhone?: Prisma.StringFilter<"Consultation"> | string
   notes?: Prisma.StringNullableFilter<"Consultation"> | string | null
   prescription?: Prisma.JsonNullableFilter<"Consultation">
+  prescribedAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   doctor?: Prisma.XOR<Prisma.DoctorScalarRelationFilter, Prisma.DoctorWhereInput>
   customer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   payments?: Prisma.PaymentListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
 }
 
 export type ConsultationOrderByWithRelationInput = {
@@ -320,11 +329,13 @@ export type ConsultationOrderByWithRelationInput = {
   patientPhone?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   prescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  prescribedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   doctor?: Prisma.DoctorOrderByWithRelationInput
   customer?: Prisma.UserOrderByWithRelationInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
+  orders?: Prisma.OrderOrderByRelationAggregateInput
 }
 
 export type ConsultationWhereUniqueInput = Prisma.AtLeast<{
@@ -345,11 +356,13 @@ export type ConsultationWhereUniqueInput = Prisma.AtLeast<{
   patientPhone?: Prisma.StringFilter<"Consultation"> | string
   notes?: Prisma.StringNullableFilter<"Consultation"> | string | null
   prescription?: Prisma.JsonNullableFilter<"Consultation">
+  prescribedAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   doctor?: Prisma.XOR<Prisma.DoctorScalarRelationFilter, Prisma.DoctorWhereInput>
   customer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   payments?: Prisma.PaymentListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
 }, "id" | "code">
 
 export type ConsultationOrderByWithAggregationInput = {
@@ -367,6 +380,7 @@ export type ConsultationOrderByWithAggregationInput = {
   patientPhone?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   prescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  prescribedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ConsultationCountOrderByAggregateInput
@@ -394,6 +408,7 @@ export type ConsultationScalarWhereWithAggregatesInput = {
   patientPhone?: Prisma.StringWithAggregatesFilter<"Consultation"> | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"Consultation"> | string | null
   prescription?: Prisma.JsonNullableWithAggregatesFilter<"Consultation">
+  prescribedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Consultation"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Consultation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Consultation"> | Date | string
 }
@@ -411,11 +426,13 @@ export type ConsultationCreateInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   doctor: Prisma.DoctorCreateNestedOneWithoutConsultationsInput
   customer: Prisma.UserCreateNestedOneWithoutConsultationsInput
   payments?: Prisma.PaymentCreateNestedManyWithoutConsultationInput
+  orders?: Prisma.OrderCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationUncheckedCreateInput = {
@@ -433,9 +450,11 @@ export type ConsultationUncheckedCreateInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutConsultationInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationUpdateInput = {
@@ -451,11 +470,13 @@ export type ConsultationUpdateInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   doctor?: Prisma.DoctorUpdateOneRequiredWithoutConsultationsNestedInput
   customer?: Prisma.UserUpdateOneRequiredWithoutConsultationsNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutConsultationNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationUncheckedUpdateInput = {
@@ -473,9 +494,11 @@ export type ConsultationUncheckedUpdateInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutConsultationNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationCreateManyInput = {
@@ -493,6 +516,7 @@ export type ConsultationCreateManyInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -510,6 +534,7 @@ export type ConsultationUpdateManyMutationInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -529,6 +554,7 @@ export type ConsultationUncheckedUpdateManyInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -563,6 +589,7 @@ export type ConsultationCountOrderByAggregateInput = {
   patientPhone?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   prescription?: Prisma.SortOrder
+  prescribedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -585,6 +612,7 @@ export type ConsultationMaxOrderByAggregateInput = {
   reason?: Prisma.SortOrder
   patientPhone?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  prescribedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -603,6 +631,7 @@ export type ConsultationMinOrderByAggregateInput = {
   reason?: Prisma.SortOrder
   patientPhone?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  prescribedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -651,6 +680,22 @@ export type ConsultationUncheckedUpdateManyWithoutCustomerNestedInput = {
   update?: Prisma.ConsultationUpdateWithWhereUniqueWithoutCustomerInput | Prisma.ConsultationUpdateWithWhereUniqueWithoutCustomerInput[]
   updateMany?: Prisma.ConsultationUpdateManyWithWhereWithoutCustomerInput | Prisma.ConsultationUpdateManyWithWhereWithoutCustomerInput[]
   deleteMany?: Prisma.ConsultationScalarWhereInput | Prisma.ConsultationScalarWhereInput[]
+}
+
+export type ConsultationCreateNestedOneWithoutOrdersInput = {
+  create?: Prisma.XOR<Prisma.ConsultationCreateWithoutOrdersInput, Prisma.ConsultationUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.ConsultationCreateOrConnectWithoutOrdersInput
+  connect?: Prisma.ConsultationWhereUniqueInput
+}
+
+export type ConsultationUpdateOneWithoutOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.ConsultationCreateWithoutOrdersInput, Prisma.ConsultationUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.ConsultationCreateOrConnectWithoutOrdersInput
+  upsert?: Prisma.ConsultationUpsertWithoutOrdersInput
+  disconnect?: Prisma.ConsultationWhereInput | boolean
+  delete?: Prisma.ConsultationWhereInput | boolean
+  connect?: Prisma.ConsultationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ConsultationUpdateToOneWithWhereWithoutOrdersInput, Prisma.ConsultationUpdateWithoutOrdersInput>, Prisma.ConsultationUncheckedUpdateWithoutOrdersInput>
 }
 
 export type ConsultationCreateNestedOneWithoutPaymentsInput = {
@@ -732,10 +777,12 @@ export type ConsultationCreateWithoutCustomerInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   doctor: Prisma.DoctorCreateNestedOneWithoutConsultationsInput
   payments?: Prisma.PaymentCreateNestedManyWithoutConsultationInput
+  orders?: Prisma.OrderCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationUncheckedCreateWithoutCustomerInput = {
@@ -752,9 +799,11 @@ export type ConsultationUncheckedCreateWithoutCustomerInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutConsultationInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationCreateOrConnectWithoutCustomerInput = {
@@ -801,8 +850,109 @@ export type ConsultationScalarWhereInput = {
   patientPhone?: Prisma.StringFilter<"Consultation"> | string
   notes?: Prisma.StringNullableFilter<"Consultation"> | string | null
   prescription?: Prisma.JsonNullableFilter<"Consultation">
+  prescribedAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
+}
+
+export type ConsultationCreateWithoutOrdersInput = {
+  id?: string
+  code: string
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ConsultationStatus
+  channel: $Enums.ConsultationChannel
+  feePoisha: number
+  holdExpiresAt?: Date | string | null
+  reason?: string | null
+  patientPhone: string
+  notes?: string | null
+  prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  doctor: Prisma.DoctorCreateNestedOneWithoutConsultationsInput
+  customer: Prisma.UserCreateNestedOneWithoutConsultationsInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutConsultationInput
+}
+
+export type ConsultationUncheckedCreateWithoutOrdersInput = {
+  id?: string
+  code: string
+  doctorId: string
+  customerId: string
+  startsAt: Date | string
+  endsAt: Date | string
+  status?: $Enums.ConsultationStatus
+  channel: $Enums.ConsultationChannel
+  feePoisha: number
+  holdExpiresAt?: Date | string | null
+  reason?: string | null
+  patientPhone: string
+  notes?: string | null
+  prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutConsultationInput
+}
+
+export type ConsultationCreateOrConnectWithoutOrdersInput = {
+  where: Prisma.ConsultationWhereUniqueInput
+  create: Prisma.XOR<Prisma.ConsultationCreateWithoutOrdersInput, Prisma.ConsultationUncheckedCreateWithoutOrdersInput>
+}
+
+export type ConsultationUpsertWithoutOrdersInput = {
+  update: Prisma.XOR<Prisma.ConsultationUpdateWithoutOrdersInput, Prisma.ConsultationUncheckedUpdateWithoutOrdersInput>
+  create: Prisma.XOR<Prisma.ConsultationCreateWithoutOrdersInput, Prisma.ConsultationUncheckedCreateWithoutOrdersInput>
+  where?: Prisma.ConsultationWhereInput
+}
+
+export type ConsultationUpdateToOneWithWhereWithoutOrdersInput = {
+  where?: Prisma.ConsultationWhereInput
+  data: Prisma.XOR<Prisma.ConsultationUpdateWithoutOrdersInput, Prisma.ConsultationUncheckedUpdateWithoutOrdersInput>
+}
+
+export type ConsultationUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  doctor?: Prisma.DoctorUpdateOneRequiredWithoutConsultationsNestedInput
+  customer?: Prisma.UserUpdateOneRequiredWithoutConsultationsNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutConsultationNestedInput
+}
+
+export type ConsultationUncheckedUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  doctorId?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
+  holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationCreateWithoutPaymentsInput = {
@@ -818,10 +968,12 @@ export type ConsultationCreateWithoutPaymentsInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   doctor: Prisma.DoctorCreateNestedOneWithoutConsultationsInput
   customer: Prisma.UserCreateNestedOneWithoutConsultationsInput
+  orders?: Prisma.OrderCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationUncheckedCreateWithoutPaymentsInput = {
@@ -839,8 +991,10 @@ export type ConsultationUncheckedCreateWithoutPaymentsInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationCreateOrConnectWithoutPaymentsInput = {
@@ -872,10 +1026,12 @@ export type ConsultationUpdateWithoutPaymentsInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   doctor?: Prisma.DoctorUpdateOneRequiredWithoutConsultationsNestedInput
   customer?: Prisma.UserUpdateOneRequiredWithoutConsultationsNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationUncheckedUpdateWithoutPaymentsInput = {
@@ -893,8 +1049,10 @@ export type ConsultationUncheckedUpdateWithoutPaymentsInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationCreateWithoutDoctorInput = {
@@ -910,10 +1068,12 @@ export type ConsultationCreateWithoutDoctorInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.UserCreateNestedOneWithoutConsultationsInput
   payments?: Prisma.PaymentCreateNestedManyWithoutConsultationInput
+  orders?: Prisma.OrderCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationUncheckedCreateWithoutDoctorInput = {
@@ -930,9 +1090,11 @@ export type ConsultationUncheckedCreateWithoutDoctorInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutConsultationInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutConsultationInput
 }
 
 export type ConsultationCreateOrConnectWithoutDoctorInput = {
@@ -975,6 +1137,7 @@ export type ConsultationCreateManyCustomerInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -992,10 +1155,12 @@ export type ConsultationUpdateWithoutCustomerInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   doctor?: Prisma.DoctorUpdateOneRequiredWithoutConsultationsNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutConsultationNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationUncheckedUpdateWithoutCustomerInput = {
@@ -1012,9 +1177,11 @@ export type ConsultationUncheckedUpdateWithoutCustomerInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutConsultationNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationUncheckedUpdateManyWithoutCustomerInput = {
@@ -1031,6 +1198,7 @@ export type ConsultationUncheckedUpdateManyWithoutCustomerInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1049,6 +1217,7 @@ export type ConsultationCreateManyDoctorInput = {
   patientPhone: string
   notes?: string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1066,10 +1235,12 @@ export type ConsultationUpdateWithoutDoctorInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.UserUpdateOneRequiredWithoutConsultationsNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutConsultationNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationUncheckedUpdateWithoutDoctorInput = {
@@ -1086,9 +1257,11 @@ export type ConsultationUncheckedUpdateWithoutDoctorInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutConsultationNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutConsultationNestedInput
 }
 
 export type ConsultationUncheckedUpdateManyWithoutDoctorInput = {
@@ -1105,6 +1278,7 @@ export type ConsultationUncheckedUpdateManyWithoutDoctorInput = {
   patientPhone?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prescription?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  prescribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1116,10 +1290,12 @@ export type ConsultationUncheckedUpdateManyWithoutDoctorInput = {
 
 export type ConsultationCountOutputType = {
   payments: number
+  orders: number
 }
 
 export type ConsultationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   payments?: boolean | ConsultationCountOutputTypeCountPaymentsArgs
+  orders?: boolean | ConsultationCountOutputTypeCountOrdersArgs
 }
 
 /**
@@ -1139,6 +1315,13 @@ export type ConsultationCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime
   where?: Prisma.PaymentWhereInput
 }
 
+/**
+ * ConsultationCountOutputType without action
+ */
+export type ConsultationCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderWhereInput
+}
+
 
 export type ConsultationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1155,11 +1338,13 @@ export type ConsultationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   patientPhone?: boolean
   notes?: boolean
   prescription?: boolean
+  prescribedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   doctor?: boolean | Prisma.DoctorDefaultArgs<ExtArgs>
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   payments?: boolean | Prisma.Consultation$paymentsArgs<ExtArgs>
+  orders?: boolean | Prisma.Consultation$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.ConsultationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["consultation"]>
 
@@ -1178,6 +1363,7 @@ export type ConsultationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   patientPhone?: boolean
   notes?: boolean
   prescription?: boolean
+  prescribedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   doctor?: boolean | Prisma.DoctorDefaultArgs<ExtArgs>
@@ -1199,6 +1385,7 @@ export type ConsultationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   patientPhone?: boolean
   notes?: boolean
   prescription?: boolean
+  prescribedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   doctor?: boolean | Prisma.DoctorDefaultArgs<ExtArgs>
@@ -1220,15 +1407,17 @@ export type ConsultationSelectScalar = {
   patientPhone?: boolean
   notes?: boolean
   prescription?: boolean
+  prescribedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ConsultationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "doctorId" | "customerId" | "startsAt" | "endsAt" | "status" | "channel" | "feePoisha" | "holdExpiresAt" | "reason" | "patientPhone" | "notes" | "prescription" | "createdAt" | "updatedAt", ExtArgs["result"]["consultation"]>
+export type ConsultationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "doctorId" | "customerId" | "startsAt" | "endsAt" | "status" | "channel" | "feePoisha" | "holdExpiresAt" | "reason" | "patientPhone" | "notes" | "prescription" | "prescribedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["consultation"]>
 export type ConsultationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   doctor?: boolean | Prisma.DoctorDefaultArgs<ExtArgs>
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   payments?: boolean | Prisma.Consultation$paymentsArgs<ExtArgs>
+  orders?: boolean | Prisma.Consultation$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.ConsultationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ConsultationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1246,6 +1435,7 @@ export type $ConsultationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     doctor: Prisma.$DoctorPayload<ExtArgs>
     customer: Prisma.$UserPayload<ExtArgs>
     payments: Prisma.$PaymentPayload<ExtArgs>[]
+    orders: Prisma.$OrderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1265,6 +1455,10 @@ export type $ConsultationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * Structured e-prescription written by the doctor: { items, advice, followUpDays }.
      */
     prescription: runtime.JsonValue | null
+    /**
+     * When the prescription was written; it can buy prescription medicines for RX_VALID_DAYS after.
+     */
+    prescribedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["consultation"]>
@@ -1664,6 +1858,7 @@ export interface Prisma__ConsultationClient<T, Null = never, ExtArgs extends run
   doctor<T extends Prisma.DoctorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DoctorDefaultArgs<ExtArgs>>): Prisma.Prisma__DoctorClient<runtime.Types.Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   customer<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   payments<T extends Prisma.Consultation$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Consultation$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orders<T extends Prisma.Consultation$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Consultation$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1707,6 +1902,7 @@ export interface ConsultationFieldRefs {
   readonly patientPhone: Prisma.FieldRef<"Consultation", 'String'>
   readonly notes: Prisma.FieldRef<"Consultation", 'String'>
   readonly prescription: Prisma.FieldRef<"Consultation", 'Json'>
+  readonly prescribedAt: Prisma.FieldRef<"Consultation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Consultation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Consultation", 'DateTime'>
 }
@@ -2131,6 +2327,30 @@ export type Consultation$paymentsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
+}
+
+/**
+ * Consultation.orders
+ */
+export type Consultation$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
+  orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[]
+  cursor?: Prisma.OrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
 }
 
 /**

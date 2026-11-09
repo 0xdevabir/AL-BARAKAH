@@ -225,6 +225,7 @@ export const OrderScalarFieldEnum = {
   paymentStatus: 'paymentStatus',
   riderId: 'riderId',
   prescriptionKey: 'prescriptionKey',
+  consultationId: 'consultationId',
   notes: 'notes',
   handoverCode: 'handoverCode',
   deliveredAt: 'deliveredAt',
@@ -364,6 +365,7 @@ export const ConsultationScalarFieldEnum = {
   patientPhone: 'patientPhone',
   notes: 'notes',
   prescription: 'prescription',
+  prescribedAt: 'prescribedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

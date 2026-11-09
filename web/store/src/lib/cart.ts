@@ -37,7 +37,27 @@ export interface Medicine {
 }
 
 const KEY = 'ab_cart';
+const RX_KEY = 'ab_cart_rx';
 type Listener = () => void;
+
+/** The e-prescription the cart was filled from; checkout sends it so Rx medicines need no upload. */
+export interface CartRx {
+  consultationId: string;
+  code: string;
+  doctor: string;
+  /** Catalogue medicines the prescription covers. */
+  medicineIds: string[];
+  validUntil: string | null;
+}
+
+function loadRx(): CartRx | null {
+  try {
+    const rx = JSON.parse(localStorage.getItem(RX_KEY) ?? 'null') as CartRx | null;
+    return rx && (!rx.validUntil || new Date(rx.validUntil).getTime() > Date.now()) ? rx : null;
+  } catch {
+    return null;
+  }
+}
 
 export const unitOf = (l: Pick<CartLine, 'unit'>): SaleUnit => l.unit ?? 'PACK';
 /** Cart lines are one per medicine and unit: a pack and loose pieces of the same medicine sit side by side. */
@@ -55,14 +75,34 @@ function loadCart(): CartLine[] {
 
 class CartStore {
   private lines: CartLine[] = [];
+  private rx: CartRx | null = null;
   private listeners = new Set<Listener>();
   private hydrated = false;
 
   private ensure() {
     if (!this.hydrated && typeof window !== 'undefined') {
       this.lines = loadCart();
+      this.rx = loadRx();
       this.hydrated = true;
     }
+  }
+
+  getRx() {
+    this.ensure();
+    if (this.rx?.validUntil && new Date(this.rx.validUntil).getTime() <= Date.now()) this.rx = null;
+    return this.rx;
+  }
+
+  setRx(rx: CartRx | null) {
+    this.ensure();
+    this.rx = rx;
+    try {
+      if (rx) localStorage.setItem(RX_KEY, JSON.stringify(rx));
+      else localStorage.removeItem(RX_KEY);
+    } catch {
+      /* private mode */
+    }
+    this.emit();
   }
 
   subscribe(listener: Listener) {
@@ -122,6 +162,7 @@ class CartStore {
     this.ensure();
     this.lines = [];
     this.save();
+    this.setRx(null);
   }
 }
 
