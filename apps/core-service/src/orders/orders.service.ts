@@ -10,6 +10,7 @@ import type { Redis } from 'ioredis';
 import type { z } from 'zod';
 import { badRequest, conflict, forbidden, notFound } from '@albarakah/nest-common';
 import { PRISMA, REDIS } from '@albarakah/nest-common';
+import { rxCoverage } from '../consultations/rx.js';
 import { SettingsService } from '../settings/settings.module.js';
 
 export const orderChannel = (orderId: string) => `order:${orderId}`;
@@ -82,8 +83,19 @@ export class OrdersService {
     const ids = [...new Set(keys.map((k) => qtyByKey.get(k)!.medicineId))];
     const medicines = await this.prisma.medicine.findMany({ where: { id: { in: ids }, isActive: true } });
     if (medicines.length !== ids.length) throw badRequest('ITEM_UNAVAILABLE', 'An item in your cart is no longer available');
-    if (s.requireRxUpload && medicines.some((m) => m.isRx) && !input.prescriptionKey) {
-      throw badRequest('PRESCRIPTION_REQUIRED', 'Please upload a prescription for the prescription medicines in your cart');
+    // The customer's own e-prescription from a consultation here covers the Rx medicines the doctor wrote.
+    const coverage = input.consultationId ? await rxCoverage(this.prisma, customerId, input.consultationId, now) : null;
+    if (input.consultationId && !coverage) {
+      throw badRequest('PRESCRIPTION_EXPIRED', 'That prescription can no longer be used to order. Please upload a prescription or book a follow-up.');
+    }
+    const uncovered = medicines.filter((m) => m.isRx && !coverage?.medicineIds.has(m.id));
+    if (s.requireRxUpload && uncovered.length && !input.prescriptionKey) {
+      throw badRequest(
+        'PRESCRIPTION_REQUIRED',
+        coverage
+          ? `${uncovered.map((m) => m.name).join(', ')} ${uncovered.length === 1 ? 'is' : 'are'} not on your doctor's prescription. Please upload a prescription for ${uncovered.length === 1 ? 'it' : 'them'}.`
+          : 'Please upload a prescription for the prescription medicines in your cart',
+      );
     }
     if (input.prescriptionKey && !input.prescriptionKey.startsWith(`rx/${customerId}/`)) throw forbidden();
 
@@ -120,6 +132,7 @@ export class OrdersService {
             paymentMethod: input.paymentMethod,
             paymentStatus: input.paymentMethod === 'BKASH' ? 'PENDING' : 'UNPAID',
             prescriptionKey: input.prescriptionKey,
+            consultationId: coverage?.consultationId,
             notes: input.notes,
             idempotencyKey: input.idempotencyKey,
             events: { create: { toStatus: 'PLACED', actorId: customerId } },

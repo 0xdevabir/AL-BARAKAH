@@ -1,21 +1,16 @@
 'use client';
 
 import { formatTk } from '@albarakah/domain';
-import { fmtTime, haptic, initials, Skeleton } from '@albarakah/ui';
+import { DoctorPhoto, fmtTime, haptic, Skeleton } from '@albarakah/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api, useGet } from '@/lib/api';
-import { byDay, CHANNEL, type Channel, dayName, type Doctor, hue, partsOf, type Slot } from '@/lib/doctors';
+import { byDay, CHANNEL, type Channel, dayName, type Doctor, partsOf, type Slot } from '@/lib/doctors';
 
 const REASONS = ['Fever', 'Cold & cough', 'Stomach', 'Skin', 'Child health', 'Follow-up', 'Report review'];
 
-export function DoctorAvatar({ d, size = 52 }: { d: Pick<Doctor, 'id' | 'name'>; size?: number }) {
-  const h = hue(d.id);
-  return (
-    <span className="doc-avatar" style={{ width: size, height: size, fontSize: size * 0.36, background: `hsl(${h} 45% 90%)`, color: `hsl(${h} 45% 28%)` }} aria-hidden="true">
-      {initials(d.name.replace(/^Dr\.?\s*/i, ''))}
-    </span>
-  );
+export function DoctorAvatar({ d, size = 52 }: { d: Pick<Doctor, 'id' | 'name' | 'photoUrl'>; size?: number }) {
+  return <DoctorPhoto d={d} size={size} />;
 }
 
 /**

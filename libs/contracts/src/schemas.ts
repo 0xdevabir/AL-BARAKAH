@@ -56,6 +56,8 @@ export const placeOrderSchema = z.object({
   slotStart: z.iso.datetime().optional(),
   paymentMethod: z.enum(['COD', 'BKASH']),
   prescriptionKey: z.string().max(200).optional(),
+  /** A completed consultation of this customer whose e-prescription covers the Rx medicines. */
+  consultationId: z.string().min(1).max(40).optional(),
   notes: z.string().trim().max(300).optional(),
   items: z.array(z.object({ medicineId: z.string().min(1), qty: z.number().int().min(1).max(50), unit: z.enum(['PACK', 'PIECE']).default('PACK') })).min(1).max(50),
 }).refine((o) => o.type === 'EMERGENCY' || !!o.slotStart, { message: 'Choose a delivery time', path: ['slotStart'] });
@@ -167,6 +169,8 @@ export const bookConsultationSchema = z.object({
 });
 export const prescriptionItemSchema = z.object({
   medicine: z.string().trim().min(1).max(160),
+  /** Set when the doctor picked the medicine from the pharmacy catalogue, so the patient can order exactly it. */
+  medicineId: z.string().min(1).max(40).optional(),
   dose: z.string().trim().max(60).default(''),
   /** e.g. 1+0+1 — morning, noon, night. */
   frequency: z.string().trim().max(40).default(''),

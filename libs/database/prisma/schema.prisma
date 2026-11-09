@@ -231,6 +231,9 @@ model Order {
   riderId            String?
   rider              User?         @relation("RiderOrders", fields: [riderId], references: [id])
   prescriptionKey    String?
+  /// The e-prescription that authorised the prescription medicines, when bought from one.
+  consultationId     String?
+  consultation       Consultation? @relation(fields: [consultationId], references: [id])
   notes              String?
   /// 4-digit code the customer reads to the rider; set when the order goes out for delivery.
   handoverCode       String?
@@ -250,6 +253,7 @@ model Order {
   @@index([customerId, createdAt(sort: Desc)])
   @@index([status, promisedBy])
   @@index([riderId, status])
+  @@index([consultationId])
   @@index([createdAt])
 }
 
@@ -405,10 +409,13 @@ model Consultation {
   notes         String?
   /// Structured e-prescription written by the doctor: { items, advice, followUpDays }.
   prescription  Json?
+  /// When the prescription was written; it can buy prescription medicines for RX_VALID_DAYS after.
+  prescribedAt  DateTime?
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
   payments Payment[]
+  orders   Order[]
 
   @@index([customerId, startsAt(sort: Desc)])
   @@index([doctorId, startsAt])

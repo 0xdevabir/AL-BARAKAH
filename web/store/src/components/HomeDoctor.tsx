@@ -16,7 +16,11 @@ export function HomeDoctor({ doctors }: { doctors: Doctor[] }) {
       <span className="home-doctor-top">
         <span className="home-doctor-faces" aria-hidden="true">
           {faces.length ? (
-            faces.map((d) => <span key={d.id}>{initials(d.name.replace(/^dr\.?\s+/i, ''))}</span>)
+            faces.map((d) => (
+              <span key={d.id}>
+                {d.photoUrl ? <img src={d.photoUrl} alt="" loading="lazy" /> : initials(d.name.replace(/^dr\.?\s+/i, ''))}
+              </span>
+            ))
           ) : (
             <span>
               <svg viewBox="0 0 24 24">

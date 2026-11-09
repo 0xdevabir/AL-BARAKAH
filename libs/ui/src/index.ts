@@ -9,3 +9,4 @@ export { useScrollChrome } from './chrome.js';
 export { BD_BOUNDS, currentPosition, DHAKA, distanceM, etaSeconds, fetchRoute, fmtDistance, fmtDuration, type GeoError, geoErrorText, hasPoint, isInBangladesh, type LatLng, navLink, type Place, reverseGeocode, type Route, searchPlaces, suggestOrder } from './geo.js';
 export { loadLeaflet, type MapPin, MapView, type MapViewProps, type PinKind } from './MapView.js';
 export { LocationPicker, type PickedLocation } from './LocationPicker.js';
+export { DOCTOR_CHANNEL, DoctorCard, type DoctorChannel, doctorHue, DoctorPhoto, DoctorProfileView, type DoctorPublic } from './DoctorCard.js';

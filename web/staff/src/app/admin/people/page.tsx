@@ -2,18 +2,39 @@
 
 import { formatTk } from '@albarakah/domain';
 import {
-  confirmAction, EmptyState, fmtWhen, initials, invalidate, LargeTitle, promptText, SearchField, Segmented, Sheet, SkeletonList, StatTile, Switch, toast,
+  confirmAction, DoctorPhoto, EmptyState, fmtWhen, initials, invalidate, LargeTitle, promptText, SearchField, Segmented, Sheet, SkeletonList, StatTile, Switch, toast,
 } from '@albarakah/ui';
 import { useDeferredValue, useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { api, useApi, useGet } from '@/lib/api';
 import { message, poishaToTk, telLink, tkToPoisha } from '@/lib/app';
+import { CHANNEL, type Channel } from '@/lib/doctor';
 import type { Ledger, RiderOption } from '@/lib/types';
 
 interface Staff { id: string; phone: string; name: string; role: 'ADMIN' | 'RIDER' | 'DOCTOR'; isActive: boolean; totpEnabled: boolean }
 interface DoctorRow {
-  id: string; bmdcNo: string; specialty: string; feePoisha: number | null; channels: string[]; isActive: boolean;
-  user: { name: string; phone: string; isActive: boolean }; _count: { consultations: number };
+  id: string; bmdcNo: string; specialty: string; feePoisha: number | null; channels: Channel[]; isActive: boolean;
+  photoUrl: string | null; qualifications: string | null; onboardedAt: string | null; createdAt?: string;
+  user: { name: string; phone: string; email: string | null; isActive: boolean };
+  availability: { id: string }[]; _count: { consultations: number };
+}
+interface Invite {
+  id: string; email: string; name: string; bmdcNo: string; specialty: string; feePoisha: number | null; channels: Channel[];
+  expiresAt: string; sentCount: number; lastSentAt: string | null; createdAt: string;
+  invitedBy: { name: string } | null; status: 'PENDING' | 'EXPIRED' | 'ACCEPTED' | 'REVOKED';
+}
+interface InviteSent { id: string; link: string; emailed: boolean; consoleEmail: boolean }
+type DoctorStage = 'setup' | 'live' | 'hidden';
+const stageOf = (d: DoctorRow): DoctorStage => (!d.onboardedAt ? 'setup' : d.isActive && d.user.isActive ? 'live' : 'hidden');
+const STAGE_LABEL: Record<DoctorStage, string> = { setup: 'Setting up', live: 'Live', hidden: 'Hidden' };
+
+async function copy(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Link copied');
+  } catch {
+    toast('Couldn’t copy. Select the link and copy it by hand.', 'bad');
+  }
 }
 type View = 'RIDER' | 'DOCTOR' | 'ADMIN';
 
@@ -30,10 +51,14 @@ export default function TeamPage() {
   const { data: staff, pending } = useGet<Staff[]>('/admin/staff');
   const { data: riders } = useGet<RiderOption[]>('/admin/riders', { pollMs: 30_000 });
   const { data: doctors } = useGet<DoctorRow[]>('/admin/doctors');
+  const { data: invites } = useGet<Invite[]>(view === 'DOCTOR' ? '/admin/doctors/invites' : null);
+  const [doctorId, setDoctorId] = useState<string | null>(null);
+  const openDoctor = (doctors ?? []).find((d) => d.id === doctorId) ?? null;
 
   const match = (s: string) => !dq || s.toLowerCase().includes(dq);
   const list = (staff ?? []).filter((s) => s.role === view && (match(s.name) || match(s.phone)));
-  const docs = (doctors ?? []).filter((d) => match(d.user.name) || match(d.specialty) || match(d.user.phone));
+  const docs = (doctors ?? []).filter((d) => match(d.user.name) || match(d.specialty) || match(d.user.phone) || match(d.bmdcNo));
+  const invs = (invites ?? []).filter((i) => match(i.name) || match(i.email) || match(i.specialty));
   const load = new Map((riders ?? []).map((r) => [r.id, r]));
   const onlineCount = (riders ?? []).filter((r) => r.online).length;
 
@@ -88,24 +113,16 @@ export default function TeamPage() {
       {pending ? <SkeletonList rows={5} /> : null}
 
       {view === 'DOCTOR' ? (
-        docs.length ? (
-          <div className="group cv">
-            {docs.map((d) => (
-              <div key={d.id}>
-                <span className="avatar">{initials(d.user.name)}</span>
-                <span className="cell-main">
-                  <strong>{d.user.name}</strong>
-                  <span className="cell-sub">
-                    {d.specialty} · BMDC {d.bmdcNo} · {d._count.consultations} completed
-                    {d.feePoisha ? ` · ${formatTk(d.feePoisha)}` : ''}
-                  </span>
-                </span>
-                <Switch label={`${d.user.name} bookable`} checked={d.isActive} onChange={(v) => void toggleDoctor(d, v)} />
-              </div>
-            ))}
-          </div>
-        ) : staff ? (
-          <EmptyState icon="🩺" title="No doctors yet" action={<button className="btn primary" onClick={() => setAdding('DOCTOR')}>Onboard a doctor</button>} />
+        docs.length || invs.length ? (
+          <DoctorsView docs={docs} invites={invs} onOpen={(d) => setDoctorId(d.id)} onToggle={(d, v) => void toggleDoctor(d, v)} />
+        ) : doctors ? (
+          <EmptyState
+            icon="🩺"
+            title={dq ? 'No matches' : 'No doctors yet'}
+            action={dq ? undefined : <button className="btn primary" onClick={() => setAdding('DOCTOR')}>Invite a doctor</button>}
+          >
+            {dq ? null : 'Invite a doctor by email. They set up their own account, profile and hours.'}
+          </EmptyState>
         ) : null
       ) : list.length ? (
         <div className="group cv">
@@ -143,8 +160,11 @@ export default function TeamPage() {
         <EmptyState icon="👤" title={dq ? 'No matches' : `No ${view === 'RIDER' ? 'riders' : 'admins'} yet`} />
       ) : null}
 
-      <Sheet open={!!adding} onClose={() => setAdding(null)} title={adding === 'DOCTOR' ? 'Onboard a doctor' : adding === 'ADMIN' ? 'Add an admin' : 'Add a rider'}>
-        {adding === 'DOCTOR' ? <AddDoctor onDone={() => setAdding(null)} /> : adding ? <AddStaff role={adding} onDone={() => setAdding(null)} /> : null}
+      <Sheet open={!!adding} onClose={() => setAdding(null)} title={adding === 'DOCTOR' ? 'Invite a doctor' : adding === 'ADMIN' ? 'Add an admin' : 'Add a rider'}>
+        {adding === 'DOCTOR' ? <InviteDoctor onDone={() => setAdding(null)} /> : adding ? <AddStaff role={adding} onDone={() => setAdding(null)} /> : null}
+      </Sheet>
+      <Sheet open={!!openDoctor} onClose={() => setDoctorId(null)} title={openDoctor?.user.name ?? 'Doctor'}>
+        {openDoctor ? <DoctorDetail key={openDoctor.id} d={openDoctor} onToggle={(v) => void toggleDoctor(openDoctor, v)} /> : null}
       </Sheet>
       <Sheet open={!!rider} onClose={() => setRider(null)} title={rider?.name ?? 'Rider'}>
         {rider ? <RiderLedger rider={rider} /> : null}

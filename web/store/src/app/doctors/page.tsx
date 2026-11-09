@@ -1,12 +1,20 @@
 'use client';
 
 import { formatTk } from '@albarakah/domain';
-import { EmptyState, SearchField, Sheet, SkeletonList } from '@albarakah/ui';
+import { DoctorCard, DoctorProfileView, EmptyState, SearchField, Sheet, SkeletonList } from '@albarakah/ui';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { BookDoctor, DoctorAvatar } from '@/components/BookDoctor';
+import { BookDoctor } from '@/components/BookDoctor';
 import { useApi, useGet } from '@/lib/api';
-import { CHANNEL, countdown, type Doctor, nextLine } from '@/lib/doctors';
+import { countdown, type Doctor, nextLine } from '@/lib/doctors';
+
+/** `/doctors?doctor=<id>` opens that profile; a query string keeps the static mobile export working. */
+function setDoctorParam(id: string | null) {
+  const url = new URL(window.location.href);
+  if (id) url.searchParams.set('doctor', id);
+  else url.searchParams.delete('doctor');
+  window.history.replaceState(window.history.state, '', url);
+}
 
 interface Mine { id: string; startsAt: string; endsAt: string; status: string; doctor: { user: { name: string } } }
 
@@ -18,19 +26,36 @@ export default function DoctorsPage() {
   const [q, setQ] = useState('');
   const [specialty, setSpecialty] = useState('All');
   const [sort, setSort] = useState<'soonest' | 'fee'>('soonest');
-  const [selected, setSelected] = useState<Doctor | null>(null);
+  const [selected, setSelectedRaw] = useState<Doctor | null>(null);
+  const [mode, setMode] = useState<'profile' | 'book'>('profile');
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(t);
   }, []);
+  const open = (d: Doctor | null, m: 'profile' | 'book' = 'profile') => {
+    setSelectedRaw(d);
+    setMode(m);
+    setDoctorParam(d?.id ?? null);
+  };
+  // Deep link: open the shared doctor once the list has loaded.
+  useEffect(() => {
+    if (!doctors) return;
+    const id = new URLSearchParams(window.location.search).get('doctor');
+    const d = id ? doctors.find((x) => x.id === id) : undefined;
+    if (d) {
+      setSelectedRaw(d);
+      setMode('profile');
+    }
+  }, [doctors]);
 
   const feeOf = (d: Doctor) => d.feePoisha ?? settings?.doctorBookingFeePoisha ?? 0;
   const specialties = useMemo(() => ['All', ...new Set((doctors ?? []).map((d) => d.specialty))], [doctors]);
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const rows = (doctors ?? []).filter(
-      (d) => (specialty === 'All' || d.specialty === specialty) && (!needle || `${d.name} ${d.specialty} ${d.bio ?? ''}`.toLowerCase().includes(needle)),
+      (d) => (specialty === 'All' || d.specialty === specialty)
+        && (!needle || `${d.name} ${d.specialty} ${d.bio ?? ''} ${d.qualifications ?? ''} ${d.workplace ?? ''} ${(d.languages ?? []).join(' ')}`.toLowerCase().includes(needle)),
     );
     const at = (d: Doctor) => (d.nextSlot ? new Date(d.nextSlot.start).getTime() : Infinity);
     return rows.sort((a, b) => (sort === 'fee' ? feeOf(a) - feeOf(b) : at(a) - at(b)));
@@ -92,42 +117,53 @@ export default function DoctorsPage() {
 
       <div className="doc-list stagger">
         {list.map((d) => (
-          <article key={d.id} className="doc-card">
-            <button type="button" className="doc-card-main" onClick={() => setSelected(d)}>
-              <DoctorAvatar d={d} />
-              <span className="grow" style={{ minWidth: 0 }}>
-                <strong className="doc-name">{d.name}</strong>
-                <span className="doc-spec">{d.specialty}</span>
-                <span className="doc-meta">
-                  <span title="Verified with the Bangladesh Medical & Dental Council">✓ BMDC {d.bmdcNo}</span>
-                  {d.consultations ? <span>{d.consultations} consults</span> : null}
-                  {d.channels.map((c) => <span key={c} aria-label={CHANNEL[c].label}>{CHANNEL[c].icon}</span>)}
+          <DoctorCard
+            key={d.id}
+            d={d}
+            onOpen={() => open(d)}
+            footer={(
+              <>
+                <span className="grow" style={{ minWidth: 0 }}>
+                  {d.nextSlot ? (
+                    <>
+                      <span className="doc-next on">● Next free</span>
+                      <strong className="ellipsis" style={{ display: 'block' }}>{nextLine(d.nextSlot, now)}</strong>
+                    </>
+                  ) : (
+                    <span className="doc-next">No free times this week</span>
+                  )}
                 </span>
-              </span>
-            </button>
-            {d.bio ? <p className="doc-bio">{d.bio}</p> : null}
-            <div className="doc-foot">
-              <span className="grow" style={{ minWidth: 0 }}>
-                {d.nextSlot ? (
-                  <>
-                    <span className="doc-next on">● Next free</span>
-                    <strong className="ellipsis" style={{ display: 'block' }}>{nextLine(d.nextSlot, now)}</strong>
-                  </>
-                ) : (
-                  <span className="doc-next">No free times this week</span>
-                )}
-              </span>
-              <span className="price">{formatTk(feeOf(d))}</span>
-              <button type="button" className="btn primary small" disabled={!d.nextSlot} onClick={() => setSelected(d)}>Book</button>
-            </div>
-          </article>
+                <span className="price">{formatTk(feeOf(d))}</span>
+                <button type="button" className="btn primary small" disabled={!d.nextSlot} onClick={() => open(d, 'book')}>Book</button>
+              </>
+            )}
+          />
         ))}
       </div>
 
       <Link className="btn block" href="/doctors/bookings">My consultations &amp; prescriptions</Link>
 
-      <Sheet open={!!selected} onClose={() => setSelected(null)} title="Book a consultation">
-        {selected ? <BookDoctor key={selected.id} doctor={selected} fee={feeOf(selected)} /> : null}
+      <Sheet open={!!selected} onClose={() => open(null)} title={mode === 'book' ? 'Book a consultation' : 'Doctor profile'}>
+        {selected && mode === 'profile' ? (
+          <DoctorProfileView
+            d={selected}
+            action={(
+              <div className="stack" style={{ gap: 10 }}>
+                <div className="row between">
+                  <span className="grow" style={{ minWidth: 0 }}>
+                    <span className="doc-next on">{selected.nextSlot ? '● Next free' : 'Consultation fee'}</span>
+                    <strong className="ellipsis" style={{ display: 'block' }}>{selected.nextSlot ? nextLine(selected.nextSlot, now) : 'No free times this week'}</strong>
+                  </span>
+                  <span className="price">{formatTk(feeOf(selected))}</span>
+                </div>
+                <button type="button" className="btn primary block" disabled={!selected.nextSlot} onClick={() => setMode('book')}>
+                  {selected.nextSlot ? 'Choose a time' : 'Fully booked this week'}
+                </button>
+              </div>
+            )}
+          />
+        ) : null}
+        {selected && mode === 'book' ? <BookDoctor key={selected.id} doctor={selected} fee={feeOf(selected)} /> : null}
       </Sheet>
     </div>
   );

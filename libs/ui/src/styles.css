@@ -527,3 +527,43 @@ input[type='search'].input::-webkit-search-cancel-button { -webkit-appearance: n
 .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid color-mix(in srgb, currentColor 25%, transparent); border-top-color: currentColor; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .map-rider-pulse, .map-pin-head { animation: none; } }
+
+/* ======================================================================
+   Doctor card & profile — shared by the store and the doctor's own preview
+   ====================================================================== */
+.dc-photo { flex: none; position: relative; display: inline-grid; place-items: center; overflow: hidden; border-radius: 50%; font-weight: 700; letter-spacing: 0.02em; background: var(--sage-soft); }
+.dc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dc-photo.ring { box-shadow: 0 0 0 4px var(--raised), 0 0 0 6px var(--sage), var(--shadow); }
+.dc-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--r-lg); background: var(--raised); box-shadow: inset 0 0 0 0.5px var(--glass-line, var(--line)), var(--shadow); transition: transform 0.5s var(--spring-soft, var(--ease)); min-width: 0; }
+.dc-card:has(.dc-head:active) { transform: scale(0.985); transition-duration: 0.12s; }
+.dc-head { display: flex; gap: 14px; align-items: center; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+div.dc-head { cursor: default; }
+.dc-head-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.dc-name { font-size: 1.1rem; line-height: 1.25; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dc-spec { color: var(--accent-ink); font-weight: 650; font-size: 0.92rem; }
+.dc-qual { color: var(--muted); font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dc-verified { display: inline-flex; align-items: center; gap: 5px; margin-top: 3px; color: var(--accent); font-size: 0.76rem; font-weight: 600; }
+.dc-work { margin: 0; color: var(--ink); font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dc-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dc-facts li { padding: 4px 10px; border-radius: 999px; background: var(--sage-soft); color: var(--accent-ink); font-size: 0.76rem; font-weight: 600; }
+.dc-bio { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.45; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.dc-channels { display: flex; flex-wrap: wrap; gap: 6px; }
+.dc-chip { padding: 3px 9px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); font-size: 0.76rem; font-weight: 600; }
+.dc-foot { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+
+.dp-view { display: flex; flex-direction: column; gap: 18px; }
+.dp-hero { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 22px 16px 18px; border-radius: var(--r-lg); background: linear-gradient(180deg, var(--sage-soft), transparent); text-align: center; }
+.dp-hero .dc-photo { margin-bottom: 12px; }
+.dp-name { font-size: 1.35rem; letter-spacing: -0.02em; line-height: 1.2; }
+.dp-hero .dc-qual { white-space: normal; }
+.dp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dp-stats > div { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; border-radius: var(--r-sm); background: var(--raised); box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.dp-stats strong { font-size: 1rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-stats span { color: var(--muted); font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.dp-sec h3 { margin: 0 0 6px; color: var(--muted); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.dp-sec p { margin: 0; line-height: 1.55; white-space: pre-line; }
+.dp-channels { display: grid; gap: 8px; }
+.dp-channel { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--raised); box-shadow: inset 0 0 0 1px var(--line); font-size: 1.3rem; }
+.dp-channel > span:last-child { display: flex; flex-direction: column; font-size: 0.95rem; }
+.dp-channel small { color: var(--muted); font-size: 0.8rem; }
+.dp-action { padding-top: 4px; border-top: 1px solid var(--line); }

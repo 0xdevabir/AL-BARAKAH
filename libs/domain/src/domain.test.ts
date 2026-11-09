@@ -2,7 +2,33 @@ import { describe, expect, it } from 'vitest';
 import {
   canTransition, computeTotals, consultationSlots, DEFAULT_FEES, deliverySlots, dhakaHour, emergencyDeadline,
   formatTk, isEmergencyAvailable, isValidDeliverySlot, pieceNoun, piecePricePoisha, piecesPerPack,
+  dosesPerDay, rxCartQty, rxValid,
 } from './index.js';
+
+describe('prescription to cart', () => {
+  it('counts doses a day', () => {
+    expect(dosesPerDay('1+0+1')).toBe(2);
+    expect(dosesPerDay('1+1+1+1')).toBe(4);
+    expect(dosesPerDay('½+0+½')).toBe(1);
+    expect(dosesPerDay('As needed')).toBe(0);
+    expect(dosesPerDay('')).toBe(0);
+  });
+  it('buys the exact course loose when it is not whole packs', () => {
+    expect(rxCartQty('1+0+1', 7, 10)).toEqual({ unit: 'PIECE', qty: 14, pieces: 14 });
+    expect(rxCartQty('1+0+1', 5, 10)).toEqual({ unit: 'PACK', qty: 1, pieces: 10 });
+  });
+  it('buys whole packs for long courses and non-tablets', () => {
+    expect(rxCartQty('1+0+0', 30, 10)).toEqual({ unit: 'PACK', qty: 3, pieces: 30 });
+    expect(rxCartQty('1+1+1', 30, 14)).toEqual({ unit: 'PACK', qty: 7, pieces: 90 });
+    expect(rxCartQty('1+0+1', 5, 0)).toEqual({ unit: 'PACK', qty: 1, pieces: 10 });
+    expect(rxCartQty('As needed', 0, 10)).toEqual({ unit: 'PACK', qty: 1, pieces: 0 });
+  });
+  it('lets an e-prescription buy medicines for 30 days', () => {
+    const t = new Date('2026-11-01T00:00:00Z');
+    expect(rxValid(t, new Date('2026-11-30T00:00:00Z'))).toBe(true);
+    expect(rxValid(t, new Date('2026-12-02T00:00:00Z'))).toBe(false);
+  });
+});
 
 /** Build an instant from Dhaka wall-clock time. */
 const dhaka = (d: string, t: string) => new Date(`${d}T${t}:00+06:00`);

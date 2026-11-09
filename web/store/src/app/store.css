@@ -391,6 +391,8 @@
   box-shadow: 0 0 0 3px var(--sage-soft);
 }
 .home-doctor-faces > span + span { margin-left: -10px; }
+.home-doctor-faces img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.home-doctor-faces > span { overflow: hidden; }
 .home-doctor-faces > span:nth-child(2) { background: var(--forest); }
 .home-doctor-faces > span:nth-child(3) { background: #7d9875; }
 .home-doctor-faces svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; }

@@ -10,6 +10,7 @@ export interface Window { weekday: number; startMinute: number; endMinute: numbe
 export interface DoctorMe {
   id: string; bmdcNo: string; specialty: string; bio: string; feePoisha: number | null; channels: Channel[];
   meetLink: string | null; whatsapp: string | null; isActive: boolean; availability: (Window & { id: string })[];
+  photoUrl: string; qualifications: string; experienceYears: number; workplace: string; languages: string[]; onboardedAt: string | null;
   user: { name: string; phone: string };
 }
 export interface DoctorSummary {

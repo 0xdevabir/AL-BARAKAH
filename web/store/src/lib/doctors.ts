@@ -1,8 +1,8 @@
-import { fmtTime } from '@albarakah/ui';
+import { type DoctorPublic, fmtTime } from '@albarakah/ui';
 
 export type Channel = 'GOOGLE_MEET' | 'WHATSAPP';
 export interface Slot { start: string; end: string }
-export interface Doctor {
+export interface Doctor extends DoctorPublic {
   id: string;
   name: string;
   specialty: string;
