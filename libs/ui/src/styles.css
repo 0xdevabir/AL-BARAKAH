@@ -3,19 +3,19 @@
 @font-face { font-family: 'Noto Sans Bengali'; src: url('/fonts/noto-bengali.woff2') format('woff2'); font-weight: 400; font-display: swap; unicode-range: U+0951-0952, U+0964-0965, U+0980-09FE, U+200C-200D, U+25CC; }
 
 :root {
-  /* Always light: white surfaces on a pale sky-blue ground, with sky blue for primary actions. */
+  /* Always light: soft blue-tinted surfaces on a light blue ground (no pure white, for eye comfort), sky blue for primary actions. */
   color-scheme: light only;
-  --bg: #f2f8fd;
-  --surface: #e0eef9;
-  --raised: #ffffff;
-  --ink: #0f2a3d;
+  --bg: #e4eff8;
+  --surface: #d4e5f3;
+  --raised: #f4f9fd;
+  --ink: #17324a;
   --muted: #4a6274;
   --line: rgb(16 52 84 / 0.14);
   --accent: #0b7ac4;
   --accent-ink: #075a92;
   --on-accent: #fff;
   --sage: #8ecaf2;
-  --sage-soft: #dbeefc;
+  --sage-soft: #d2e7f8;
   --forest: #0b3a5c;
   --danger: #a4322a;
   --warn: #8a5a00;
@@ -351,7 +351,7 @@ html.sheet-open body { overflow: hidden; }
   --spring-soft: cubic-bezier(0.22, 1.25, 0.36, 1);
   --glass: color-mix(in srgb, var(--raised) 66%, transparent);
   --glass-strong: color-mix(in srgb, var(--raised) 82%, transparent);
-  --glass-edge: rgb(255 255 255 / 0.7);
+  --glass-edge: rgb(255 255 255 / 0.55);
   --glass-line: rgb(16 52 84 / 0.1);
   --glass-shadow: 0 1px 1px rgb(14 50 82 / 0.04), 0 8px 24px rgb(14 50 82 / 0.1), 0 24px 48px -12px rgb(14 50 82 / 0.14);
   --glass-blur: blur(22px) saturate(1.8);
