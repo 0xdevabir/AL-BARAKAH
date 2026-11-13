@@ -17,7 +17,7 @@ import type { AddressSnap } from '@/lib/types';
 interface Job {
   id: string; code: string; status: 'ASSIGNED' | 'OUT_FOR_DELIVERY'; type: 'NORMAL' | 'EMERGENCY'; promisedBy: string;
   slotStart: string | null; slotEnd: string | null; addressSnapshot: AddressSnap; totalPoisha: number; paymentMethod: 'COD' | 'BKASH';
-  paymentStatus: string; riderPayoutPoisha: number; notes: string | null; updatedAt: string;
+  paymentStatus: string; riderPayoutPoisha: number; notes: string | null; updatedAt: string; riderAcceptedAt: string | null;
   customer: { name: string }; items: { nameSnapshot: string; qty: number }[];
 }
 interface Summary {
@@ -36,6 +36,7 @@ interface Stop {
   meters: number | null;
 }
 
+const DECLINE_REASONS = ['Too far from me', 'Bike problem', 'Already carrying too much', 'Ending my shift'];
 const FAIL_REASONS = ['Customer not reachable', 'Customer not at address', 'Wrong or incomplete address', 'Customer refused the order', 'Customer could not pay'];
 const VIEW_KEY = 'rider:view';
 
@@ -158,8 +159,32 @@ export default function RiderToday() {
     setDeliver(j);
   }
 
+  /** A new job must be accepted before pickup; declining hands it back to the pharmacy to reassign. */
+  async function respond(j: Job, accept: boolean) {
+    let reason: string | undefined;
+    if (!accept) {
+      const pick = await chooseAction(`Decline ${j.code}?`, [...DECLINE_REASONS.map((r) => ({ label: r, value: r })), { label: 'Something else…', value: '__other' }], 'The pharmacy assigns it to another rider.');
+      if (!pick) return;
+      reason = pick;
+      if (pick === '__other') {
+        const t = await promptText({ title: 'Why are you declining?', placeholder: 'Short reason', confirm: 'Decline job', required: true, destructive: true });
+        if (t === null) return;
+        reason = t;
+      }
+    }
+    try {
+      await api.post(`/delivery/jobs/${j.id}/respond`, { accept, ...(reason ? { reason } : {}) });
+      haptic(accept ? 'success' : 'warning');
+      toast(accept ? `${j.code} accepted — head to the pharmacy` : `${j.code} handed back`, accept ? 'ok' : 'info');
+      if (!accept) setOpen(null);
+    } catch (err) {
+      toast(message(err), 'bad');
+    }
+    invalidate('/delivery');
+  }
+
   const max = Math.max(1, ...(s?.week.map((d) => d.poisha) ?? [1]));
-  const actions = { start, fail, handOver, open: (j: Job) => setOpen(j.id) };
+  const actions = { start, fail, handOver, respond, open: (j: Job) => setOpen(j.id) };
 
   return (
     <>
@@ -278,6 +303,7 @@ interface CardActions {
   start: (j: Job) => Promise<void>;
   fail: (j: Job) => Promise<void>;
   handOver: (j: Job) => void;
+  respond: (j: Job, accept: boolean) => Promise<void>;
   open: (j: Job) => void;
 }
 
@@ -286,7 +312,7 @@ function dueText(j: Job, now: number) {
   return { late, text: late ? `Late · was due ${fmtTime(j.promisedBy)}` : `Due ${fmtTime(j.promisedBy)} · ${fmtRelative(j.promisedBy, now)}` };
 }
 
-function JobCard({ stop, now, start, fail, handOver, open }: { stop: Stop; now: number } & CardActions) {
+function JobCard({ stop, now, start, fail, handOver, respond, open }: { stop: Stop; now: number } & CardActions) {
   const j = stop.job;
   const due = dueText(j, now);
   const cod = j.paymentMethod === 'COD' && j.paymentStatus !== 'PAID';
@@ -299,7 +325,7 @@ function JobCard({ stop, now, start, fail, handOver, open }: { stop: Stop; now: 
           <strong className="mono">{j.code}</strong>
           {j.type === 'EMERGENCY' ? <span className="chip bad">Emergency</span> : null}
         </span>
-        <span className={`chip ${statusTone(j.status)}`}>{j.status === 'ASSIGNED' ? 'Pick up' : statusLabel(j.status)}</span>
+        <span className={`chip ${statusTone(j.status)}`}>{j.status === 'ASSIGNED' ? (j.riderAcceptedAt ? 'Pick up' : 'New') : statusLabel(j.status)}</span>
       </header>
       <div className={`job-due ${due.late ? 'late' : ''}`}>
         <Icon name="clock" size={16} />
@@ -336,7 +362,12 @@ function JobCard({ stop, now, start, fail, handOver, open }: { stop: Stop; now: 
       <div className="actions">
         {j.addressSnapshot.phone ? <a className="btn" href={telLink(j.addressSnapshot.phone)} aria-label={`Call ${j.customer.name}`}><Icon name="phone" size={18} /> Call</a> : null}
         <a className="btn" href={dest ? navLink(dest) : mapsLink(j.addressSnapshot.line)} target="_blank" rel="noreferrer"><Icon name="map" size={18} /> Navigate</a>
-        {j.status === 'ASSIGNED' ? (
+        {j.status === 'ASSIGNED' && !j.riderAcceptedAt ? (
+          <>
+            <button className="btn" onClick={() => void respond(j, false)}>Decline</button>
+            <button className="btn primary" onClick={() => void respond(j, true)}>Accept</button>
+          </>
+        ) : j.status === 'ASSIGNED' ? (
           <button className="btn primary" onClick={() => void start(j)}>Start delivery</button>
         ) : (
           <>
@@ -461,7 +492,7 @@ function useRoute(stop: Stop | null, fix: Fix | null, pickup: Pickup | null): Ro
   return route;
 }
 
-function JobDetail({ stop, fix, pickup, now, start, fail, handOver }: { stop: Stop; fix: Fix | null; pickup: Pickup | null; now: number } & CardActions) {
+function JobDetail({ stop, fix, pickup, now, start, fail, handOver, respond }: { stop: Stop; fix: Fix | null; pickup: Pickup | null; now: number } & CardActions) {
   const j = stop.job;
   const a = j.addressSnapshot;
   const route = useRoute(stop, fix, pickup);
@@ -560,7 +591,12 @@ function JobDetail({ stop, fix, pickup, now, start, fail, handOver }: { stop: St
         <Icon name="map" size={18} /> {needsPickup ? 'Navigate to pharmacy' : 'Navigate to customer'}
       </a>
       <div className="actions">
-        {needsPickup ? (
+        {needsPickup && !j.riderAcceptedAt ? (
+          <>
+            <button className="btn" onClick={() => void respond(j, false)}>Decline</button>
+            <button className="btn primary" onClick={() => void respond(j, true)}>Accept job</button>
+          </>
+        ) : needsPickup ? (
           <button className="btn primary" onClick={() => void start(j)}>I’ve picked it up</button>
         ) : (
           <>

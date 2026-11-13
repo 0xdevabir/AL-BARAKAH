@@ -90,6 +90,8 @@ export default function AdminDashboard() {
             <StatTile label="Cash with riders" value={formatTk(k.cashWithRidersPoisha)} tone={k.cashWithRidersPoisha > 2_000_000 ? 'warn' : undefined} />
           </div>
 
+          <DoctorsNow />
+
           <div className="cols main-side">
             <div className="panel">
               <div className="panel-title">
@@ -196,5 +198,55 @@ export default function AdminDashboard() {
         </div>
       ) : null}
     </>
+  );
+}
+
+interface Available {
+  onDutyInterns: number;
+  specialistsToday: number;
+  total: number;
+  specialists: { id: string; specialty: string; user: { name: string } }[];
+  overdueInstant: { id: string; code: string; updatedAt: string; doctor: { user: { name: string } } | null }[];
+}
+
+/** Who can see a patient right now, and any instant call a doctor has not picked up in time. */
+function DoctorsNow() {
+  const { data } = useGet<Available>('/admin/doctors/available', { pollMs: 60_000 });
+  if (!data) return null;
+  return (
+    <div className="panel">
+      <div className="panel-title">
+        Doctors <span className="muted">{data.total} active</span>
+      </div>
+      <div className="stats" style={{ marginBottom: data.specialists.length || data.overdueInstant.length ? 12 : 0 }}>
+        <StatTile label="On duty now" value={data.onDutyInterns} hint="instant video calls" tone={data.onDutyInterns ? 'ok' : 'warn'} />
+        <StatTile label="Specialists today" value={data.specialistsToday} />
+      </div>
+      {data.overdueInstant.length ? (
+        <div className="group" style={{ marginBottom: 12 }}>
+          {data.overdueInstant.map((c) => (
+            <Link key={c.id} href="/admin/consultations" className="chev">
+              <span className="cell-icon bad">!</span>
+              <span className="cell-main">
+                <strong>Instant call {c.code} not answered</strong>
+                <span className="cell-sub">{c.doctor ? `Waiting on ${c.doctor.user.name}` : 'No doctor on duty'} · paid {fmtRelative(c.updatedAt)}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
+      {data.specialists.length ? (
+        <div className="group">
+          {data.specialists.map((d) => (
+            <Link key={d.id} href={`/admin/doctors/${d.id}`} className="chev">
+              <span className="cell-main">
+                <strong>{d.user.name}</strong>
+                <span className="cell-sub">{d.specialty} · seeing patients today</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

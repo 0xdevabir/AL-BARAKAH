@@ -1,6 +1,6 @@
 import { randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import type { placeOrderSchema } from '@albarakah/contracts';
+import type { adminOrderItemsSchema, placeOrderSchema } from '@albarakah/contracts';
 import type { OrderStatus, Prisma, PrismaClient, SaleUnit } from '@albarakah/database';
 import {
   canTransition, computeTotals, deliverySlots, emergencyDeadline, isEmergencyAvailable, isValidDeliverySlot, type OrderActor,
@@ -24,6 +24,7 @@ export function shortCode(prefix: string): string {
 }
 
 type PlaceOrder = z.output<typeof placeOrderSchema>;
+type OrderLineInput = z.output<typeof adminOrderItemsSchema>['items'];
 
 @Injectable()
 export class OrdersService {
@@ -33,11 +34,27 @@ export class OrdersService {
     private readonly settings: SettingsService,
   ) {}
 
-  async slotsFor(now = new Date()) {
+  /** Rare medicines in the cart push delivery back by the days the pharmacy needs to source them. */
+  async sourcingDaysFor(medicineIds: string[]): Promise<number> {
+    if (!medicineIds.length) return 0;
+    const agg = await this.prisma.medicine.aggregate({ where: { id: { in: medicineIds } }, _max: { sourcingDays: true } });
+    return agg._max.sourcingDays ?? 0;
+  }
+
+  async slotsFor(now = new Date(), medicineIds: string[] = []) {
     const s = await this.settings.get();
+    const sourcingDays = await this.sourcingDaysFor(medicineIds);
     return {
-      slots: deliverySlots(now, s),
-      emergency: { available: isEmergencyAvailable(now, s), feePoisha: s.emergencyFeePoisha, minutes: s.emergencyMinutes },
+      slots: deliverySlots(now, s, sourcingDays),
+      sourcingDays,
+      emergency: {
+        // A rare medicine can't arrive within the hour, so urgent delivery is off for that cart.
+        available: sourcingDays === 0 && isEmergencyAvailable(now, s),
+        feePoisha: s.emergencyFeePoisha,
+        minutes: s.emergencyMinutes,
+        /** Urgent delivery replaces the regular delivery charge. */
+        waivesDeliveryFee: true,
+      },
     };
   }
 
@@ -50,19 +67,9 @@ export class OrdersService {
 
     const s = await this.settings.get();
     const emergency = input.type === 'EMERGENCY';
-    let slotStart: Date | null = null;
-    let slotEnd: Date | null = null;
-    let promisedBy: Date;
-    if (emergency) {
-      if (!isEmergencyAvailable(now, s)) throw badRequest('EMERGENCY_UNAVAILABLE', 'Emergency delivery is not available right now');
-      promisedBy = emergencyDeadline(now, s);
-    } else {
-      const chosen = new Date(input.slotStart!);
-      if (!isValidDeliverySlot(chosen, now, s)) throw badRequest('SLOT_UNAVAILABLE', 'That delivery time is no longer available. Please choose another.');
-      const slot = deliverySlots(now, s).find((x) => x.start.getTime() === chosen.getTime())!;
-      slotStart = slot.start;
-      slotEnd = slot.end;
-      promisedBy = slot.end;
+    // A prescription-only order has no price until the pharmacy reads the prescription, so it can't be prepaid.
+    if (!input.items.length && input.paymentMethod !== 'COD') {
+      throw badRequest('PAY_ON_DELIVERY', 'For a prescription-only order, please choose cash on delivery. We will confirm the price with you first.');
     }
 
     const address = await this.prisma.address.findFirst({
@@ -83,6 +90,26 @@ export class OrdersService {
     const ids = [...new Set(keys.map((k) => qtyByKey.get(k)!.medicineId))];
     const medicines = await this.prisma.medicine.findMany({ where: { id: { in: ids }, isActive: true } });
     if (medicines.length !== ids.length) throw badRequest('ITEM_UNAVAILABLE', 'An item in your cart is no longer available');
+
+    const sourcingDays = Math.max(0, ...medicines.map((m) => m.sourcingDays));
+    let slotStart: Date | null = null;
+    let slotEnd: Date | null = null;
+    let promisedBy: Date;
+    if (emergency) {
+      if (sourcingDays > 0) {
+        const rare = medicines.filter((m) => m.sourcingDays > 0).map((m) => m.name).join(', ');
+        throw badRequest('EMERGENCY_UNAVAILABLE', `${rare} must be sourced first, so urgent delivery isn't possible. Please choose a delivery time.`);
+      }
+      if (!isEmergencyAvailable(now, s)) throw badRequest('EMERGENCY_UNAVAILABLE', 'Emergency delivery is not available right now');
+      promisedBy = emergencyDeadline(now, s);
+    } else {
+      const chosen = new Date(input.slotStart!);
+      if (!isValidDeliverySlot(chosen, now, s, sourcingDays)) throw badRequest('SLOT_UNAVAILABLE', 'That delivery time is no longer available. Please choose another.');
+      const slot = deliverySlots(now, s, sourcingDays).find((x) => x.start.getTime() === chosen.getTime())!;
+      slotStart = slot.start;
+      slotEnd = slot.end;
+      promisedBy = slot.end;
+    }
     // The customer's own e-prescription from a consultation here covers the Rx medicines the doctor wrote.
     const coverage = input.consultationId ? await rxCoverage(this.prisma, customerId, input.consultationId, now) : null;
     if (input.consultationId && !coverage) {
@@ -99,16 +126,7 @@ export class OrdersService {
     }
     if (input.prescriptionKey && !input.prescriptionKey.startsWith(`rx/${customerId}/`)) throw forbidden();
 
-    const byId = new Map(medicines.map((m) => [m.id, m]));
-    const lines = keys.map((k) => {
-      const { medicineId, unit, qty } = qtyByKey.get(k)!;
-      const medicine = byId.get(medicineId)!;
-      if (unit === 'PACK') return { medicine, unit, qty, perPack: 0, unitPricePoisha: medicine.pricePoisha, nameSnapshot: `${medicine.name} ${medicine.strength}`.trim() };
-      const perPack = piecesPerPack(medicine.form, medicine.packSize);
-      if (!perPack) throw badRequest('LOOSE_UNAVAILABLE', `${medicine.name} is sold by the pack only`);
-      const nameSnapshot = `${medicine.name} ${medicine.strength}`.trim() + ` (loose ${pieceNoun(medicine.form, 2)})`;
-      return { medicine, unit, qty, perPack, unitPricePoisha: piecePricePoisha(medicine.pricePoisha, perPack), nameSnapshot };
-    });
+    const lines = priceLines(keys.map((k) => qtyByKey.get(k)!), medicines);
     const totals = computeTotals({
       lines,
       zoneDeliveryFeePoisha: address.zone.deliveryFeePoisha,
@@ -138,13 +156,7 @@ export class OrdersService {
             events: { create: { toStatus: 'PLACED', actorId: customerId } },
           },
         });
-        for (const { medicine, unit, qty, perPack, unitPricePoisha, nameSnapshot } of lines) {
-          const item = await tx.orderItem.create({
-            data: { orderId: order.id, medicineId: medicine.id, nameSnapshot, unitPricePoisha, unit, qty },
-          });
-          if (unit === 'PIECE') await this.allocatePieces(tx, medicine.id, medicine.name, item.id, qty, perPack);
-          else await this.allocate(tx, medicine.id, medicine.name, item.id, qty);
-        }
+        await this.createLines(tx, order.id, lines);
         return order;
       });
     } catch (err) {
@@ -157,6 +169,80 @@ export class OrdersService {
       }
       throw err;
     }
+  }
+
+  private async createLines(tx: Prisma.TransactionClient, orderId: string, lines: ReturnType<typeof priceLines>) {
+    for (const { medicine, unit, qty, perPack, unitPricePoisha, nameSnapshot } of lines) {
+      const item = await tx.orderItem.create({
+        data: { orderId, medicineId: medicine.id, nameSnapshot, unitPricePoisha, unit, qty },
+      });
+      if (unit === 'PIECE') await this.allocatePieces(tx, medicine.id, medicine.name, item.id, qty, perPack);
+      else await this.allocate(tx, medicine.id, medicine.name, item.id, qty);
+    }
+  }
+
+  /** Returns every allocated piece and pack of an order to its batches. */
+  private async restock(tx: Prisma.TransactionClient, orderId: string) {
+    const allocations = await tx.orderAllocation.findMany({ where: { orderItem: { orderId } } });
+    // Loose pieces go back as loose: a cut strip cannot become a sealed pack again.
+    for (const a of allocations) {
+      await tx.batch.update({ where: { id: a.batchId }, data: a.loose ? { looseQty: { increment: a.qty } } : { qtyRemaining: { increment: a.qty } } });
+    }
+    await tx.orderAllocation.deleteMany({ where: { orderItem: { orderId } } });
+  }
+
+  /**
+   * The pharmacist fills (or corrects) a new order from its uploaded prescription. Only while PLACED and unpaid,
+   * so the customer confirms the new total on delivery and no prepaid amount goes stale.
+   */
+  async setItems(orderId: string, items: OrderLineInput, actorId: string, note?: string) {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const [locked] = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
+      if (!locked) throw notFound('Order not found');
+      const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+      const zone = await tx.zone.findUniqueOrThrow({ where: { id: order.zoneId } });
+      if (order.status !== 'PLACED') throw conflict('ORDER_LOCKED', 'Items can only be changed before the order is confirmed');
+      if (order.paymentStatus === 'PAID') throw conflict('ORDER_PAID', 'This order is already paid. Cancel and refund it instead.');
+      const merged = new Map<string, { medicineId: string; unit: SaleUnit; qty: number }>();
+      for (const i of items) {
+        const key = `${i.medicineId}|${i.unit}`;
+        merged.set(key, { medicineId: i.medicineId, unit: i.unit, qty: (merged.get(key)?.qty ?? 0) + i.qty });
+      }
+      const keys = [...merged.keys()].sort();
+      const ids = [...new Set(keys.map((k) => merged.get(k)!.medicineId))];
+      const medicines = await tx.medicine.findMany({ where: { id: { in: ids }, isActive: true } });
+      if (medicines.length !== ids.length) throw badRequest('ITEM_UNAVAILABLE', 'One of these medicines is inactive or missing');
+      const lines = priceLines(keys.map((k) => merged.get(k)!), medicines);
+      const s = await this.settings.get();
+      const totals = computeTotals({ lines, zoneDeliveryFeePoisha: zone.deliveryFeePoisha, emergency: order.type === 'EMERGENCY', fees: s });
+
+      await this.restock(tx, orderId);
+      await tx.orderItem.deleteMany({ where: { orderId } });
+      await this.createLines(tx, orderId, lines);
+      await tx.orderEvent.create({ data: { orderId, fromStatus: order.status, toStatus: order.status, actorId, note: note ?? 'Items set from the prescription' } });
+      await tx.auditLog.create({ data: { actorId, action: 'order.items', entity: 'Order', entityId: orderId, data: { items, totalPoisha: totals.totalPoisha } } });
+      return tx.order.update({ where: { id: orderId }, data: totals });
+    });
+    await this.publish(updated.id, updated.status, [updated.riderId]);
+    return updated;
+  }
+
+  /** The assigned rider takes the job, or hands it back to the pharmacy to reassign. */
+  async riderRespond(orderId: string, riderId: string, accept: boolean, reason?: string) {
+    if (!accept) return this.transition(orderId, 'PACKED', 'RIDER', riderId, { note: `Rider declined: ${reason ?? ''}`.trim() });
+    const r = await this.prisma.order.updateMany({
+      where: { id: orderId, riderId, status: 'ASSIGNED', riderAcceptedAt: null },
+      data: { riderAcceptedAt: new Date() },
+    });
+    if (r.count === 0) {
+      const o = await this.prisma.order.findFirst({ where: { id: orderId, riderId }, select: { status: true, riderAcceptedAt: true } });
+      if (!o) throw notFound('Order not found');
+      if (!o.riderAcceptedAt) throw conflict('INVALID_TRANSITION', 'Only an assigned job can be accepted');
+    } else {
+      await this.prisma.orderEvent.create({ data: { orderId, fromStatus: 'ASSIGNED', toStatus: 'ASSIGNED', actorId: riderId, note: 'Rider accepted' } });
+    }
+    await this.publish(orderId, 'ASSIGNED', [riderId]);
+    return { ok: true };
   }
 
   /** Takes stock from the earliest-expiring usable batches. Row locks make concurrent orders queue up. */
@@ -224,19 +310,24 @@ export class OrdersService {
         const rider = await tx.user.findFirst({ where: { id: opts.riderId, role: 'RIDER', isActive: true } });
         if (!rider) throw badRequest('RIDER_INVALID', 'That delivery person is not available');
         data.rider = { connect: { id: rider.id } };
+        // A new (or the same) assignment waits for the rider to accept it again.
+        data.riderAcceptedAt = null;
       }
+      if (to === 'PACKED' && actor === 'RIDER') {
+        data.rider = { disconnect: true };
+        data.riderAcceptedAt = null;
+      }
+      // Starting the trip is itself an acceptance.
+      if (to === 'OUT_FOR_DELIVERY' && !order.riderAcceptedAt) data.riderAcceptedAt = new Date();
       // Proof of delivery: the customer only sees this code in their app, so a rider cannot fake a handover.
       if (to === 'OUT_FOR_DELIVERY') data.handoverCode = handoverCode();
       if (to === 'DELIVERED' && actor === 'RIDER' && order.handoverCode && !safeEqual(order.handoverCode, opts.code ?? '')) {
         throw badRequest('HANDOVER_CODE', 'That code does not match. Ask the customer for the 4-digit code in their app.');
       }
-      if (restoresStock(to)) {
-        const allocations = await tx.orderAllocation.findMany({ where: { orderItem: { orderId } } });
-        // Loose pieces go back as loose: a cut strip cannot become a sealed pack again.
-        for (const a of allocations) {
-          await tx.batch.update({ where: { id: a.batchId }, data: a.loose ? { looseQty: { increment: a.qty } } : { qtyRemaining: { increment: a.qty } } });
-        }
-        await tx.orderAllocation.deleteMany({ where: { orderItem: { orderId } } });
+      if (restoresStock(to)) await this.restock(tx, orderId);
+      // A prescription-only order must be filled before the pharmacy can confirm it.
+      if (to === 'CONFIRMED' && order.subtotalPoisha === 0 && (await tx.orderItem.count({ where: { orderId } })) === 0) {
+        throw conflict('ORDER_EMPTY', 'Add the medicines from the prescription before confirming');
       }
       // A bKash order stopped after payment still holds the customer's money, so an admin must refund it.
       if ((to === 'CANCELLED' || to === 'FAILED') && order.paymentStatus === 'PAID') {
@@ -266,6 +357,20 @@ export class OrdersService {
     const channels = new Set([orderChannel(orderId), ADMIN_CHANNEL, ...riders.filter(Boolean).map((r) => riderChannel(r!))]);
     await Promise.all([...channels].map((c) => this.redis.publish(c, msg).catch(() => undefined)));
   }
+}
+
+type PricedMedicine = { id: string; name: string; strength: string; form: string; packSize: string; pricePoisha: number };
+/** Snapshots name and unit price for each merged cart line; loose pieces are priced from the pack. */
+function priceLines<M extends PricedMedicine>(wanted: { medicineId: string; unit: SaleUnit; qty: number }[], medicines: M[]) {
+  const byId = new Map(medicines.map((m) => [m.id, m]));
+  return wanted.map(({ medicineId, unit, qty }) => {
+    const medicine = byId.get(medicineId)!;
+    if (unit === 'PACK') return { medicine, unit, qty, perPack: 0, unitPricePoisha: medicine.pricePoisha, nameSnapshot: `${medicine.name} ${medicine.strength}`.trim() };
+    const perPack = piecesPerPack(medicine.form, medicine.packSize);
+    if (!perPack) throw badRequest('LOOSE_UNAVAILABLE', `${medicine.name} is sold by the pack only`);
+    const nameSnapshot = `${medicine.name} ${medicine.strength}`.trim() + ` (loose ${pieceNoun(medicine.form, 2)})`;
+    return { medicine, unit, qty, perPack, unitPricePoisha: piecePricePoisha(medicine.pricePoisha, perPack), nameSnapshot };
+  });
 }
 
 function handoverCode() {

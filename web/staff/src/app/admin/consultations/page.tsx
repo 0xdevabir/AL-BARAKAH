@@ -1,5 +1,6 @@
 'use client';
 
+import { type CallChannel, CHANNEL } from '@/lib/doctor';
 import { formatTk } from '@albarakah/domain';
 import { confirmAction, EmptyState, fmtWhen, invalidate, LargeTitle, SearchField, Segmented, SkeletonList, statusLabel, statusTone, toast } from '@albarakah/ui';
 import { useDeferredValue, useState } from 'react';
@@ -7,7 +8,7 @@ import { api, useGet } from '@/lib/api';
 import { message } from '@/lib/app';
 
 interface Row {
-  id: string; code: string; startsAt: string; status: string; channel: 'GOOGLE_MEET' | 'WHATSAPP'; feePoisha: number;
+  id: string; code: string; startsAt: string; status: string; channel: CallChannel; feePoisha: number;
   customer: { name: string; phone: string }; doctor: { user: { name: string } };
   payments: { id: string; status: 'PAID' | 'REFUNDED'; trxId: string | null }[];
 }
@@ -74,7 +75,7 @@ export default function ConsultationsPage() {
                     {c.customer.name} <span className="muted small">with {c.doctor.user.name}</span>
                   </strong>
                   <span className="cell-sub">
-                    {fmtWhen(c.startsAt)} · {c.channel === 'GOOGLE_MEET' ? 'Meet' : 'WhatsApp'} · <span className="mono">{c.code}</span>
+                    {fmtWhen(c.startsAt)} · {CHANNEL[c.channel]} · <span className="mono">{c.code}</span>
                     {paid?.trxId ? ` · bKash ${paid.trxId}` : ''}
                   </span>
                 </span>

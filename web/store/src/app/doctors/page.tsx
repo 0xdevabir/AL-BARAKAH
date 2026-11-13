@@ -5,6 +5,7 @@ import { DoctorCard, DoctorProfileView, EmptyState, SearchField, Sheet, Skeleton
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { BookDoctor } from '@/components/BookDoctor';
+import { InstantConsult } from '@/components/InstantConsult';
 import { useApi, useGet } from '@/lib/api';
 import { countdown, type Doctor, nextLine } from '@/lib/doctors';
 
@@ -70,8 +71,10 @@ export default function DoctorsPage() {
     <div className="page stack screen">
       <div>
         <h1 className="title" style={{ marginBottom: 4 }}>See a doctor</h1>
-        <p className="muted">BMDC-registered doctors on video or WhatsApp, with the prescription right in the app.</p>
+        <p className="muted">An MBBS doctor now, or book a specialist&rsquo;s daily slot. BMDC-registered, with the prescription right in the app.</p>
       </div>
+
+      <InstantConsult />
 
       {upcoming ? (
         <Link href={`/doctors/bookings/${upcoming.id}`} className="doc-upnext">

@@ -8,6 +8,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Icon } from '@/components/Icon';
+import { OrderItemsEditor } from '@/components/OrderItemsEditor';
 import { api, useGet } from '@/lib/api';
 import { mapsLink, message, telLink } from '@/lib/app';
 import { useLive } from '@/lib/live';
@@ -193,7 +194,7 @@ function OrdersBoard() {
                     <span className="row" style={{ gap: 8 }}>
                       <strong className="mono">{o.code}</strong>
                       {o.type === 'EMERGENCY' ? <span className="chip bad">Emergency</span> : null}
-                      {o.consultationId ? <span className="chip ok" title="Covered by an e-prescription from a consultation here">e-Rx</span> : o.prescriptionKey ? <span className="chip warn">Rx</span> : null}
+                      {o.consultationId ? <span className="chip ok" title="Covered by an e-prescription from a consultation here">e-Rx</span> : o.prescriptionKey ? <span className="chip warn">{o.items.length ? 'Rx' : 'Rx · to fill'}</span> : null}
                     </span>
                     <span className="cell-sub">
                       {o.customer.name} · {o.items.reduce((n, i) => n + i.qty, 0)} items · {o.addressSnapshot.zone ?? o.addressSnapshot.line}
@@ -406,6 +407,13 @@ function OrderDetail({ id, onDone }: { id: string; onDone: () => void }) {
           </button>
         ) : null}
       </div>
+
+      {order.prescriptionKey && order.status === 'PLACED' && order.paymentStatus !== 'PAID' ? (
+        <>
+          <p className="group-label">{order.items.length ? 'Change items from the prescription' : 'Fill this order from the prescription'}</p>
+          <OrderItemsEditor orderId={order.id} hasItems={order.items.length > 0} onSaved={() => void refetch()} />
+        </>
+      ) : null}
 
       {order.consultation?.prescription ? (
         <>

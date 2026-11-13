@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
     cleartext: url.startsWith('http://'),
     errorPath: 'offline.html',
   },
-  android: { allowMixedContent: false, backgroundColor: '#F4F1E8' },
+  android: { allowMixedContent: false, backgroundColor: '#F2F8FD' },
 };
 
 export default config;

@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { Body, Controller, Delete, Get, Inject, MessageEvent, Module, Param, Patch, Post, Put, Query, Sse } from '@nestjs/common';
-import { addressSchema, adminTransitionSchema, placeOrderSchema, prescriptionUploadSchema, rateOrderSchema, riderLocationSchema, riderOnlineSchema, riderTransitionSchema, settleSchema } from '@albarakah/contracts';
+import { addressSchema, adminOrderItemsSchema, adminTransitionSchema, placeOrderSchema, riderRespondSchema, prescriptionUploadSchema, rateOrderSchema, riderLocationSchema, riderOnlineSchema, riderTransitionSchema, settleSchema } from '@albarakah/contracts';
 import type { OrderStatus, Prisma, PrismaClient } from '@albarakah/database';
 import { Redis } from 'ioredis';
 import { Observable } from 'rxjs';
@@ -54,8 +54,10 @@ export class OrdersController {
 
   @Public()
   @Get('delivery-slots')
-  slots() {
-    return this.orders.slotsFor();
+  slots(@Query('ids') ids?: string) {
+    // The cart's medicine ids, so rare medicines push the slots back.
+    const medicineIds = (ids ?? '').split(',').map((x) => x.trim()).filter(Boolean).slice(0, 50);
+    return this.orders.slotsFor(new Date(), medicineIds);
   }
 
   // ---- addresses ----
@@ -129,21 +131,30 @@ export class OrdersController {
     if (!o) throw notFound('Order not found');
     const { riderPayoutPoisha: _hidden, idempotencyKey: _key, handoverCode, ...rest } = o;
     const onTheWay = o.status === 'OUT_FOR_DELIVERY';
-    // The rider's phone and the handover code are only useful, and only shared, while the order is on its way.
-    return { ...rest, rider: onTheWay ? o.rider : null, handoverCode: onTheWay ? handoverCode : null };
+    const riderAccepted = (o.status === 'ASSIGNED' && !!o.riderAcceptedAt) || onTheWay;
+    // The rider's name shows once they take the job; phone and handover code only while it is on its way.
+    return {
+      ...rest,
+      riderAccepted,
+      rider: onTheWay ? o.rider : riderAccepted && o.rider ? { name: o.rider.name, phone: null } : null,
+      handoverCode: onTheWay ? handoverCode : null,
+    };
   }
 
   /** Live map data: polled every few seconds by the order screen. The rider's position is only shared while they are on the way. */
   @RequirePermission('order:read-own')
   @Get('orders/:id/track')
   async track(@CurrentUser() u: AuthUser, @Param('id') id: string) {
-    const o = await this.prisma.order.findFirst({ where: { id, customerId: u.id }, select: { status: true, riderId: true, addressSnapshot: true, promisedBy: true } });
+    const o = await this.prisma.order.findFirst({ where: { id, customerId: u.id }, select: { status: true, riderId: true, riderAcceptedAt: true, addressSnapshot: true, promisedBy: true } });
     if (!o) throw notFound('Order not found');
     const s = await this.settings.get();
     const snap = o.addressSnapshot as { lat?: number | null; lng?: number | null };
-    const [fix] = o.status === 'OUT_FOR_DELIVERY' && o.riderId ? await this.riderFixes([o.riderId]) : [null];
+    // Shared from the moment the rider accepts the job, so the customer sees them heading to the pharmacy too.
+    const sharing = !!o.riderId && (o.status === 'OUT_FOR_DELIVERY' || (o.status === 'ASSIGNED' && !!o.riderAcceptedAt));
+    const [fix] = sharing ? await this.riderFixes([o.riderId!]) : [null];
     return {
       status: o.status,
+      riderAccepted: sharing,
       promisedBy: o.promisedBy,
       pharmacy: { lat: s.pharmacyLat, lng: s.pharmacyLng },
       destination: typeof snap.lat === 'number' && typeof snap.lng === 'number' ? { lat: snap.lat, lng: snap.lng } : null,
@@ -311,6 +322,45 @@ export class OrdersController {
     return this.orders.transition(id, body.to, 'ADMIN', u.id, { riderId: body.riderId, note: body.note });
   }
 
+  /** Fill a prescription-only order (or correct one) while it is still PLACED. */
+  @RequirePermission('order:manage')
+  @Put('admin/orders/:id/items')
+  setItems(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(adminOrderItemsSchema)) body: z.output<typeof adminOrderItemsSchema>) {
+    return this.orders.setItems(id, body.items, u.id, body.note);
+  }
+
+  /** Every delivery in progress with its rider's last fix, for the live map. */
+  @RequirePermission('order:manage')
+  @Get('admin/deliveries/live')
+  async liveDeliveries() {
+    const orders = await this.prisma.order.findMany({
+      where: { status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } },
+      orderBy: { promisedBy: 'asc' },
+      take: 200,
+      select: {
+        id: true, code: true, status: true, type: true, promisedBy: true, riderAcceptedAt: true, addressSnapshot: true,
+        rider: { select: { id: true, name: true, phone: true } },
+      },
+    });
+    const riderIds = [...new Set(orders.map((o) => o.rider?.id).filter(Boolean))] as string[];
+    const [s, fixes] = await Promise.all([this.settings.get(), this.riderFixes(riderIds)]);
+    const fixById = new Map(riderIds.map((id, i) => [id, fixes[i] ?? null]));
+    const now = Date.now();
+    return {
+      pharmacy: { lat: s.pharmacyLat, lng: s.pharmacyLng },
+      orders: orders.map((o) => {
+        const snap = o.addressSnapshot as { lat?: number | null; lng?: number | null; zone?: string; line?: string };
+        return {
+          id: o.id, code: o.code, status: o.status, type: o.type, promisedBy: o.promisedBy, late: o.promisedBy.getTime() < now,
+          riderAccepted: !!o.riderAcceptedAt, rider: o.rider,
+          destination: typeof snap.lat === 'number' && typeof snap.lng === 'number' ? { lat: snap.lat, lng: snap.lng } : null,
+          area: snap.zone ?? '', line: snap.line ?? '',
+          location: o.rider ? fixById.get(o.rider.id) ?? null : null,
+        };
+      }),
+    };
+  }
+
   @RequirePermission('prescription:read')
   @Get('admin/orders/:id/prescription')
   async prescription(@CurrentUser() u: AuthUser, @Param('id') id: string) {
@@ -348,10 +398,17 @@ export class OrdersController {
       orderBy: [{ type: 'desc' }, { promisedBy: 'asc' }],
       select: {
         id: true, code: true, status: true, type: true, promisedBy: true, slotStart: true, slotEnd: true, addressSnapshot: true,
-        totalPoisha: true, paymentMethod: true, paymentStatus: true, riderPayoutPoisha: true, notes: true, updatedAt: true,
+        totalPoisha: true, paymentMethod: true, paymentStatus: true, riderPayoutPoisha: true, notes: true, updatedAt: true, riderAcceptedAt: true,
         customer: { select: { name: true } }, items: { select: { nameSnapshot: true, qty: true } },
       },
     });
+  }
+
+  /** Take an assigned job, or hand it back with a reason so the pharmacy can reassign it. */
+  @RequirePermission('delivery:work')
+  @Post('delivery/jobs/:id/respond')
+  respond(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body(new ZodPipe(riderRespondSchema)) body: z.output<typeof riderRespondSchema>) {
+    return this.orders.riderRespond(id, u.id, body.accept, body.reason);
   }
 
   @RequirePermission('delivery:work')

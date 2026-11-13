@@ -6,7 +6,8 @@ const TRANSITIONS: Record<OrderStatus, Partial<Record<OrderStatus, readonly Orde
   PLACED: { CONFIRMED: ['ADMIN'], CANCELLED: ['ADMIN', 'CUSTOMER'] },
   CONFIRMED: { PACKED: ['ADMIN'], CANCELLED: ['ADMIN'] },
   PACKED: { ASSIGNED: ['ADMIN'], CANCELLED: ['ADMIN'] },
-  ASSIGNED: { ASSIGNED: ['ADMIN'], OUT_FOR_DELIVERY: ['RIDER'], CANCELLED: ['ADMIN'] },
+  // A rider who declines a job hands it back: it returns to PACKED for the pharmacy to reassign.
+  ASSIGNED: { ASSIGNED: ['ADMIN'], PACKED: ['RIDER'], OUT_FOR_DELIVERY: ['RIDER'], CANCELLED: ['ADMIN'] },
   OUT_FOR_DELIVERY: { DELIVERED: ['RIDER'], FAILED: ['RIDER', 'ADMIN'] },
   DELIVERED: {},
   CANCELLED: {},

@@ -22,6 +22,10 @@ const DEFAULTS: Settings = {
   pharmacyLat: 23.7808,
   pharmacyLng: 90.4067,
   pharmacyAddress: '',
+  hotlines: [],
+  instantConsultFeePoisha: 30000,
+  instantResponseMinutes: 10,
+  doctorCommissionPct: 20,
 };
 const CACHE_MS = 15_000;
 const RELEASE_FILE = join(dirname(fileURLToPath(import.meta.url)), '../../android-release.json');
@@ -81,6 +85,9 @@ export class SettingsController {
     return {
       emergencyFeePoisha: s.emergencyFeePoisha,
       doctorBookingFeePoisha: s.doctorBookingFeePoisha,
+      instantConsultFeePoisha: s.instantConsultFeePoisha,
+      instantResponseMinutes: s.instantResponseMinutes,
+      hotlines: s.hotlines,
       requireRxUpload: s.requireRxUpload,
       openHour: s.openHour,
       closeHour: s.closeHour,

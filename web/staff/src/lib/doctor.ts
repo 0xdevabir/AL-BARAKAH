@@ -1,20 +1,29 @@
 import type { Rx } from './types';
 
 export type Channel = 'GOOGLE_MEET' | 'WHATSAPP';
+/** IN_APP is only used for instant calls; doctors never pick it as one of their call types. */
+export type CallChannel = Channel | 'IN_APP';
+export type Tier = 'SPECIALIST' | 'INTERN';
 export interface Booking {
   id: string; code: string; startsAt: string; endsAt: string; status: 'CONFIRMED' | 'COMPLETED' | 'NO_SHOW';
-  channel: Channel; reason: string | null; patientPhone: string; notes: string | null; prescription: Rx | null;
-  customerId: string; customer: { name: string };
+  channel: CallChannel; reason: string | null; patientPhone: string; notes: string | null; prescription: Rx | null;
+  customerId: string; customer: { name: string }; kind?: 'SCHEDULED' | 'INSTANT'; videoLink?: string | null;
+}
+/** A paid consultation waiting for the doctor to accept or decline. */
+export interface QueueItem {
+  id: string; code: string; kind: 'SCHEDULED' | 'INSTANT'; startsAt: string; endsAt: string; channel: CallChannel;
+  reason: string | null; patientPhone: string; customerId: string; customer: { name: string }; waitingSince: string; overdue: boolean;
 }
 export interface Window { weekday: number; startMinute: number; endMinute: number; slotMinutes: number }
 export interface DoctorMe {
   id: string; bmdcNo: string; specialty: string; bio: string; feePoisha: number | null; channels: Channel[];
   meetLink: string | null; whatsapp: string | null; isActive: boolean; availability: (Window & { id: string })[];
   photoUrl: string; qualifications: string; experienceYears: number; workplace: string; languages: string[]; onboardedAt: string | null;
+  tier: Tier; onDuty: boolean;
   user: { name: string; phone: string };
 }
 export interface DoctorSummary {
-  today: number; completedMonth: number; noShowMonth: number; patients: number; earnedMonthPoisha: number; hasAvailability: boolean;
+  today: number; completedMonth: number; noShowMonth: number; patients: number; earnedMonthPoisha: number; hasAvailability: boolean; pending: number;
   next: Pick<Booking, 'id' | 'code' | 'startsAt' | 'endsAt' | 'channel' | 'reason' | 'patientPhone' | 'customerId' | 'customer'> | null;
 }
 export interface PatientHistory {
@@ -22,20 +31,23 @@ export interface PatientHistory {
   visits: Pick<Booking, 'id' | 'code' | 'startsAt' | 'status' | 'channel' | 'reason' | 'notes' | 'prescription'>[];
 }
 
-export const CHANNEL: Record<Channel, string> = { GOOGLE_MEET: 'Google Meet', WHATSAPP: 'WhatsApp' };
+export const CHANNEL: Record<CallChannel, string> = { GOOGLE_MEET: 'Google Meet', WHATSAPP: 'WhatsApp', IN_APP: 'Instant video' };
+export const TIER: Record<Tier, string> = { SPECIALIST: 'Specialist', INTERN: 'Duty doctor (intern)' };
 export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /** A booking can be closed from 15 minutes before it starts. */
 export const canClose = (b: Pick<Booking, 'status' | 'startsAt'>, now = Date.now()) =>
   b.status === 'CONFIRMED' && new Date(b.startsAt).getTime() - 15 * 60_000 <= now;
 
-/** Where the doctor taps to start the call. WhatsApp calls go to the patient's number. */
-export function joinLink(channel: Channel, me: Pick<DoctorMe, 'meetLink'> | undefined, patientPhone: string) {
+/** Where the doctor taps to start the call. WhatsApp calls go to the patient's number; instant calls use the in-app room. */
+export function joinLink(channel: CallChannel, me: Pick<DoctorMe, 'meetLink'> | undefined, patientPhone: string, videoLink?: string | null) {
+  if (channel === 'IN_APP') return videoLink ?? null;
   if (channel === 'GOOGLE_MEET') return me?.meetLink ?? null;
   return `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
 }
 
-export function rxText(rx: Rx, patient: string, doctor?: DoctorMe) {
+export type RxDoctor = Pick<DoctorMe, 'bmdcNo' | 'specialty'> & { user: { name: string } };
+export function rxText(rx: Rx, patient: string, doctor?: RxDoctor) {
   const lines = [
     doctor ? `${doctor.user.name} · ${doctor.specialty} · BMDC ${doctor.bmdcNo}` : '',
     `Patient: ${patient}`,
@@ -63,7 +75,7 @@ export const freqLabel = (code: string) => FREQ.find((f) => f.code === code)?.la
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** Opens a clean letterhead prescription in a new window and starts printing (or Save as PDF). */
-export function printRx(rx: Rx, patient: string, doctor?: DoctorMe, when: string | Date = new Date()) {
+export function printRx(rx: Rx, patient: string, doctor?: RxDoctor, when: string | Date = new Date()) {
   const w = window.open('', '_blank', 'width=720,height=900');
   if (!w) return false;
   const date = new Date(when).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Dhaka' });

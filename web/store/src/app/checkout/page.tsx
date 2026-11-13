@@ -24,6 +24,7 @@ export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [emergency, setEmergency] = useState({ available: false, feePoisha: 0, minutes: 60 });
+  const [sourcingDays, setSourcingDays] = useState(0);
   const [addressId, setAddressId] = useState('');
   const [type, setType] = useState<'NORMAL' | 'EMERGENCY'>('NORMAL');
   const [slotStart, setSlotStart] = useState('');
@@ -57,7 +58,9 @@ export default function CheckoutPage() {
   const chosen = slots.find((s) => s.start === slotStart);
 
   const address = addresses.find((a) => a.id === addressId);
-  const deliveryFee = address?.zone.deliveryFeePoisha ?? 0;
+  const zoneFee = address?.zone.deliveryFeePoisha ?? 0;
+  // Paying for urgent delivery replaces the regular delivery charge; the server applies the same rule.
+  const deliveryFee = type === 'EMERGENCY' ? 0 : zoneFee;
   const emergencyFee = type === 'EMERGENCY' ? emergency.feePoisha : 0;
   const total = subtotal + deliveryFee + emergencyFee;
   const canNext = step === 0 ? !!addressId : type === 'EMERGENCY' ? emergency.available : !!slotStart;
@@ -76,11 +79,12 @@ export default function CheckoutPage() {
       try {
         const [a, s] = await Promise.all([
           api.get<Address[]>('/addresses'),
-          api.get<{ slots: Slot[]; emergency: typeof emergency }>('/delivery-slots'),
+          api.get<{ slots: Slot[]; emergency: typeof emergency; sourcingDays?: number }>(`/delivery-slots?ids=${lines.map((l) => l.id).join(',')}`),
         ]);
         setAddresses(a);
         setSlots(s.slots);
         setEmergency(s.emergency);
+        setSourcingDays(s.sourcingDays ?? 0);
         setAddressId(a[0]?.id ?? '');
         setSlotStart(s.slots[0]?.start ?? '');
       } catch (err) {
@@ -89,6 +93,7 @@ export default function CheckoutPage() {
         setReady(true);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the cart is fixed while checking out
   }, [lines.length, router]);
 
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -210,14 +215,26 @@ export default function CheckoutPage() {
                     <strong>Emergency delivery</strong>
                     <span className="price">{formatTk(emergency.feePoisha)}</span>
                   </span>
-                  <p className="muted">About {emergency.minutes} minutes, for an extra {formatTk(emergency.feePoisha)}.</p>
+                  <p className="muted">
+                    About {emergency.minutes} minutes for {formatTk(emergency.feePoisha)}.
+                    {zoneFee ? <> The regular {formatTk(zoneFee)} delivery fee is waived.</> : null}
+                  </p>
                 </>
               ) : (
-                <p>Emergency delivery is closed right now.</p>
+                <p>
+                  {sourcingDays
+                    ? 'Some medicines in your cart have to be sourced first, so urgent delivery is not available for this order.'
+                    : 'Emergency delivery is closed right now.'}
+                </p>
               )}
             </div>
           ) : (
             <>
+              {sourcingDays ? (
+                <p className="notice">
+                  Your cart has a rare medicine the pharmacy sources on order, so the earliest delivery is {sourcingDays} day{sourcingDays === 1 ? '' : 's'} later than usual.
+                </p>
+              ) : null}
               {slots.length === 0 ? (
                 <p className="muted">No delivery windows are open right now. Try emergency delivery.</p>
               ) : (
@@ -308,7 +325,14 @@ export default function CheckoutPage() {
           </label>
           <div className="group">
             <div className="row between"><span>Subtotal</span><span className="price">{formatTk(subtotal)}</span></div>
-            <div className="row between"><span>Delivery</span><span className="price">{formatTk(deliveryFee)}</span></div>
+            <div className="row between">
+              <span>Delivery</span>
+              {type === 'EMERGENCY' && zoneFee ? (
+                <span className="price"><s className="muted">{formatTk(zoneFee)}</s> Waived</span>
+              ) : (
+                <span className="price">{formatTk(deliveryFee)}</span>
+              )}
+            </div>
             {emergencyFee ? <div className="row between"><span>Emergency fee</span><span className="price">{formatTk(emergencyFee)}</span></div> : null}
             <div className="row between"><strong>Total</strong><strong className="price">{formatTk(total)}</strong></div>
           </div>

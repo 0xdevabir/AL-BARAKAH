@@ -5,6 +5,7 @@ import { HomeDoctor } from '@/components/HomeDoctor';
 import { ProductGrid } from '@/components/ProductGrid';
 import { SearchBox } from '@/components/SearchBox';
 import type { Doctor } from '@/lib/doctors';
+import { telHref } from '@/lib/tel';
 
 const API = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -21,13 +22,20 @@ async function getJson<T>(path: string, fallback: T): Promise<T> {
 }
 
 async function loadHome() {
-  const [categories, medicinesPayload, doctors] = await Promise.all([
+  const [categories, medicinesPayload, doctors, settings] = await Promise.all([
     getJson<Category[]>('/categories', []),
     getJson<Medicine[] | { items?: Medicine[] } | null>('/medicines', null),
     getJson<Doctor[]>('/doctors', []),
+    getJson<{ hotlines?: string[]; instantResponseMinutes?: number } | null>('/settings/public', null),
   ]);
   const medicines = Array.isArray(medicinesPayload) ? medicinesPayload : (medicinesPayload?.items ?? []);
-  return { categories, medicines, doctors: Array.isArray(doctors) ? doctors : [] };
+  return {
+    categories,
+    medicines,
+    doctors: Array.isArray(doctors) ? doctors : [],
+    hotlines: settings?.hotlines ?? [],
+    responseMinutes: settings?.instantResponseMinutes ?? 10,
+  };
 }
 
 const facts = [
@@ -40,7 +48,7 @@ const facts = [
     icon: <path d="M3 6h18v12H3zM3 10h18M7 15h3" />,
   },
   {
-    label: 'Doctors on video or WhatsApp',
+    label: 'A doctor on video within minutes',
     icon: <path d="M15 10l5-3v10l-5-3M3 7h12v10H3z" />,
   },
 ];
@@ -136,6 +144,39 @@ export default async function HomePage() {
           ) : null}
 
           <div className="home-main">
+            <nav className="home-quick" aria-label="Shortcuts">
+              <Link href="/prescription" className="quick-tile">
+                <span className="quick-glyph" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M14 3v4h4M9 12h2.5a1.5 1.5 0 0 1 0 3H9v-3Zm0 3v3m2-3 3 3" /></svg>
+                </span>
+                <strong>Upload prescription</strong>
+                <span>We read it and deliver</span>
+              </Link>
+              <Link href="/doctors" className="quick-tile">
+                <span className="quick-glyph" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M15 10l5-3v10l-5-3M3 7h12v10H3z" /></svg>
+                </span>
+                <strong>Doctor now</strong>
+                <span>Video call in {data.responseMinutes} min</span>
+              </Link>
+              {data.hotlines[0] ? (
+                <a href={telHref(data.hotlines[0])} className="quick-tile hot">
+                  <span className="quick-glyph" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 4h3.5l1.5 4-2 1.3a10.5 10.5 0 0 0 6.7 6.7L16 14l4 1.5V19a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z" /></svg>
+                  </span>
+                  <strong>Hotline</strong>
+                  <span className="mono">{data.hotlines[0]}</span>
+                </a>
+              ) : (
+                <Link href="/requests" className="quick-tile">
+                  <span className="quick-glyph" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 4.9 12l4.1 4M11 8v6M8 11h6" /></svg>
+                  </span>
+                  <strong>Request a medicine</strong>
+                  <span>Rare ones in 1–2 days</span>
+                </Link>
+              )}
+            </nav>
             <div className="home-promos">
               <HomeDoctor doctors={data.doctors} />
               <Link href="/orders" className="home-orders">

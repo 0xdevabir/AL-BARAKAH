@@ -11,6 +11,7 @@ interface Settings {
   emergencyStartHour: number; emergencyEndHour: number; emergencyMinutes: number;
   androidLatestVersionCode: number; androidLatestVersionName: string; androidApkUrl: string; androidForceUpdate: boolean; androidUpdateNotes: string;
   pharmacyLat: number; pharmacyLng: number; pharmacyAddress: string;
+  hotlines: string[]; instantConsultFeePoisha: number; instantResponseMinutes: number; doctorCommissionPct: number;
 }
 
 const MONEY = [
@@ -18,7 +19,10 @@ const MONEY = [
   ['riderPayoutPoisha', 'Rider payout per delivery', 'Credited when an order is delivered'],
   ['riderEmergencyBonusPoisha', 'Emergency bonus for riders', 'On top of the normal payout'],
   ['doctorBookingFeePoisha', 'Default consultation fee', 'Used when a doctor has no fee of their own'],
+  ['instantConsultFeePoisha', 'Instant doctor call fee', 'Prepaid by bKash before a duty doctor is rung'],
 ] as const;
+const PHONE = /^\+?[0-9 -]{3,20}$/;
+const splitPhones = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
 const hour = (h: number) => (h === 0 || h === 24 ? '12 am' : h === 12 ? '12 pm' : h < 12 ? `${h} am` : `${h - 12} pm`);
 
@@ -26,6 +30,7 @@ export default function SettingsPage() {
   const { data, refetch } = useGet<Settings>('/settings', { staleMs: 60_000 });
   const [s, setS] = useState<Settings | null>(null);
   const [money, setMoney] = useState<Record<string, string>>({});
+  const [hot, setHot] = useState('');
   const [busy, setBusy] = useState(false);
   const [picking, setPicking] = useState(false);
   const [draftPin, setDraftPin] = useState<PickedLocation | null>(null);
@@ -34,13 +39,15 @@ export default function SettingsPage() {
     if (!data) return;
     setS(data);
     setMoney(Object.fromEntries(MONEY.map(([k]) => [k, poishaToTk(data[k])])));
+    setHot((data.hotlines ?? []).join(', '));
   }, [data]);
 
   if (!s || !data) return <SkeletonList rows={8} />;
   const cur = s;
 
   const moneyDirty = MONEY.some(([k]) => tkToPoisha(money[k] ?? '') !== data[k]);
-  const dirty = moneyDirty || (Object.keys(cur) as (keyof Settings)[]).some((k) => !MONEY.some(([m]) => m === k) && cur[k] !== data[k]);
+  const hotDirty = splitPhones(hot).join(',') !== (data.hotlines ?? []).join(',');
+  const dirty = moneyDirty || hotDirty || (Object.keys(cur) as (keyof Settings)[]).some((k) => k !== 'hotlines' && !MONEY.some(([m]) => m === k) && cur[k] !== data[k]);
   const num = (k: keyof Settings) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setS({ ...cur, [k]: Number(e.target.value) });
   const hourSelect = (k: keyof Settings, from: number, to: number) => (
     <select className="input" value={cur[k] as number} onChange={num(k)}>
@@ -57,11 +64,15 @@ export default function SettingsPage() {
       if (p === null) return toast(`${label}: enter an amount like 50`, 'bad');
       parsed[k] = p;
     }
+    const hotlines = splitPhones(hot);
+    if (hotlines.length > 4) return toast('Up to 4 hotline numbers', 'bad');
+    const badPhone = hotlines.find((p) => !PHONE.test(p));
+    if (badPhone) return toast(`“${badPhone}” is not a phone number`, 'bad');
     if (cur.openHour >= cur.closeHour) return toast('Opening must be before closing', 'bad');
     if (cur.emergencyStartHour >= cur.emergencyEndHour) return toast('Emergency start must be before its end', 'bad');
     setBusy(true);
     try {
-      await api.put('/settings', { ...cur, ...parsed });
+      await api.put('/settings', { ...cur, ...parsed, hotlines });
       toast('Settings saved. Customers see them right away.');
       invalidate('/settings');
       await refetch();
@@ -87,6 +98,26 @@ export default function SettingsPage() {
             <input className="input num" inputMode="decimal" value={money[k] ?? ''} onChange={(e) => setMoney({ ...money, [k]: e.target.value })} />
           </label>
         ))}
+      </div>
+
+      <p className="group-label">Hotline</p>
+      <div className="group">
+        <label className="setting-row stacked">
+          <span className="cell-main"><strong>Hotline numbers</strong><span className="cell-sub">Shown on every store screen with a call button. Separate with commas, up to 4.</span></span>
+          <input className="input" inputMode="tel" placeholder="09612-345678, 01700-000000" value={hot} onChange={(e) => setHot(e.target.value)} />
+        </label>
+      </div>
+
+      <p className="group-label">Doctors</p>
+      <div className="group">
+        <label className="setting-row">
+          <span className="cell-main"><strong>Instant call answer time</strong><span className="cell-sub">Minutes a duty doctor has to pick up before admins are alerted</span></span>
+          <input className="input num" type="number" min={1} max={60} value={cur.instantResponseMinutes} onChange={num('instantResponseMinutes')} />
+        </label>
+        <label className="setting-row">
+          <span className="cell-main"><strong>Platform commission (%)</strong><span className="cell-sub">BarakaBari's share of each consultation fee</span></span>
+          <input className="input num" type="number" min={0} max={100} value={cur.doctorCommissionPct} onChange={num('doctorCommissionPct')} />
+        </label>
       </div>
 
       <p className="group-label">Scheduled delivery</p>

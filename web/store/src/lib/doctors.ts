@@ -1,6 +1,6 @@
 import { type DoctorPublic, fmtTime } from '@albarakah/ui';
 
-export type Channel = 'GOOGLE_MEET' | 'WHATSAPP';
+export type Channel = 'GOOGLE_MEET' | 'WHATSAPP' | 'IN_APP';
 export interface Slot { start: string; end: string }
 export interface Doctor extends DoctorPublic {
   id: string;
@@ -9,7 +9,7 @@ export interface Doctor extends DoctorPublic {
   bmdcNo: string;
   bio?: string | null;
   feePoisha?: number | null;
-  channels: Channel[];
+  channels: Exclude<Channel, 'IN_APP'>[];
   nextSlot?: Slot | null;
   openSlots?: number;
   consultations?: number;
@@ -18,6 +18,7 @@ export interface Doctor extends DoctorPublic {
 export const CHANNEL: Record<Channel, { label: string; hint: string; icon: string }> = {
   GOOGLE_MEET: { label: 'Video call', hint: 'Google Meet link, no app needed', icon: '🎥' },
   WHATSAPP: { label: 'WhatsApp call', hint: 'The doctor calls your number', icon: '📞' },
+  IN_APP: { label: 'Instant video call', hint: 'Opens in your browser once the doctor picks up', icon: '⚡' },
 };
 
 /** Calendar day in Bangladesh, e.g. "2026-11-04", whatever the device timezone. */

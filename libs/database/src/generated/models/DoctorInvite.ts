@@ -43,6 +43,7 @@ export type DoctorInviteMinAggregateOutputType = {
   bmdcNo: string | null
   specialty: string | null
   feePoisha: number | null
+  tier: $Enums.DoctorTier | null
   tokenHash: string | null
   expiresAt: Date | null
   sentCount: number | null
@@ -61,6 +62,7 @@ export type DoctorInviteMaxAggregateOutputType = {
   bmdcNo: string | null
   specialty: string | null
   feePoisha: number | null
+  tier: $Enums.DoctorTier | null
   tokenHash: string | null
   expiresAt: Date | null
   sentCount: number | null
@@ -79,6 +81,7 @@ export type DoctorInviteCountAggregateOutputType = {
   bmdcNo: number
   specialty: number
   feePoisha: number
+  tier: number
   channels: number
   tokenHash: number
   expiresAt: number
@@ -110,6 +113,7 @@ export type DoctorInviteMinAggregateInputType = {
   bmdcNo?: true
   specialty?: true
   feePoisha?: true
+  tier?: true
   tokenHash?: true
   expiresAt?: true
   sentCount?: true
@@ -128,6 +132,7 @@ export type DoctorInviteMaxAggregateInputType = {
   bmdcNo?: true
   specialty?: true
   feePoisha?: true
+  tier?: true
   tokenHash?: true
   expiresAt?: true
   sentCount?: true
@@ -146,6 +151,7 @@ export type DoctorInviteCountAggregateInputType = {
   bmdcNo?: true
   specialty?: true
   feePoisha?: true
+  tier?: true
   channels?: true
   tokenHash?: true
   expiresAt?: true
@@ -252,6 +258,7 @@ export type DoctorInviteGroupByOutputType = {
   bmdcNo: string
   specialty: string
   feePoisha: number | null
+  tier: $Enums.DoctorTier
   channels: $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date
@@ -294,6 +301,7 @@ export type DoctorInviteWhereInput = {
   bmdcNo?: Prisma.StringFilter<"DoctorInvite"> | string
   specialty?: Prisma.StringFilter<"DoctorInvite"> | string
   feePoisha?: Prisma.IntNullableFilter<"DoctorInvite"> | number | null
+  tier?: Prisma.EnumDoctorTierFilter<"DoctorInvite"> | $Enums.DoctorTier
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"DoctorInvite">
   tokenHash?: Prisma.StringFilter<"DoctorInvite"> | string
   expiresAt?: Prisma.DateTimeFilter<"DoctorInvite"> | Date | string
@@ -315,6 +323,7 @@ export type DoctorInviteOrderByWithRelationInput = {
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrderInput | Prisma.SortOrder
+  tier?: Prisma.SortOrder
   channels?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -341,6 +350,7 @@ export type DoctorInviteWhereUniqueInput = Prisma.AtLeast<{
   bmdcNo?: Prisma.StringFilter<"DoctorInvite"> | string
   specialty?: Prisma.StringFilter<"DoctorInvite"> | string
   feePoisha?: Prisma.IntNullableFilter<"DoctorInvite"> | number | null
+  tier?: Prisma.EnumDoctorTierFilter<"DoctorInvite"> | $Enums.DoctorTier
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"DoctorInvite">
   expiresAt?: Prisma.DateTimeFilter<"DoctorInvite"> | Date | string
   sentCount?: Prisma.IntFilter<"DoctorInvite"> | number
@@ -360,6 +370,7 @@ export type DoctorInviteOrderByWithAggregationInput = {
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrderInput | Prisma.SortOrder
+  tier?: Prisma.SortOrder
   channels?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -387,6 +398,7 @@ export type DoctorInviteScalarWhereWithAggregatesInput = {
   bmdcNo?: Prisma.StringWithAggregatesFilter<"DoctorInvite"> | string
   specialty?: Prisma.StringWithAggregatesFilter<"DoctorInvite"> | string
   feePoisha?: Prisma.IntNullableWithAggregatesFilter<"DoctorInvite"> | number | null
+  tier?: Prisma.EnumDoctorTierWithAggregatesFilter<"DoctorInvite"> | $Enums.DoctorTier
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"DoctorInvite">
   tokenHash?: Prisma.StringWithAggregatesFilter<"DoctorInvite"> | string
   expiresAt?: Prisma.DateTimeWithAggregatesFilter<"DoctorInvite"> | Date | string
@@ -406,6 +418,7 @@ export type DoctorInviteCreateInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -425,6 +438,7 @@ export type DoctorInviteUncheckedCreateInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -444,6 +458,7 @@ export type DoctorInviteUpdateInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -463,6 +478,7 @@ export type DoctorInviteUncheckedUpdateInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -482,6 +498,7 @@ export type DoctorInviteCreateManyInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -501,6 +518,7 @@ export type DoctorInviteUpdateManyMutationInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -518,6 +536,7 @@ export type DoctorInviteUncheckedUpdateManyInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -552,6 +571,7 @@ export type DoctorInviteCountOrderByAggregateInput = {
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   channels?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -576,6 +596,7 @@ export type DoctorInviteMaxOrderByAggregateInput = {
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
@@ -594,6 +615,7 @@ export type DoctorInviteMinOrderByAggregateInput = {
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   sentCount?: Prisma.SortOrder
@@ -700,6 +722,7 @@ export type DoctorInviteCreateWithoutInvitedByInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -718,6 +741,7 @@ export type DoctorInviteUncheckedCreateWithoutInvitedByInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -765,6 +789,7 @@ export type DoctorInviteScalarWhereInput = {
   bmdcNo?: Prisma.StringFilter<"DoctorInvite"> | string
   specialty?: Prisma.StringFilter<"DoctorInvite"> | string
   feePoisha?: Prisma.IntNullableFilter<"DoctorInvite"> | number | null
+  tier?: Prisma.EnumDoctorTierFilter<"DoctorInvite"> | $Enums.DoctorTier
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"DoctorInvite">
   tokenHash?: Prisma.StringFilter<"DoctorInvite"> | string
   expiresAt?: Prisma.DateTimeFilter<"DoctorInvite"> | Date | string
@@ -784,6 +809,7 @@ export type DoctorInviteCreateWithoutDoctorInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -802,6 +828,7 @@ export type DoctorInviteUncheckedCreateWithoutDoctorInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -836,6 +863,7 @@ export type DoctorInviteUpdateWithoutDoctorInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -854,6 +882,7 @@ export type DoctorInviteUncheckedUpdateWithoutDoctorInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -872,6 +901,7 @@ export type DoctorInviteCreateManyInvitedByInput = {
   bmdcNo: string
   specialty: string
   feePoisha?: number | null
+  tier?: $Enums.DoctorTier
   channels?: Prisma.DoctorInviteCreatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash: string
   expiresAt: Date | string
@@ -890,6 +920,7 @@ export type DoctorInviteUpdateWithoutInvitedByInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -908,6 +939,7 @@ export type DoctorInviteUncheckedUpdateWithoutInvitedByInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -926,6 +958,7 @@ export type DoctorInviteUncheckedUpdateManyWithoutInvitedByInput = {
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   channels?: Prisma.DoctorInviteUpdatechannelsInput | $Enums.ConsultationChannel[]
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -946,6 +979,7 @@ export type DoctorInviteSelect<ExtArgs extends runtime.Types.Extensions.Internal
   bmdcNo?: boolean
   specialty?: boolean
   feePoisha?: boolean
+  tier?: boolean
   channels?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
@@ -967,6 +1001,7 @@ export type DoctorInviteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   bmdcNo?: boolean
   specialty?: boolean
   feePoisha?: boolean
+  tier?: boolean
   channels?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
@@ -988,6 +1023,7 @@ export type DoctorInviteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   bmdcNo?: boolean
   specialty?: boolean
   feePoisha?: boolean
+  tier?: boolean
   channels?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
@@ -1009,6 +1045,7 @@ export type DoctorInviteSelectScalar = {
   bmdcNo?: boolean
   specialty?: boolean
   feePoisha?: boolean
+  tier?: boolean
   channels?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
@@ -1021,7 +1058,7 @@ export type DoctorInviteSelectScalar = {
   createdAt?: boolean
 }
 
-export type DoctorInviteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "bmdcNo" | "specialty" | "feePoisha" | "channels" | "tokenHash" | "expiresAt" | "sentCount" | "lastSentAt" | "acceptedAt" | "revokedAt" | "invitedById" | "doctorId" | "createdAt", ExtArgs["result"]["doctorInvite"]>
+export type DoctorInviteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "bmdcNo" | "specialty" | "feePoisha" | "tier" | "channels" | "tokenHash" | "expiresAt" | "sentCount" | "lastSentAt" | "acceptedAt" | "revokedAt" | "invitedById" | "doctorId" | "createdAt", ExtArgs["result"]["doctorInvite"]>
 export type DoctorInviteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   invitedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   doctor?: boolean | Prisma.DoctorInvite$doctorArgs<ExtArgs>
@@ -1048,6 +1085,7 @@ export type $DoctorInvitePayload<ExtArgs extends runtime.Types.Extensions.Intern
     bmdcNo: string
     specialty: string
     feePoisha: number | null
+    tier: $Enums.DoctorTier
     channels: $Enums.ConsultationChannel[]
     /**
      * Only the hash is kept; the raw token lives in the emailed link.
@@ -1492,6 +1530,7 @@ export interface DoctorInviteFieldRefs {
   readonly bmdcNo: Prisma.FieldRef<"DoctorInvite", 'String'>
   readonly specialty: Prisma.FieldRef<"DoctorInvite", 'String'>
   readonly feePoisha: Prisma.FieldRef<"DoctorInvite", 'Int'>
+  readonly tier: Prisma.FieldRef<"DoctorInvite", 'DoctorTier'>
   readonly channels: Prisma.FieldRef<"DoctorInvite", 'ConsultationChannel[]'>
   readonly tokenHash: Prisma.FieldRef<"DoctorInvite", 'String'>
   readonly expiresAt: Prisma.FieldRef<"DoctorInvite", 'DateTime'>

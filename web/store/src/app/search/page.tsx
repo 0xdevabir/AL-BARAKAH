@@ -70,6 +70,11 @@ function SearchInner() {
       <div className="results">
         <ProductGrid q={appliedQ} category={category} />
       </div>
+      {appliedQ.trim() ? (
+        <p className="hint muted">
+          Can&rsquo;t find it? <Link href={`/requests?name=${encodeURIComponent(appliedQ.trim())}`}>Request a medicine</Link> or <Link href="/prescription">upload your prescription</Link>.
+        </p>
+      ) : null}
     </div>
   );
 }

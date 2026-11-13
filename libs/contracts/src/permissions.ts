@@ -9,6 +9,7 @@ export const PERMISSIONS = {
   'consultation:book': ['CUSTOMER'],
   'payment:create': ['CUSTOMER'],
   'prescription:upload': ['CUSTOMER'],
+  'medicine-request:create': ['CUSTOMER'],
   'catalog:manage': ['ADMIN'],
   'order:manage': ['ADMIN'],
   'prescription:read': ['ADMIN'],
@@ -19,6 +20,7 @@ export const PERMISSIONS = {
   'analytics:read': ['ADMIN'],
   'customer:read': ['ADMIN'],
   'audit:read': ['ADMIN'],
+  'expense:manage': ['ADMIN'],
   'delivery:work': ['RIDER'],
   'doctor:work': ['DOCTOR'],
 } as const satisfies Record<string, readonly Role[]>;

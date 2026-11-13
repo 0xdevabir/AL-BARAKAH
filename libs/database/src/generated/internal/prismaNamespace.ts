@@ -416,7 +416,10 @@ export const ModelName = {
   Consultation: 'Consultation',
   RiderLedgerEntry: 'RiderLedgerEntry',
   Setting: 'Setting',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  MedicineRequest: 'MedicineRequest',
+  Expense: 'Expense',
+  Notification: 'Notification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -432,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "otpCode" | "refreshToken" | "category" | "medicine" | "batch" | "zone" | "address" | "order" | "orderItem" | "orderAllocation" | "orderEvent" | "payment" | "doctor" | "doctorInvite" | "availability" | "consultation" | "riderLedgerEntry" | "setting" | "auditLog"
+    modelProps: "user" | "otpCode" | "refreshToken" | "category" | "medicine" | "batch" | "zone" | "address" | "order" | "orderItem" | "orderAllocation" | "orderEvent" | "payment" | "doctor" | "doctorInvite" | "availability" | "consultation" | "riderLedgerEntry" | "setting" | "auditLog" | "medicineRequest" | "expense" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1916,6 +1919,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MedicineRequest: {
+      payload: Prisma.$MedicineRequestPayload<ExtArgs>
+      fields: Prisma.MedicineRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MedicineRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MedicineRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.MedicineRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MedicineRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>
+        }
+        findMany: {
+          args: Prisma.MedicineRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>[]
+        }
+        create: {
+          args: Prisma.MedicineRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>
+        }
+        createMany: {
+          args: Prisma.MedicineRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MedicineRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.MedicineRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>
+        }
+        update: {
+          args: Prisma.MedicineRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.MedicineRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MedicineRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MedicineRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.MedicineRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MedicineRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.MedicineRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMedicineRequest>
+        }
+        groupBy: {
+          args: Prisma.MedicineRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MedicineRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MedicineRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MedicineRequestCountAggregateOutputType> | number
+        }
+      }
+    }
+    Expense: {
+      payload: Prisma.$ExpensePayload<ExtArgs>
+      fields: Prisma.ExpenseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExpenseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExpenseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        findFirst: {
+          args: Prisma.ExpenseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExpenseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        findMany: {
+          args: Prisma.ExpenseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        create: {
+          args: Prisma.ExpenseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        createMany: {
+          args: Prisma.ExpenseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExpenseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        delete: {
+          args: Prisma.ExpenseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        update: {
+          args: Prisma.ExpenseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        deleteMany: {
+          args: Prisma.ExpenseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExpenseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExpenseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        upsert: {
+          args: Prisma.ExpenseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        aggregate: {
+          args: Prisma.ExpenseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExpense>
+        }
+        groupBy: {
+          args: Prisma.ExpenseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExpenseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseCountAggregateOutputType> | number
+        }
+      }
+    }
+    Notification: {
+      payload: Prisma.$NotificationPayload<ExtArgs>
+      fields: Prisma.NotificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NotificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NotificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        findFirst: {
+          args: Prisma.NotificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NotificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        findMany: {
+          args: Prisma.NotificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        create: {
+          args: Prisma.NotificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        createMany: {
+          args: Prisma.NotificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NotificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        delete: {
+          args: Prisma.NotificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        update: {
+          args: Prisma.NotificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.NotificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NotificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NotificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.NotificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        aggregate: {
+          args: Prisma.NotificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotification>
+        }
+        groupBy: {
+          args: Prisma.NotificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NotificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2023,6 +2248,7 @@ export const MedicineScalarFieldEnum = {
   imageUrl: 'imageUrl',
   popularity: 'popularity',
   reorderLevel: 'reorderLevel',
+  sourcingDays: 'sourcingDays',
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2090,6 +2316,7 @@ export const OrderScalarFieldEnum = {
   paymentMethod: 'paymentMethod',
   paymentStatus: 'paymentStatus',
   riderId: 'riderId',
+  riderAcceptedAt: 'riderAcceptedAt',
   prescriptionKey: 'prescriptionKey',
   consultationId: 'consultationId',
   notes: 'notes',
@@ -2164,6 +2391,7 @@ export const DoctorScalarFieldEnum = {
   userId: 'userId',
   bmdcNo: 'bmdcNo',
   specialty: 'specialty',
+  tier: 'tier',
   bio: 'bio',
   feePoisha: 'feePoisha',
   channels: 'channels',
@@ -2189,6 +2417,7 @@ export const DoctorInviteScalarFieldEnum = {
   bmdcNo: 'bmdcNo',
   specialty: 'specialty',
   feePoisha: 'feePoisha',
+  tier: 'tier',
   channels: 'channels',
   tokenHash: 'tokenHash',
   expiresAt: 'expiresAt',
@@ -2224,7 +2453,10 @@ export const ConsultationScalarFieldEnum = {
   startsAt: 'startsAt',
   endsAt: 'endsAt',
   status: 'status',
+  kind: 'kind',
   channel: 'channel',
+  acceptedAt: 'acceptedAt',
+  rejectedBy: 'rejectedBy',
   feePoisha: 'feePoisha',
   holdExpiresAt: 'holdExpiresAt',
   reason: 'reason',
@@ -2272,6 +2504,48 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const MedicineRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  medicineId: 'medicineId',
+  name: 'name',
+  qty: 'qty',
+  note: 'note',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MedicineRequestScalarFieldEnum = (typeof MedicineRequestScalarFieldEnum)[keyof typeof MedicineRequestScalarFieldEnum]
+
+
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  amountPoisha: 'amountPoisha',
+  note: 'note',
+  spentAt: 'spentAt',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2504,6 +2778,20 @@ export type ListEnumPaymentPurposeFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'DoctorTier'
+ */
+export type EnumDoctorTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DoctorTier'>
+    
+
+
+/**
+ * Reference to a field of type 'DoctorTier[]'
+ */
+export type ListEnumDoctorTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DoctorTier[]'>
+    
+
+
+/**
  * Reference to a field of type 'ConsultationChannel[]'
  */
 export type ListEnumConsultationChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationChannel[]'>
@@ -2532,6 +2820,20 @@ export type ListEnumConsultationStatusFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'ConsultationKind'
+ */
+export type EnumConsultationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationKind'>
+    
+
+
+/**
+ * Reference to a field of type 'ConsultationKind[]'
+ */
+export type ListEnumConsultationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'LedgerType'
  */
 export type EnumLedgerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LedgerType'>
@@ -2542,6 +2844,20 @@ export type EnumLedgerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'LedgerType[]'
  */
 export type ListEnumLedgerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LedgerType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MedicineRequestStatus'
+ */
+export type EnumMedicineRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MedicineRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'MedicineRequestStatus[]'
+ */
+export type ListEnumMedicineRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MedicineRequestStatus[]'>
     
 
 /**
@@ -2715,6 +3031,9 @@ export type GlobalOmitConfig = {
   riderLedgerEntry?: Prisma.RiderLedgerEntryOmit
   setting?: Prisma.SettingOmit
   auditLog?: Prisma.AuditLogOmit
+  medicineRequest?: Prisma.MedicineRequestOmit
+  expense?: Prisma.ExpenseOmit
+  notification?: Prisma.NotificationOmit
 }
 
 /* Types for Logging */

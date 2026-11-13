@@ -34,6 +34,8 @@ export interface Medicine {
   piecesPerPack: number;
   piecePricePoisha: number;
   looseInStock: boolean;
+  /** Extra days the pharmacy needs to source a rare medicine (0-2). */
+  sourcingDays?: number;
 }
 
 const KEY = 'ab_cart';

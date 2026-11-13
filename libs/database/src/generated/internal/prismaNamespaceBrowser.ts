@@ -70,7 +70,10 @@ export const ModelName = {
   Consultation: 'Consultation',
   RiderLedgerEntry: 'RiderLedgerEntry',
   Setting: 'Setting',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  MedicineRequest: 'MedicineRequest',
+  Expense: 'Expense',
+  Notification: 'Notification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -157,6 +160,7 @@ export const MedicineScalarFieldEnum = {
   imageUrl: 'imageUrl',
   popularity: 'popularity',
   reorderLevel: 'reorderLevel',
+  sourcingDays: 'sourcingDays',
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -224,6 +228,7 @@ export const OrderScalarFieldEnum = {
   paymentMethod: 'paymentMethod',
   paymentStatus: 'paymentStatus',
   riderId: 'riderId',
+  riderAcceptedAt: 'riderAcceptedAt',
   prescriptionKey: 'prescriptionKey',
   consultationId: 'consultationId',
   notes: 'notes',
@@ -298,6 +303,7 @@ export const DoctorScalarFieldEnum = {
   userId: 'userId',
   bmdcNo: 'bmdcNo',
   specialty: 'specialty',
+  tier: 'tier',
   bio: 'bio',
   feePoisha: 'feePoisha',
   channels: 'channels',
@@ -323,6 +329,7 @@ export const DoctorInviteScalarFieldEnum = {
   bmdcNo: 'bmdcNo',
   specialty: 'specialty',
   feePoisha: 'feePoisha',
+  tier: 'tier',
   channels: 'channels',
   tokenHash: 'tokenHash',
   expiresAt: 'expiresAt',
@@ -358,7 +365,10 @@ export const ConsultationScalarFieldEnum = {
   startsAt: 'startsAt',
   endsAt: 'endsAt',
   status: 'status',
+  kind: 'kind',
   channel: 'channel',
+  acceptedAt: 'acceptedAt',
+  rejectedBy: 'rejectedBy',
   feePoisha: 'feePoisha',
   holdExpiresAt: 'holdExpiresAt',
   reason: 'reason',
@@ -406,6 +416,48 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const MedicineRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  medicineId: 'medicineId',
+  name: 'name',
+  qty: 'qty',
+  note: 'note',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MedicineRequestScalarFieldEnum = (typeof MedicineRequestScalarFieldEnum)[keyof typeof MedicineRequestScalarFieldEnum]
+
+
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  amountPoisha: 'amountPoisha',
+  note: 'note',
+  spentAt: 'spentAt',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const SortOrder = {

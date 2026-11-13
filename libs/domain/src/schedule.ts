@@ -41,11 +41,16 @@ export function dhakaHour(at: Date): number {
 }
 
 /** Every slot a customer may choose: starts at or after now + lead time (rounded up to the hour). */
-export function deliverySlots(now: Date, cfg: ScheduleConfig = DEFAULT_SCHEDULE): Slot[] {
-  const earliest = Math.ceil((now.getTime() + cfg.leadHours * HOUR) / HOUR) * HOUR;
+/**
+ * `sourcingDays` pushes the earliest slot back for rare medicines the pharmacy has to source (1-2 days),
+ * and widens the window by the same amount so the customer still has the usual choice of days.
+ */
+export function deliverySlots(now: Date, cfg: ScheduleConfig = DEFAULT_SCHEDULE, sourcingDays = 0): Slot[] {
+  const extra = Math.max(0, Math.floor(sourcingDays));
+  const earliest = Math.ceil((now.getTime() + cfg.leadHours * HOUR + extra * DAY) / HOUR) * HOUR;
   const firstDay = dhakaDayStart(now);
   const slots: Slot[] = [];
-  for (let d = 0; d <= cfg.daysAhead; d++) {
+  for (let d = 0; d <= cfg.daysAhead + extra; d++) {
     for (let h = cfg.openHour; h + cfg.slotHours <= cfg.closeHour; h += cfg.slotHours) {
       const start = firstDay + d * DAY + h * HOUR;
       if (start >= earliest) slots.push({ start: new Date(start), end: new Date(start + cfg.slotHours * HOUR) });
@@ -55,8 +60,8 @@ export function deliverySlots(now: Date, cfg: ScheduleConfig = DEFAULT_SCHEDULE)
 }
 
 /** The server re-checks the client's chosen slot, because the page may have been open for hours. */
-export function isValidDeliverySlot(start: Date, now: Date, cfg: ScheduleConfig = DEFAULT_SCHEDULE): boolean {
-  return deliverySlots(now, cfg).some((s) => s.start.getTime() === start.getTime());
+export function isValidDeliverySlot(start: Date, now: Date, cfg: ScheduleConfig = DEFAULT_SCHEDULE, sourcingDays = 0): boolean {
+  return deliverySlots(now, cfg, sourcingDays).some((s) => s.start.getTime() === start.getTime());
 }
 
 export function isEmergencyAvailable(now: Date, cfg: ScheduleConfig = DEFAULT_SCHEDULE): boolean {

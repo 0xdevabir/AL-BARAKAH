@@ -146,7 +146,7 @@ export function LocationPicker({
         const L = LRef.current;
         if (!map || !L) return;
         accuracyRef.current?.remove();
-        accuracyRef.current = L.circle([p.lat, p.lng], { radius: Math.min(p.accuracy, 400), color: '#5f7a57', weight: 1, fillOpacity: 0.12, interactive: false }).addTo(map);
+        accuracyRef.current = L.circle([p.lat, p.lng], { radius: Math.min(p.accuracy, 400), color: '#0b7ac4', weight: 1, fillOpacity: 0.12, interactive: false }).addTo(map);
         flyTo(p, p.accuracy > 200 ? 16 : 18);
       })
       .catch((e: GeoError) => {

@@ -4,16 +4,17 @@ import { formatTk } from '@albarakah/domain';
 import {
   confirmAction, DoctorPhoto, EmptyState, fmtWhen, initials, invalidate, LargeTitle, promptText, SearchField, Segmented, Sheet, SkeletonList, StatTile, Switch, toast,
 } from '@albarakah/ui';
+import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { api, useApi, useGet } from '@/lib/api';
 import { message, poishaToTk, telLink, tkToPoisha } from '@/lib/app';
-import { CHANNEL, type Channel } from '@/lib/doctor';
+import { CHANNEL, type Channel, TIER, type Tier } from '@/lib/doctor';
 import type { Ledger, RiderOption } from '@/lib/types';
 
 interface Staff { id: string; phone: string; name: string; role: 'ADMIN' | 'RIDER' | 'DOCTOR'; isActive: boolean; totpEnabled: boolean }
 interface DoctorRow {
-  id: string; bmdcNo: string; specialty: string; feePoisha: number | null; channels: Channel[]; isActive: boolean;
+  id: string; bmdcNo: string; specialty: string; feePoisha: number | null; channels: Channel[]; isActive: boolean; tier: Tier;
   photoUrl: string | null; qualifications: string | null; onboardedAt: string | null; createdAt?: string;
   user: { name: string; phone: string; email: string | null; isActive: boolean };
   availability: { id: string }[]; _count: { consultations: number };
@@ -253,7 +254,7 @@ function DoctorItem({ d, onOpen, onToggle }: { d: DoctorRow; onOpen: () => void;
         <span className="cell-main">
           <strong>{d.user.name}</strong>
           <span className="cell-sub">
-            {d.specialty} · BMDC {d.bmdcNo}
+            {d.tier === 'INTERN' ? 'Duty doctor · ' : ''}{d.specialty} · BMDC {d.bmdcNo}
             {stage === 'setup' ? ` · ${d.availability.length ? 'hours set' : 'no hours yet'}` : ` · ${d._count.consultations} consults`}
           </span>
         </span>
@@ -325,6 +326,17 @@ function InviteItem({ i }: { i: Invite }) {
   );
 }
 
+function TierPicker({ value, onChange }: { value: Tier; onChange: (v: Tier) => void }) {
+  return (
+    <label className="field span">Doctor type
+      <select className="input" value={value} onChange={(e) => onChange(e.target.value as Tier)}>
+        <option value="SPECIALIST">{TIER.SPECIALIST} — booked in daily 2–4 hour slots</option>
+        <option value="INTERN">{TIER.INTERN} — takes instant prepaid video calls</option>
+      </select>
+    </label>
+  );
+}
+
 function ChannelPicker({ value, onChange }: { value: Channel[]; onChange: (v: Channel[]) => void }) {
   return (
     <div className="group span">
@@ -342,6 +354,7 @@ function ChannelPicker({ value, onChange }: { value: Channel[]; onChange: (v: Ch
 function InviteDoctor({ onDone }: { onDone: () => void }) {
   const [f, setF] = useState({ email: '', name: '', bmdcNo: '', specialty: '', fee: '' });
   const [channels, setChannels] = useState<Channel[]>(['GOOGLE_MEET']);
+  const [tier, setTier] = useState<Tier>('SPECIALIST');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<(InviteSent & { email: string; name: string }) | null>(null);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
@@ -354,7 +367,7 @@ function InviteDoctor({ onDone }: { onDone: () => void }) {
     setBusy(true);
     try {
       const r = await api.post<InviteSent>('/admin/doctors/invites', {
-        email: f.email.trim(), name: f.name.trim(), bmdcNo: f.bmdcNo.trim(), specialty: f.specialty.trim(), channels,
+        email: f.email.trim(), name: f.name.trim(), bmdcNo: f.bmdcNo.trim(), specialty: f.specialty.trim(), channels, tier,
         ...(feePoisha !== undefined ? { feePoisha } : {}),
       });
       setSent({ ...r, email: f.email.trim(), name: f.name.trim() });
@@ -402,6 +415,8 @@ function InviteDoctor({ onDone }: { onDone: () => void }) {
       <label className="field">BMDC no.<input className="input" required value={f.bmdcNo} onChange={set('bmdcNo')} /></label>
       <label className="field">Specialty<input className="input" required placeholder="Medicine" value={f.specialty} onChange={set('specialty')} /></label>
       <label className="field span">Fee (Tk)<small>Blank = store default</small><input className="input" inputMode="decimal" value={f.fee} onChange={set('fee')} /></label>
+      <TierPicker value={tier} onChange={setTier} />
+      {tier === 'INTERN' ? <p className="muted small span">Duty doctors are paid per instant call at the instant call fee, not their own fee.</p> : null}
       <p className="group-label span">Consults by</p>
       <ChannelPicker value={channels} onChange={setChannels} />
       <button className="btn primary block span" disabled={busy}>{busy ? 'Sending…' : 'Send invitation'}</button>
@@ -414,9 +429,10 @@ function DoctorDetail({ d, onToggle }: { d: DoctorRow; onToggle: (v: boolean) =>
   const init = { specialty: d.specialty, fee: d.feePoisha !== null ? poishaToTk(d.feePoisha) : '' };
   const [f, setF] = useState(init);
   const [channels, setChannels] = useState<Channel[]>(d.channels);
+  const [tier, setTier] = useState<Tier>(d.tier);
   const [busy, setBusy] = useState(false);
   const stage = stageOf(d);
-  const dirty = f.specialty !== init.specialty || f.fee !== init.fee || channels.join() !== d.channels.join();
+  const dirty = f.specialty !== init.specialty || f.fee !== init.fee || channels.join() !== d.channels.join() || tier !== d.tier;
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -425,7 +441,7 @@ function DoctorDetail({ d, onToggle }: { d: DoctorRow; onToggle: (v: boolean) =>
     if (f.fee.trim() && feePoisha === null) return toast('Enter the fee like 500', 'bad');
     setBusy(true);
     try {
-      await api.patch(`/admin/doctors/${d.id}`, { specialty: f.specialty.trim(), feePoisha, channels });
+      await api.patch(`/admin/doctors/${d.id}`, { specialty: f.specialty.trim(), feePoisha, channels, tier });
       toast('Listing updated');
       invalidate('/admin/doctors');
     } catch (err) {
@@ -458,12 +474,18 @@ function DoctorDetail({ d, onToggle }: { d: DoctorRow; onToggle: (v: boolean) =>
           </div>
         )}
       </div>
+      {stage === 'setup' ? null : (
+        <Link className="btn block" href={`/admin/doctors/${d.id}`}>
+          <Icon name="stetho" size={18} /> View their portal (read-only)
+        </Link>
+      )}
       {stage === 'setup' ? <p className="muted small">{d.user.name} has an account and is still finishing their profile. They appear in the app once they go live.</p> : null}
 
       <form className="form-grid two" onSubmit={(e) => void save(e)}>
         <p className="group-label span">Listing</p>
         <label className="field">Specialty<input className="input" required value={f.specialty} onChange={(e) => setF({ ...f, specialty: e.target.value })} /></label>
         <label className="field">Fee (Tk)<small>Blank = store default</small><input className="input" inputMode="decimal" value={f.fee} onChange={(e) => setF({ ...f, fee: e.target.value })} /></label>
+        <TierPicker value={tier} onChange={setTier} />
         <ChannelPicker value={channels} onChange={setChannels} />
         {channels.some((c) => !d.channels.includes(c)) && stage !== 'setup' ? (
           <p className="muted small span">The doctor needs to add the call details for the new channel in their profile.</p>

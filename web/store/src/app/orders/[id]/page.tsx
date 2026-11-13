@@ -20,6 +20,8 @@ interface Order {
   items: { id: string; nameSnapshot: string; qty: number; unitPricePoisha: number; medicine: { slug: string; imageUrl: string } | null }[];
   events: { id: string; toStatus: string; createdAt: string; note?: string | null }[];
   rider: { name: string; phone: string } | null;
+  riderAccepted?: boolean;
+  prescriptionKey?: string | null;
 }
 
 const ENDED = ['DELIVERED', 'CANCELLED', 'FAILED'];
@@ -118,10 +120,14 @@ function OrderInner() {
       <div>
         <span className={`chip ${statusTone(order.status)}`}>{statusLabel(order.status)}</span>
         <h1 className="title" style={{ marginTop: 8 }}>
-          {order.status === 'DELIVERED' ? 'Delivered' : order.status === 'CANCELLED' ? 'Cancelled' : order.status === 'FAILED' ? 'We could not deliver' : (STEP_COPY[order.status] ?? statusLabel(order.status))}
+          {order.status === 'ASSIGNED' && !order.riderAccepted ? 'Finding your rider' : order.status === 'DELIVERED' ? 'Delivered' : order.status === 'CANCELLED' ? 'Cancelled' : order.status === 'FAILED' ? 'We could not deliver' : (STEP_COPY[order.status] ?? statusLabel(order.status))}
         </h1>
         <p className="mono small muted">{order.code} · {order.type === 'EMERGENCY' ? 'Emergency' : 'Scheduled'}</p>
       </div>
+
+      {order.status === 'PLACED' && !order.items.length ? (
+        <p className="notice">Our pharmacist is reading your prescription and will call you to confirm the medicines and price before packing.</p>
+      ) : null}
 
       {order.status === 'FAILED' && lastNote ? <p className="notice bad">{lastNote}</p> : null}
 

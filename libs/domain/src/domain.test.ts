@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  canTransition, computeTotals, consultationSlots, DEFAULT_FEES, deliverySlots, dhakaHour, emergencyDeadline,
+  canTransition, commissionPoisha, computeTotals, consultationSlots, DEFAULT_FEES, deliverySlots, dhakaHour, emergencyDeadline,
   formatTk, isEmergencyAvailable, isValidDeliverySlot, pieceNoun, piecePricePoisha, piecesPerPack,
   dosesPerDay, rxCartQty, rxValid,
 } from './index.js';
@@ -85,8 +85,20 @@ describe('fees', () => {
     const lines = [{ unitPricePoisha: 1250, qty: 3 }];
     expect(computeTotals({ lines, zoneDeliveryFeePoisha: 4000, emergency: false, fees: DEFAULT_FEES }))
       .toMatchObject({ subtotalPoisha: 3750, totalPoisha: 7750, riderPayoutPoisha: 3000, emergencyFeePoisha: 0 });
+    // Urgent delivery waives the regular delivery charge.
     expect(computeTotals({ lines, zoneDeliveryFeePoisha: 4000, emergency: true, fees: DEFAULT_FEES }))
-      .toMatchObject({ totalPoisha: 17750, riderPayoutPoisha: 5000, emergencyFeePoisha: 10000 });
+      .toMatchObject({ totalPoisha: 13750, deliveryFeePoisha: 0, riderPayoutPoisha: 5000, emergencyFeePoisha: 10000 });
+  });
+  it('takes a whole-percent commission, clamped', () => {
+    expect(commissionPoisha(50_000, 20)).toBe(10_000);
+    expect(commissionPoisha(50_000, 150)).toBe(50_000);
+    expect(commissionPoisha(333, 10)).toBe(33);
+  });
+  it('pushes rare-medicine orders back by the sourcing days', () => {
+    const now = dhaka('2026-11-02', '10:00');
+    expect(deliverySlots(now, undefined, 2)[0]!.start).toEqual(dhaka('2026-11-04', '16:00'));
+    expect(isValidDeliverySlot(dhaka('2026-11-02', '16:00'), now, undefined, 1)).toBe(false);
+    expect(isValidDeliverySlot(dhaka('2026-11-03', '16:00'), now, undefined, 1)).toBe(true);
   });
   it('formats taka', () => {
     expect(formatTk(10000)).toBe('৳100');
@@ -103,6 +115,8 @@ describe('order state machine', () => {
     expect(canTransition('ASSIGNED', 'OUT_FOR_DELIVERY', 'CUSTOMER')).toBe(false);
     expect(canTransition('PACKED', 'DELIVERED', 'ADMIN')).toBe(false);
     expect(canTransition('DELIVERED', 'CANCELLED', 'ADMIN')).toBe(false);
+    expect(canTransition('ASSIGNED', 'PACKED', 'RIDER')).toBe(true);
+    expect(canTransition('ASSIGNED', 'PACKED', 'ADMIN')).toBe(false);
   });
 });
 

@@ -5,10 +5,11 @@ import { EmptyState, fmtTime, initials, LargeTitle, SkeletonList, StatTile } fro
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { BookingSheet } from '@/components/Consult';
+import { DutyCard, QueueList } from '@/components/DoctorQueue';
 import { Icon } from '@/components/Icon';
 import { useApi, useGet } from '@/lib/api';
 import { pct } from '@/lib/app';
-import { type Booking, canClose, CHANNEL, type DoctorMe, type DoctorSummary, joinLink } from '@/lib/doctor';
+import { type Booking, canClose, CHANNEL, type DoctorMe, type DoctorSummary, joinLink, type QueueItem } from '@/lib/doctor';
 
 function countdown(ms: number) {
   if (ms <= 0) return 'Now';
@@ -27,6 +28,9 @@ export default function DoctorToday() {
   const { data: s } = useGet<DoctorSummary>('/doctor/summary', { pollMs: 120_000 });
   const { data: me } = useGet<DoctorMe>('/doctor/me', { staleMs: 300_000 });
   const { data: upcoming, pending } = useGet<Booking[]>('/doctor/bookings?scope=upcoming', { pollMs: 60_000 });
+  // Interns on duty get instant calls, so their queue is checked far more often.
+  const { data: queue } = useGet<QueueItem[]>('/doctor/queue', { pollMs: me?.onDuty ? 10_000 : 60_000 });
+  const { data: pub } = useGet<{ instantResponseMinutes: number }>('/settings/public', { staleMs: 600_000 });
   const [open, setOpen] = useState<Booking | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [day, setDay] = useState(() => dhakaDay(Date.now()));
@@ -52,7 +56,7 @@ export default function DoctorToday() {
   const next = upcoming?.find((b) => new Date(b.endsAt).getTime() >= now) ?? null;
   const toStart = next ? new Date(next.startsAt).getTime() - now : 0;
   const inCall = next && toStart <= 0;
-  const join = next ? joinLink(next.channel, me, next.patientPhone) : null;
+  const join = next ? joinLink(next.channel, me, next.patientPhone, next.videoLink) : null;
   const hour = Number(new Date(now).toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Asia/Dhaka' }));
   const hello = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const closed = s ? s.completedMonth + s.noShowMonth : 0;
@@ -63,7 +67,15 @@ export default function DoctorToday() {
     <>
       <LargeTitle sub={`${hello}${user ? `, ${user.name.replace(/^Dr\.?\s*/i, 'Dr. ')}` : ''}`}>Today</LargeTitle>
 
-      {s && !s.hasAvailability ? (
+      {me?.tier === 'INTERN' ? <DutyCard me={me} /> : null}
+      {queue?.length ? (
+        <>
+          <p className="group-label">Waiting for you · {queue.length}</p>
+          <QueueList items={queue} responseMinutes={pub?.instantResponseMinutes} />
+        </>
+      ) : null}
+
+      {s && !s.hasAvailability && me?.tier !== 'INTERN' ? (
         <Link href="/doctor/availability" className="notice bad row" style={{ gap: 10 }}>
           <Icon name="clock" size={18} /> <span className="grow">Patients cannot book you until you set your hours.</span> ›
         </Link>
@@ -138,7 +150,7 @@ export default function DoctorToday() {
                 {nowLine ? <span className="agenda-now" aria-label="Now"><b>{fmtTime(new Date(now))}</b></span> : null}
                 <span className="agenda-time">{fmtTime(b.startsAt)}</span>
                 <button type="button" className="agenda-card press" onClick={() => setOpen(b)}>
-                  <span className={`cell-icon${nowOn ? ' live' : ''}`}><Icon name={b.channel === 'GOOGLE_MEET' ? 'video' : 'phone'} size={18} /></span>
+                  <span className={`cell-icon${nowOn ? ' live' : ''}`}><Icon name={b.channel === 'WHATSAPP' ? 'phone' : 'video'} size={18} /></span>
                   <span className="cell-main">
                     <strong>{b.customer.name || 'Patient'}</strong>
                     <span className="cell-sub">{b.reason || CHANNEL[b.channel]} · until {fmtTime(b.endsAt)}</span>

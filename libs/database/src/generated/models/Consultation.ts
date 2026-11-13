@@ -42,7 +42,9 @@ export type ConsultationMinAggregateOutputType = {
   startsAt: Date | null
   endsAt: Date | null
   status: $Enums.ConsultationStatus | null
+  kind: $Enums.ConsultationKind | null
   channel: $Enums.ConsultationChannel | null
+  acceptedAt: Date | null
   feePoisha: number | null
   holdExpiresAt: Date | null
   reason: string | null
@@ -61,7 +63,9 @@ export type ConsultationMaxAggregateOutputType = {
   startsAt: Date | null
   endsAt: Date | null
   status: $Enums.ConsultationStatus | null
+  kind: $Enums.ConsultationKind | null
   channel: $Enums.ConsultationChannel | null
+  acceptedAt: Date | null
   feePoisha: number | null
   holdExpiresAt: Date | null
   reason: string | null
@@ -80,7 +84,10 @@ export type ConsultationCountAggregateOutputType = {
   startsAt: number
   endsAt: number
   status: number
+  kind: number
   channel: number
+  acceptedAt: number
+  rejectedBy: number
   feePoisha: number
   holdExpiresAt: number
   reason: number
@@ -110,7 +117,9 @@ export type ConsultationMinAggregateInputType = {
   startsAt?: true
   endsAt?: true
   status?: true
+  kind?: true
   channel?: true
+  acceptedAt?: true
   feePoisha?: true
   holdExpiresAt?: true
   reason?: true
@@ -129,7 +138,9 @@ export type ConsultationMaxAggregateInputType = {
   startsAt?: true
   endsAt?: true
   status?: true
+  kind?: true
   channel?: true
+  acceptedAt?: true
   feePoisha?: true
   holdExpiresAt?: true
   reason?: true
@@ -148,7 +159,10 @@ export type ConsultationCountAggregateInputType = {
   startsAt?: true
   endsAt?: true
   status?: true
+  kind?: true
   channel?: true
+  acceptedAt?: true
+  rejectedBy?: true
   feePoisha?: true
   holdExpiresAt?: true
   reason?: true
@@ -255,7 +269,10 @@ export type ConsultationGroupByOutputType = {
   startsAt: Date
   endsAt: Date
   status: $Enums.ConsultationStatus
+  kind: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt: Date | null
+  rejectedBy: string[]
   feePoisha: number
   holdExpiresAt: Date | null
   reason: string | null
@@ -298,7 +315,10 @@ export type ConsultationWhereInput = {
   startsAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   endsAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   status?: Prisma.EnumConsultationStatusFilter<"Consultation"> | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFilter<"Consultation"> | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFilter<"Consultation"> | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
+  rejectedBy?: Prisma.StringNullableListFilter<"Consultation">
   feePoisha?: Prisma.IntFilter<"Consultation"> | number
   holdExpiresAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
   reason?: Prisma.StringNullableFilter<"Consultation"> | string | null
@@ -322,7 +342,10 @@ export type ConsultationOrderByWithRelationInput = {
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejectedBy?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   holdExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -349,7 +372,10 @@ export type ConsultationWhereUniqueInput = Prisma.AtLeast<{
   startsAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   endsAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   status?: Prisma.EnumConsultationStatusFilter<"Consultation"> | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFilter<"Consultation"> | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFilter<"Consultation"> | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
+  rejectedBy?: Prisma.StringNullableListFilter<"Consultation">
   feePoisha?: Prisma.IntFilter<"Consultation"> | number
   holdExpiresAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
   reason?: Prisma.StringNullableFilter<"Consultation"> | string | null
@@ -373,7 +399,10 @@ export type ConsultationOrderByWithAggregationInput = {
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejectedBy?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   holdExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -401,7 +430,10 @@ export type ConsultationScalarWhereWithAggregatesInput = {
   startsAt?: Prisma.DateTimeWithAggregatesFilter<"Consultation"> | Date | string
   endsAt?: Prisma.DateTimeWithAggregatesFilter<"Consultation"> | Date | string
   status?: Prisma.EnumConsultationStatusWithAggregatesFilter<"Consultation"> | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindWithAggregatesFilter<"Consultation"> | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelWithAggregatesFilter<"Consultation"> | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Consultation"> | Date | string | null
+  rejectedBy?: Prisma.StringNullableListFilter<"Consultation">
   feePoisha?: Prisma.IntWithAggregatesFilter<"Consultation"> | number
   holdExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Consultation"> | Date | string | null
   reason?: Prisma.StringNullableWithAggregatesFilter<"Consultation"> | string | null
@@ -419,7 +451,10 @@ export type ConsultationCreateInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -443,7 +478,10 @@ export type ConsultationUncheckedCreateInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -463,7 +501,10 @@ export type ConsultationUpdateInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -487,7 +528,10 @@ export type ConsultationUncheckedUpdateInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -509,7 +553,10 @@ export type ConsultationCreateManyInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -527,7 +574,10 @@ export type ConsultationUpdateManyMutationInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -547,7 +597,10 @@ export type ConsultationUncheckedUpdateManyInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -582,7 +635,10 @@ export type ConsultationCountOrderByAggregateInput = {
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
+  rejectedBy?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   holdExpiresAt?: Prisma.SortOrder
   reason?: Prisma.SortOrder
@@ -606,7 +662,9 @@ export type ConsultationMaxOrderByAggregateInput = {
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   holdExpiresAt?: Prisma.SortOrder
   reason?: Prisma.SortOrder
@@ -625,7 +683,9 @@ export type ConsultationMinOrderByAggregateInput = {
   startsAt?: Prisma.SortOrder
   endsAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
+  acceptedAt?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   holdExpiresAt?: Prisma.SortOrder
   reason?: Prisma.SortOrder
@@ -756,12 +816,25 @@ export type ConsultationUncheckedUpdateManyWithoutDoctorNestedInput = {
   deleteMany?: Prisma.ConsultationScalarWhereInput | Prisma.ConsultationScalarWhereInput[]
 }
 
+export type ConsultationCreaterejectedByInput = {
+  set: string[]
+}
+
 export type EnumConsultationStatusFieldUpdateOperationsInput = {
   set?: $Enums.ConsultationStatus
 }
 
+export type EnumConsultationKindFieldUpdateOperationsInput = {
+  set?: $Enums.ConsultationKind
+}
+
 export type EnumConsultationChannelFieldUpdateOperationsInput = {
   set?: $Enums.ConsultationChannel
+}
+
+export type ConsultationUpdaterejectedByInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type ConsultationCreateWithoutCustomerInput = {
@@ -770,7 +843,10 @@ export type ConsultationCreateWithoutCustomerInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -792,7 +868,10 @@ export type ConsultationUncheckedCreateWithoutCustomerInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -843,7 +922,10 @@ export type ConsultationScalarWhereInput = {
   startsAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   endsAt?: Prisma.DateTimeFilter<"Consultation"> | Date | string
   status?: Prisma.EnumConsultationStatusFilter<"Consultation"> | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFilter<"Consultation"> | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFilter<"Consultation"> | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
+  rejectedBy?: Prisma.StringNullableListFilter<"Consultation">
   feePoisha?: Prisma.IntFilter<"Consultation"> | number
   holdExpiresAt?: Prisma.DateTimeNullableFilter<"Consultation"> | Date | string | null
   reason?: Prisma.StringNullableFilter<"Consultation"> | string | null
@@ -861,7 +943,10 @@ export type ConsultationCreateWithoutOrdersInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -884,7 +969,10 @@ export type ConsultationUncheckedCreateWithoutOrdersInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -919,7 +1007,10 @@ export type ConsultationUpdateWithoutOrdersInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -942,7 +1033,10 @@ export type ConsultationUncheckedUpdateWithoutOrdersInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -961,7 +1055,10 @@ export type ConsultationCreateWithoutPaymentsInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -984,7 +1081,10 @@ export type ConsultationUncheckedCreateWithoutPaymentsInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -1019,7 +1119,10 @@ export type ConsultationUpdateWithoutPaymentsInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1042,7 +1145,10 @@ export type ConsultationUncheckedUpdateWithoutPaymentsInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1061,7 +1167,10 @@ export type ConsultationCreateWithoutDoctorInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -1083,7 +1192,10 @@ export type ConsultationUncheckedCreateWithoutDoctorInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -1130,7 +1242,10 @@ export type ConsultationCreateManyCustomerInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -1148,7 +1263,10 @@ export type ConsultationUpdateWithoutCustomerInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1170,7 +1288,10 @@ export type ConsultationUncheckedUpdateWithoutCustomerInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1191,7 +1312,10 @@ export type ConsultationUncheckedUpdateManyWithoutCustomerInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1210,7 +1334,10 @@ export type ConsultationCreateManyDoctorInput = {
   startsAt: Date | string
   endsAt: Date | string
   status?: $Enums.ConsultationStatus
+  kind?: $Enums.ConsultationKind
   channel: $Enums.ConsultationChannel
+  acceptedAt?: Date | string | null
+  rejectedBy?: Prisma.ConsultationCreaterejectedByInput | string[]
   feePoisha: number
   holdExpiresAt?: Date | string | null
   reason?: string | null
@@ -1228,7 +1355,10 @@ export type ConsultationUpdateWithoutDoctorInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1250,7 +1380,10 @@ export type ConsultationUncheckedUpdateWithoutDoctorInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1271,7 +1404,10 @@ export type ConsultationUncheckedUpdateManyWithoutDoctorInput = {
   startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumConsultationStatusFieldUpdateOperationsInput | $Enums.ConsultationStatus
+  kind?: Prisma.EnumConsultationKindFieldUpdateOperationsInput | $Enums.ConsultationKind
   channel?: Prisma.EnumConsultationChannelFieldUpdateOperationsInput | $Enums.ConsultationChannel
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedBy?: Prisma.ConsultationUpdaterejectedByInput | string[]
   feePoisha?: Prisma.IntFieldUpdateOperationsInput | number
   holdExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1331,7 +1467,10 @@ export type ConsultationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
+  kind?: boolean
   channel?: boolean
+  acceptedAt?: boolean
+  rejectedBy?: boolean
   feePoisha?: boolean
   holdExpiresAt?: boolean
   reason?: boolean
@@ -1356,7 +1495,10 @@ export type ConsultationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
+  kind?: boolean
   channel?: boolean
+  acceptedAt?: boolean
+  rejectedBy?: boolean
   feePoisha?: boolean
   holdExpiresAt?: boolean
   reason?: boolean
@@ -1378,7 +1520,10 @@ export type ConsultationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
+  kind?: boolean
   channel?: boolean
+  acceptedAt?: boolean
+  rejectedBy?: boolean
   feePoisha?: boolean
   holdExpiresAt?: boolean
   reason?: boolean
@@ -1400,7 +1545,10 @@ export type ConsultationSelectScalar = {
   startsAt?: boolean
   endsAt?: boolean
   status?: boolean
+  kind?: boolean
   channel?: boolean
+  acceptedAt?: boolean
+  rejectedBy?: boolean
   feePoisha?: boolean
   holdExpiresAt?: boolean
   reason?: boolean
@@ -1412,7 +1560,7 @@ export type ConsultationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ConsultationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "doctorId" | "customerId" | "startsAt" | "endsAt" | "status" | "channel" | "feePoisha" | "holdExpiresAt" | "reason" | "patientPhone" | "notes" | "prescription" | "prescribedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["consultation"]>
+export type ConsultationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "doctorId" | "customerId" | "startsAt" | "endsAt" | "status" | "kind" | "channel" | "acceptedAt" | "rejectedBy" | "feePoisha" | "holdExpiresAt" | "reason" | "patientPhone" | "notes" | "prescription" | "prescribedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["consultation"]>
 export type ConsultationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   doctor?: boolean | Prisma.DoctorDefaultArgs<ExtArgs>
   customer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1445,7 +1593,16 @@ export type $ConsultationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     startsAt: Date
     endsAt: Date
     status: $Enums.ConsultationStatus
+    kind: $Enums.ConsultationKind
     channel: $Enums.ConsultationChannel
+    /**
+     * The doctor accepted the patient; until then a paid booking waits in their queue.
+     */
+    acceptedAt: Date | null
+    /**
+     * Interns who turned this instant call down, so it is never offered to them again.
+     */
+    rejectedBy: string[]
     feePoisha: number
     holdExpiresAt: Date | null
     reason: string | null
@@ -1895,7 +2052,10 @@ export interface ConsultationFieldRefs {
   readonly startsAt: Prisma.FieldRef<"Consultation", 'DateTime'>
   readonly endsAt: Prisma.FieldRef<"Consultation", 'DateTime'>
   readonly status: Prisma.FieldRef<"Consultation", 'ConsultationStatus'>
+  readonly kind: Prisma.FieldRef<"Consultation", 'ConsultationKind'>
   readonly channel: Prisma.FieldRef<"Consultation", 'ConsultationChannel'>
+  readonly acceptedAt: Prisma.FieldRef<"Consultation", 'DateTime'>
+  readonly rejectedBy: Prisma.FieldRef<"Consultation", 'String[]'>
   readonly feePoisha: Prisma.FieldRef<"Consultation", 'Int'>
   readonly holdExpiresAt: Prisma.FieldRef<"Consultation", 'DateTime'>
   readonly reason: Prisma.FieldRef<"Consultation", 'String'>

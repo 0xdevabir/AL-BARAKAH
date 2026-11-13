@@ -163,6 +163,7 @@ export class DoctorOnboardingController {
         ...(body.specialty !== undefined ? { specialty: body.specialty } : {}),
         ...(body.feePoisha !== undefined ? { feePoisha: body.feePoisha } : {}),
         ...(body.channels ? { channels: body.channels } : {}),
+        ...(body.tier ? { tier: body.tier } : {}),
       },
     });
     await this.prisma.auditLog.create({ data: { actorId: actor.id, action: 'doctor.update', entity: 'Doctor', entityId: id, data: body } });
@@ -189,7 +190,8 @@ export class DoctorOnboardingController {
     if (d.bio.trim().length < 30) missing.push('a short bio (30+ characters)');
     if (d.channels.includes('GOOGLE_MEET') && !d.meetLink) missing.push('a Google Meet link');
     if (d.channels.includes('WHATSAPP') && !d.whatsapp) missing.push('a WhatsApp number');
-    if (!d.availability.length) missing.push('your consulting hours');
+    // Duty interns are on call when they switch on; only specialists keep weekly hours.
+    if (d.tier === 'SPECIALIST' && !d.availability.length) missing.push('your consulting hours');
     if (missing.length) throw badRequest('PROFILE_INCOMPLETE', `Almost there — add ${missing.join(', ')}.`);
     const done = await this.prisma.doctor.update({ where: { id: d.id }, data: { onboardedAt: new Date() } });
     await this.prisma.auditLog.create({ data: { actorId: u.id, action: 'doctor.onboarded', entity: 'Doctor', entityId: d.id } });

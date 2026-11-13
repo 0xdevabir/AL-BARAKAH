@@ -74,6 +74,7 @@ export default function MedicinePage() {
       <div className="tags">
         {med.isRx ? <span className="chip warn">Prescription required</span> : null}
         {!available ? <span className="chip off">Out of stock</span> : null}
+        {available && med.sourcingDays ? <span className="chip warn">Sourced on order · +{med.sourcingDays} day{med.sourcingDays === 1 ? '' : 's'}</span> : null}
       </div>
       <div className="group">
         <Link className="row between" href={`/search?q=${encodeURIComponent(med.genericName)}`}>
@@ -107,7 +108,10 @@ export default function MedicinePage() {
 
       <div className={`dock${!available ? ' gone' : ''}`}>
         {!available ? (
-          <span className="muted" style={{ fontWeight: 600 }}>Out of stock</span>
+          <>
+            <span className="muted grow" style={{ fontWeight: 600 }}>Out of stock</span>
+            <Link className="btn primary" href={`/requests?id=${med.id}&name=${encodeURIComponent(`${med.name} ${med.strength}`.trim())}`}>Request it</Link>
+          </>
         ) : qty ? (
           <>
             <Stepper qty={qty} label={loose ? `${med.name} ${noun}s` : med.name} onChange={(q) => cart.setQty(med.id, q, unit)} />

@@ -20,16 +20,23 @@ export interface TotalsInput {
   fees: FeeConfig;
 }
 
+/** Urgent delivery replaces the regular delivery charge: the customer pays the urgent fee instead, never both. */
 export function computeTotals({ lines, zoneDeliveryFeePoisha, emergency, fees }: TotalsInput) {
   const subtotalPoisha = lines.reduce((sum, l) => sum + l.unitPricePoisha * l.qty, 0);
   const emergencyFeePoisha = emergency ? fees.emergencyFeePoisha : 0;
+  const deliveryFeePoisha = emergency ? 0 : zoneDeliveryFeePoisha;
   return {
     subtotalPoisha,
-    deliveryFeePoisha: zoneDeliveryFeePoisha,
+    deliveryFeePoisha,
     emergencyFeePoisha,
-    totalPoisha: subtotalPoisha + zoneDeliveryFeePoisha + emergencyFeePoisha,
+    totalPoisha: subtotalPoisha + deliveryFeePoisha + emergencyFeePoisha,
     riderPayoutPoisha: fees.riderPayoutPoisha + (emergency ? fees.riderEmergencyBonusPoisha : 0),
   };
+}
+
+/** The platform's share of a doctor's fee. `pct` is a whole percentage (0-100). */
+export function commissionPoisha(feePoisha: number, pct: number): number {
+  return Math.round((feePoisha * Math.min(Math.max(pct, 0), 100)) / 100);
 }
 
 export function formatTk(poisha: number): string {

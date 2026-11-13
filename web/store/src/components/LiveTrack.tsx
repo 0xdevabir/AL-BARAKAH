@@ -10,6 +10,8 @@ interface Track {
   pharmacy: LatLng;
   destination: LatLng | null;
   rider: (LatLng & { heading: number | null; speed: number | null; accuracy: number | null; at: string }) | null;
+  /** The assigned rider has taken the job; until then the order may still be handed to someone else. */
+  riderAccepted?: boolean;
 }
 
 const LIVE = ['ASSIGNED', 'OUT_FOR_DELIVERY'];
@@ -43,7 +45,7 @@ export function LiveTrack({ orderId, status }: { orderId: string; status: string
     { id: 'home', kind: 'home', point: t.destination, title: 'You' },
   ];
   if (!moving || !t.rider) pins.push({ id: 'store', kind: 'store', point: t.pharmacy, title: 'Pharmacy' });
-  if (moving && t.rider) pins.push({ id: 'rider', kind: 'rider', point: t.rider, heading: t.rider.heading, title: 'Your rider' });
+  if (t.rider) pins.push({ id: 'rider', kind: 'rider', point: t.rider, heading: t.rider.heading, title: 'Your rider' });
 
   // Remaining distance: along the route when we have it, else the straight line.
   const left = moving && t.rider ? (route?.routed ? route.distanceM : distanceM(t.rider, t.destination)) : null;
@@ -84,8 +86,8 @@ export function LiveTrack({ orderId, status }: { orderId: string; status: string
         </div>
       ) : (
         <div className="livemap-eta">
-          <strong>Being picked up</strong>
-          <span>The rider is collecting your order</span>
+          <strong>{t.riderAccepted ? 'Rider accepted' : 'Finding your rider'}</strong>
+          <span>{t.riderAccepted ? 'They are collecting your order from the pharmacy' : 'Waiting for the rider to accept the job'}</span>
         </div>
       )}
       {stale ? <div className="livemap-stale">Last seen {Math.round((now - new Date(t.rider!.at).getTime()) / 60_000) || 1} min ago</div> : null}

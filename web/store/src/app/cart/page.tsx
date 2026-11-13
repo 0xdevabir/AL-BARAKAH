@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FormGlyph } from '@/components/FormGlyph';
+import { QuickOrder } from '@/components/QuickOrder';
 import { Stepper } from '@/components/Stepper';
 import { lineKey } from '@/lib/cart';
 import { useCart } from '@/lib/useCart';
@@ -13,6 +14,7 @@ export default function CartPage() {
   const { cart, lines, subtotal, rx } = useCart();
   const router = useRouter();
   const [going, setGoing] = useState(false);
+  const [quick, setQuick] = useState(false);
 
   async function checkout() {
     if (going || lines.length === 0) return;
@@ -66,10 +68,14 @@ export default function CartPage() {
                 {formatTk(subtotal)}
               </strong>
             </span>
+            <button type="button" className="btn" onClick={() => setQuick(true)}>
+              ⚡ Quick order
+            </button>
             <button type="button" className="btn primary" disabled={going} onClick={() => void checkout()}>
               Checkout
             </button>
           </div>
+          <QuickOrder open={quick} onClose={() => setQuick(false)} />
         </>
       )}
     </div>

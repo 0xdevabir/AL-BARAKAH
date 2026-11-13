@@ -217,7 +217,7 @@ export class AuthService {
         : await tx.user.create({ data: { phone, name: inv.name, role: 'DOCTOR', ...(email ? { email } : {}) } });
       const doctor = await tx.doctor.create({
         data: {
-          userId: user.id, bmdcNo: inv.bmdcNo, specialty: inv.specialty, feePoisha: inv.feePoisha, channels: inv.channels,
+          userId: user.id, bmdcNo: inv.bmdcNo, specialty: inv.specialty, feePoisha: inv.feePoisha, channels: inv.channels, tier: inv.tier,
           languages: ['Bangla', 'English'], whatsapp: inv.channels.includes('WHATSAPP') ? phone : null,
         },
       });

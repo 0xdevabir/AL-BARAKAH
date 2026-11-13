@@ -15,6 +15,7 @@ import { CatalogModule } from './catalog/catalog.module.js';
 import { ConsultationsModule } from './consultations/consultations.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { PortalModule } from './portal/portal.module.js';
 import { SettingsModule } from './settings/settings.module.js';
 import { WorkerModule } from './worker/worker.module.js';
 
@@ -44,6 +45,7 @@ export class AppModule {
         PaymentsModule,
         ConsultationsModule,
         AdminModule,
+        PortalModule,
         ...(role === 'api' ? [] : [WorkerModule]),
       ],
       controllers: [HealthController],

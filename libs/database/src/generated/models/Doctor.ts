@@ -41,6 +41,7 @@ export type DoctorMinAggregateOutputType = {
   userId: string | null
   bmdcNo: string | null
   specialty: string | null
+  tier: $Enums.DoctorTier | null
   bio: string | null
   feePoisha: number | null
   meetLink: string | null
@@ -59,6 +60,7 @@ export type DoctorMaxAggregateOutputType = {
   userId: string | null
   bmdcNo: string | null
   specialty: string | null
+  tier: $Enums.DoctorTier | null
   bio: string | null
   feePoisha: number | null
   meetLink: string | null
@@ -77,6 +79,7 @@ export type DoctorCountAggregateOutputType = {
   userId: number
   bmdcNo: number
   specialty: number
+  tier: number
   bio: number
   feePoisha: number
   channels: number
@@ -109,6 +112,7 @@ export type DoctorMinAggregateInputType = {
   userId?: true
   bmdcNo?: true
   specialty?: true
+  tier?: true
   bio?: true
   feePoisha?: true
   meetLink?: true
@@ -127,6 +131,7 @@ export type DoctorMaxAggregateInputType = {
   userId?: true
   bmdcNo?: true
   specialty?: true
+  tier?: true
   bio?: true
   feePoisha?: true
   meetLink?: true
@@ -145,6 +150,7 @@ export type DoctorCountAggregateInputType = {
   userId?: true
   bmdcNo?: true
   specialty?: true
+  tier?: true
   bio?: true
   feePoisha?: true
   channels?: true
@@ -252,6 +258,7 @@ export type DoctorGroupByOutputType = {
   userId: string
   bmdcNo: string
   specialty: string
+  tier: $Enums.DoctorTier
   bio: string
   feePoisha: number | null
   channels: $Enums.ConsultationChannel[]
@@ -295,6 +302,7 @@ export type DoctorWhereInput = {
   userId?: Prisma.StringFilter<"Doctor"> | string
   bmdcNo?: Prisma.StringFilter<"Doctor"> | string
   specialty?: Prisma.StringFilter<"Doctor"> | string
+  tier?: Prisma.EnumDoctorTierFilter<"Doctor"> | $Enums.DoctorTier
   bio?: Prisma.StringFilter<"Doctor"> | string
   feePoisha?: Prisma.IntNullableFilter<"Doctor"> | number | null
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"Doctor">
@@ -319,6 +327,7 @@ export type DoctorOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrderInput | Prisma.SortOrder
   channels?: Prisma.SortOrder
@@ -346,6 +355,7 @@ export type DoctorWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.DoctorWhereInput[]
   NOT?: Prisma.DoctorWhereInput | Prisma.DoctorWhereInput[]
   specialty?: Prisma.StringFilter<"Doctor"> | string
+  tier?: Prisma.EnumDoctorTierFilter<"Doctor"> | $Enums.DoctorTier
   bio?: Prisma.StringFilter<"Doctor"> | string
   feePoisha?: Prisma.IntNullableFilter<"Doctor"> | number | null
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"Doctor">
@@ -370,6 +380,7 @@ export type DoctorOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrderInput | Prisma.SortOrder
   channels?: Prisma.SortOrder
@@ -398,6 +409,7 @@ export type DoctorScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
   bmdcNo?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
   specialty?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
+  tier?: Prisma.EnumDoctorTierWithAggregatesFilter<"Doctor"> | $Enums.DoctorTier
   bio?: Prisma.StringWithAggregatesFilter<"Doctor"> | string
   feePoisha?: Prisma.IntNullableWithAggregatesFilter<"Doctor"> | number | null
   channels?: Prisma.EnumConsultationChannelNullableListFilter<"Doctor">
@@ -417,6 +429,7 @@ export type DoctorCreateInput = {
   id?: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -441,6 +454,7 @@ export type DoctorUncheckedCreateInput = {
   userId: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -463,6 +477,7 @@ export type DoctorUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -487,6 +502,7 @@ export type DoctorUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -510,6 +526,7 @@ export type DoctorCreateManyInput = {
   userId: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -529,6 +546,7 @@ export type DoctorUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -549,6 +567,7 @@ export type DoctorUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -590,6 +609,7 @@ export type DoctorCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   channels?: Prisma.SortOrder
@@ -615,6 +635,7 @@ export type DoctorMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   meetLink?: Prisma.SortOrder
@@ -633,6 +654,7 @@ export type DoctorMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   bmdcNo?: Prisma.SortOrder
   specialty?: Prisma.SortOrder
+  tier?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   feePoisha?: Prisma.SortOrder
   meetLink?: Prisma.SortOrder
@@ -696,6 +718,10 @@ export type DoctorCreatelanguagesInput = {
   set: string[]
 }
 
+export type EnumDoctorTierFieldUpdateOperationsInput = {
+  set?: $Enums.DoctorTier
+}
+
 export type DoctorUpdatechannelsInput = {
   set?: $Enums.ConsultationChannel[]
   push?: $Enums.ConsultationChannel | $Enums.ConsultationChannel[]
@@ -754,6 +780,7 @@ export type DoctorCreateWithoutUserInput = {
   id?: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -776,6 +803,7 @@ export type DoctorUncheckedCreateWithoutUserInput = {
   id?: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -814,6 +842,7 @@ export type DoctorUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -836,6 +865,7 @@ export type DoctorUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -858,6 +888,7 @@ export type DoctorCreateWithoutInviteInput = {
   id?: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -881,6 +912,7 @@ export type DoctorUncheckedCreateWithoutInviteInput = {
   userId: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -918,6 +950,7 @@ export type DoctorUpdateWithoutInviteInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -941,6 +974,7 @@ export type DoctorUncheckedUpdateWithoutInviteInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -962,6 +996,7 @@ export type DoctorCreateWithoutAvailabilityInput = {
   id?: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -985,6 +1020,7 @@ export type DoctorUncheckedCreateWithoutAvailabilityInput = {
   userId: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -1022,6 +1058,7 @@ export type DoctorUpdateWithoutAvailabilityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -1045,6 +1082,7 @@ export type DoctorUncheckedUpdateWithoutAvailabilityInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -1066,6 +1104,7 @@ export type DoctorCreateWithoutConsultationsInput = {
   id?: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -1089,6 +1128,7 @@ export type DoctorUncheckedCreateWithoutConsultationsInput = {
   userId: string
   bmdcNo: string
   specialty: string
+  tier?: $Enums.DoctorTier
   bio?: string
   feePoisha?: number | null
   channels?: Prisma.DoctorCreatechannelsInput | $Enums.ConsultationChannel[]
@@ -1126,6 +1166,7 @@ export type DoctorUpdateWithoutConsultationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -1149,6 +1190,7 @@ export type DoctorUncheckedUpdateWithoutConsultationsInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   bmdcNo?: Prisma.StringFieldUpdateOperationsInput | string
   specialty?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumDoctorTierFieldUpdateOperationsInput | $Enums.DoctorTier
   bio?: Prisma.StringFieldUpdateOperationsInput | string
   feePoisha?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   channels?: Prisma.DoctorUpdatechannelsInput | $Enums.ConsultationChannel[]
@@ -1211,6 +1253,7 @@ export type DoctorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   userId?: boolean
   bmdcNo?: boolean
   specialty?: boolean
+  tier?: boolean
   bio?: boolean
   feePoisha?: boolean
   channels?: boolean
@@ -1236,6 +1279,7 @@ export type DoctorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   userId?: boolean
   bmdcNo?: boolean
   specialty?: boolean
+  tier?: boolean
   bio?: boolean
   feePoisha?: boolean
   channels?: boolean
@@ -1257,6 +1301,7 @@ export type DoctorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   userId?: boolean
   bmdcNo?: boolean
   specialty?: boolean
+  tier?: boolean
   bio?: boolean
   feePoisha?: boolean
   channels?: boolean
@@ -1278,6 +1323,7 @@ export type DoctorSelectScalar = {
   userId?: boolean
   bmdcNo?: boolean
   specialty?: boolean
+  tier?: boolean
   bio?: boolean
   feePoisha?: boolean
   channels?: boolean
@@ -1293,7 +1339,7 @@ export type DoctorSelectScalar = {
   createdAt?: boolean
 }
 
-export type DoctorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bmdcNo" | "specialty" | "bio" | "feePoisha" | "channels" | "meetLink" | "whatsapp" | "photoUrl" | "qualifications" | "experienceYears" | "workplace" | "languages" | "isActive" | "onboardedAt" | "createdAt", ExtArgs["result"]["doctor"]>
+export type DoctorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bmdcNo" | "specialty" | "tier" | "bio" | "feePoisha" | "channels" | "meetLink" | "whatsapp" | "photoUrl" | "qualifications" | "experienceYears" | "workplace" | "languages" | "isActive" | "onboardedAt" | "createdAt", ExtArgs["result"]["doctor"]>
 export type DoctorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   availability?: boolean | Prisma.Doctor$availabilityArgs<ExtArgs>
@@ -1321,6 +1367,7 @@ export type $DoctorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     userId: string
     bmdcNo: string
     specialty: string
+    tier: $Enums.DoctorTier
     bio: string
     /**
      * Null means the platform-wide booking fee applies.
@@ -1780,6 +1827,7 @@ export interface DoctorFieldRefs {
   readonly userId: Prisma.FieldRef<"Doctor", 'String'>
   readonly bmdcNo: Prisma.FieldRef<"Doctor", 'String'>
   readonly specialty: Prisma.FieldRef<"Doctor", 'String'>
+  readonly tier: Prisma.FieldRef<"Doctor", 'DoctorTier'>
   readonly bio: Prisma.FieldRef<"Doctor", 'String'>
   readonly feePoisha: Prisma.FieldRef<"Doctor", 'Int'>
   readonly channels: Prisma.FieldRef<"Doctor", 'ConsultationChannel[]'>

@@ -224,7 +224,7 @@ export function MapView({
     if (!route || route.length < 2) return;
     const ll = route.map((p) => [p.lat, p.lng] as [number, number]);
     s.casing = s.L.polyline(ll, { color: '#fff', weight: 9, opacity: 0.9, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(s.map);
-    s.line = s.L.polyline(ll, { color: '#3e5238', weight: 5, opacity: 0.95, lineCap: 'round', lineJoin: 'round', dashArray: routeDashed ? '2 10' : undefined, interactive: false }).addTo(s.map);
+    s.line = s.L.polyline(ll, { color: '#075a92', weight: 5, opacity: 0.95, lineCap: 'round', lineJoin: 'round', dashArray: routeDashed ? '2 10' : undefined, interactive: false }).addTo(s.map);
   }, [ready, route, routeDashed]);
 
   function fit(animate = true) {

@@ -40,7 +40,7 @@ function BookingBody({ b, onDone }: { b: Booking; onDone: () => void }) {
   const [tab, setTab] = useState<'visit' | 'history'>('visit');
   const [joined, setJoined] = useState(false);
   const now = Date.now();
-  const join = joinLink(b.channel, me, b.patientPhone);
+  const join = joinLink(b.channel, me, b.patientPhone, b.videoLink);
   const live = b.status === 'CONFIRMED' && new Date(b.startsAt).getTime() - 10 * 60_000 <= now && new Date(b.endsAt).getTime() >= now;
   const past = hist?.visits.filter((v) => v.id !== b.id) ?? [];
   const lastRx = past.find((v) => v.prescription?.items.length)?.prescription ?? null;

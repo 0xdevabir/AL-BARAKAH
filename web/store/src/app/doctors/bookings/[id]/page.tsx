@@ -12,7 +12,13 @@ import { addRxToCart, announceRxAdded, type RxCartItem, rxLinePrice } from '@/li
 
 interface RxItem { medicine: string; dose: string; frequency: string; days: number; instructions: string }
 interface Booking {
-  id: string; code: string; startsAt: string; endsAt: string; status: string; channel: 'GOOGLE_MEET' | 'WHATSAPP'; feePoisha: number;
+  id: string; code: string; startsAt: string; endsAt: string; status: string; channel: 'GOOGLE_MEET' | 'WHATSAPP' | 'IN_APP'; feePoisha: number;
+  kind?: 'SCHEDULED' | 'INSTANT';
+  /** The in-app video room, once the doctor has accepted. */
+  videoLink?: string | null;
+  /** Set while a paid instant consult waits for a doctor to pick it up. */
+  waitingSince?: string | null;
+  responseMinutes?: number;
   reason?: string | null;
   prescription: { diagnosis: string; items: RxItem[]; advice: string; followUpDays: number } | null;
   /** Until when this prescription can buy its prescription-only medicines. */
@@ -35,7 +41,11 @@ const rxText = (b: Booking) => {
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const user = useSignedIn(`/doctors/bookings/${id}`);
-  const { data: b, error } = useGet<Booking>(user ? `/consultations/${id}` : null, { pollMs: 30_000 });
+  const [fast, setFast] = useState(false);
+  const { data: b, error } = useGet<Booking>(user ? `/consultations/${id}` : null, { pollMs: fast ? 8_000 : 30_000 });
+  const instant = b?.kind === 'INSTANT';
+  // Poll quickly while an instant consult waits for its doctor, so the Join button appears within seconds.
+  useEffect(() => setFast(!!b && instant && b.status !== 'COMPLETED' && b.status !== 'CANCELLED' && !b.videoLink), [b, instant]);
   const hasRx = !!b?.prescription?.items.length && b.status === 'COMPLETED';
   const { data: rxCart } = useGet<{ items: RxCartItem[] }>(hasRx ? `/consultations/${id}/rx-cart` : null, { staleMs: 60_000 });
   const router = useRouter();
@@ -56,13 +66,14 @@ export default function BookingDetailPage() {
     );
   }
 
-  const join = b.doctor.meetLink ?? (b.doctor.whatsapp ? `https://wa.me/${b.doctor.whatsapp.replace(/\D/g, '')}` : null);
+  const join = b.videoLink ?? b.doctor.meetLink ?? (b.doctor.whatsapp ? `https://wa.me/${b.doctor.whatsapp.replace(/\D/g, '')}` : null);
   const startsIn = new Date(b.startsAt).getTime() - now;
   const ended = new Date(b.endsAt).getTime() <= now;
   const live = b.status === 'CONFIRMED' && startsIn <= 0 && !ended;
-  const joinable = b.status === 'CONFIRMED' && startsIn < 10 * 60_000 && !ended;
+  const joinable = b.status === 'CONFIRMED' && (instant ? !!b.videoLink : startsIn < 10 * 60_000 && !ended);
   const rx = b.prescription;
-  const meet = b.channel === 'GOOGLE_MEET';
+  const meet = b.channel !== 'WHATSAPP';
+  const waited = b.waitingSince ? Math.max(0, Math.floor((now - new Date(b.waitingSince).getTime()) / 60_000)) : 0;
   const rxLines = rxCart?.items ?? [];
   const buyable = rxLines.filter((i) => i.medicine && i.inStock);
   const rxTotal = buyable.reduce((n, i) => n + rxLinePrice(i), 0);
@@ -80,7 +91,7 @@ export default function BookingDetailPage() {
   const steps = [
     { t: 'Booked', d: b.status === 'HOLD' ? 'Waiting for your bKash payment' : 'Paid and confirmed' },
     { t: 'Get ready', d: 'Keep old prescriptions and test reports nearby, and find a quiet spot' },
-    { t: meet ? 'Join the video call' : 'Answer the WhatsApp call', d: meet ? 'The Join button turns on 10 minutes before' : 'The doctor calls your number at the time' },
+    { t: meet ? 'Join the video call' : 'Answer the WhatsApp call', d: instant ? 'The Join button appears as soon as a doctor picks up' : meet ? 'The Join button turns on 10 minutes before' : 'The doctor calls your number at the time' },
     { t: 'Consultation done', d: 'The doctor writes your prescription' },
     { t: 'Prescription ready', d: 'Order the medicines from the store in a tap' },
   ];
@@ -93,7 +104,25 @@ export default function BookingDetailPage() {
         <span className={`chip ${live ? 'live' : statusTone(b.status)}`}>{live ? 'Happening now' : statusLabel(b.status)}</span>
         <h1 className="title" style={{ margin: '10px 0 2px' }}>{b.doctor.name}</h1>
         <p className="muted" style={{ margin: 0 }}>{b.doctor.specialty}</p>
-        <div className="consult-when">
+        {instant && b.status === 'CONFIRMED' ? (
+          <div className="instant-wait" role="status">
+            {b.videoLink ? (
+              <>
+                <strong>Your doctor is ready</strong>
+                <span className="muted small">Tap Join to start the video call in your browser.</span>
+              </>
+            ) : (
+              <>
+                <span className="instant-pulse" aria-hidden="true" />
+                <strong>Connecting you to a doctor…</strong>
+                <span className="muted small">
+                  Usually within {b.responseMinutes ?? 10} minutes{waited ? ` · waiting ${waited} min` : ''}. Keep this screen open.
+                </span>
+              </>
+            )}
+          </div>
+        ) : null}
+        <div className="consult-when" hidden={instant}>
           <div>
             <span className="muted small">{dayName(b.startsAt, now)}</span>
             <strong>{fmtTime(b.startsAt)} – {fmtTime(b.endsAt)}</strong>
@@ -105,12 +134,12 @@ export default function BookingDetailPage() {
             </div>
           ) : null}
         </div>
-        {join && b.status === 'CONFIRMED' && !ended ? (
+        {join && b.status === 'CONFIRMED' && (instant || !ended) ? (
           <a className={`btn block${joinable ? ' primary' : ''}`} href={join} target="_blank" rel="noreferrer" aria-disabled={!joinable}>
             {CHANNEL[b.channel].icon} {joinable ? (meet ? 'Join the video call' : 'Open WhatsApp') : `${meet ? 'Join' : 'WhatsApp'} opens 10 min before`}
           </a>
         ) : null}
-        {b.status === 'CONFIRMED' && !ended && startsIn > 10 * 60_000 ? (
+        {!instant && b.status === 'CONFIRMED' && !ended && startsIn > 10 * 60_000 ? (
           <a className="btn ghost block small" href={calendarLink(`Doctor call · ${b.doctor.name}`, b.startsAt, b.endsAt, `${CHANNEL[b.channel].label}. Open the Al-Barakah app to join. Booking ${b.code}`)} target="_blank" rel="noreferrer">
             🔔 Add a reminder to my calendar
           </a>

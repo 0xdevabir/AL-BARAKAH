@@ -69,6 +69,24 @@ enum ConsultationStatus {
   REFUNDED
 }
 
+/// Interns take instant calls from a live queue; specialists keep fixed daily hours.
+enum DoctorTier {
+  SPECIALIST
+  INTERN
+}
+
+enum ConsultationKind {
+  SCHEDULED
+  INSTANT
+}
+
+enum MedicineRequestStatus {
+  OPEN
+  SOURCING
+  FULFILLED
+  CLOSED
+}
+
 enum LedgerType {
   EARNING
   COD_COLLECTED
@@ -97,6 +115,9 @@ model User {
   ledger            RiderLedgerEntry[]
   auditLogs         AuditLog[]
   doctorInvites     DoctorInvite[]
+  medicineRequests  MedicineRequest[]
+  notifications     Notification[]
+  expenses          Expense[]
 }
 
 model OtpCode {
@@ -152,6 +173,8 @@ model Medicine {
   popularity   Int      @default(0)
   /// Below this many in-date units, the medicine shows in the admin low-stock list.
   reorderLevel Int      @default(10)
+  /// Rare medicines the pharmacy sources to order: delivery is pushed back by this many days (0-2).
+  sourcingDays Int      @default(0)
   categoryId   String
   category     Category @relation(fields: [categoryId], references: [id])
   createdAt    DateTime @default(now())
@@ -159,6 +182,7 @@ model Medicine {
 
   batches    Batch[]
   orderItems OrderItem[]
+  requests   MedicineRequest[]
 
   @@index([categoryId, isActive])
 }
@@ -230,6 +254,8 @@ model Order {
   paymentStatus      PaymentStatus @default(UNPAID)
   riderId            String?
   rider              User?         @relation("RiderOrders", fields: [riderId], references: [id])
+  /// Set when the assigned rider accepts the job; cleared when it is reassigned.
+  riderAcceptedAt    DateTime?
   prescriptionKey    String?
   /// The e-prescription that authorised the prescription medicines, when bought from one.
   consultationId     String?
@@ -328,6 +354,7 @@ model Doctor {
   user       User                  @relation(fields: [userId], references: [id])
   bmdcNo     String                @unique
   specialty  String
+  tier       DoctorTier            @default(SPECIALIST)
   bio        String                @default("")
   /// Null means the platform-wide booking fee applies.
   feePoisha  Int?
@@ -360,6 +387,7 @@ model DoctorInvite {
   bmdcNo      String
   specialty   String
   feePoisha   Int?
+  tier        DoctorTier            @default(SPECIALIST)
   channels    ConsultationChannel[]
   /// Only the hash is kept; the raw token lives in the emailed link.
   tokenHash   String                @unique
@@ -401,7 +429,12 @@ model Consultation {
   startsAt      DateTime
   endsAt        DateTime
   status        ConsultationStatus  @default(HOLD)
+  kind          ConsultationKind    @default(SCHEDULED)
   channel       ConsultationChannel
+  /// The doctor accepted the patient; until then a paid booking waits in their queue.
+  acceptedAt    DateTime?
+  /// Interns who turned this instant call down, so it is never offered to them again.
+  rejectedBy    String[]            @default([])
   feePoisha     Int
   holdExpiresAt DateTime?
   reason        String?
@@ -420,6 +453,7 @@ model Consultation {
   @@index([customerId, startsAt(sort: Desc)])
   @@index([doctorId, startsAt])
   @@index([status, holdExpiresAt])
+  @@index([kind, status])
 }
 
 model RiderLedgerEntry {
@@ -455,4 +489,51 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+/// A customer asking for a medicine the store does not stock or has run out of. Feeds the admin demand list.
+model MedicineRequest {
+  id         String                @id @default(cuid())
+  userId     String
+  user       User                  @relation(fields: [userId], references: [id])
+  medicineId String?
+  medicine   Medicine?             @relation(fields: [medicineId], references: [id])
+  name       String
+  qty        Int                   @default(1)
+  note       String?
+  status     MedicineRequestStatus @default(OPEN)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  @@index([status, createdAt])
+  @@index([medicineId])
+}
+
+/// Money going out other than rider payouts: stock purchases, rent, salaries.
+model Expense {
+  id           String   @id @default(cuid())
+  category     String
+  amountPoisha Int
+  note         String?
+  spentAt      DateTime @db.Date
+  createdById  String
+  createdBy    User     @relation(fields: [createdById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([spentAt])
+}
+
+/// In-app inbox. A written prescription is copied here to the doctor, the patient and every admin.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  title     String
+  body      String    @default("")
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
 }

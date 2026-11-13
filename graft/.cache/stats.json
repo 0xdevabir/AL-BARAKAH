@@ -1,17 +1,17 @@
 {
-  "nodeCount": 3450,
-  "edgeCount": 5141,
+  "nodeCount": 3933,
+  "edgeCount": 5890,
   "languages": [
     "java",
     "javascript",
     "tsx",
     "typescript"
   ],
-  "totalCount": 3450,
+  "totalCount": 3933,
   "readyCount": 0,
   "staleCount": 0,
   "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-09T17:21:42.685Z",
-  "lastFile": "rx.ts"
+  "syncedAt": "2026-11-13T16:50:12.560Z",
+  "lastFile": "page.tsx"
 }

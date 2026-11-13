@@ -48,7 +48,7 @@ export class CatalogService {
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
       WITH matched AS (
         SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
-               m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId"
+               m."pricePoisha", m."isRx", m."sourcingDays", m.description, m."imageUrl", m."categoryId"
         FROM "Medicine" m
         JOIN "Category" c ON c.id = m."categoryId"
         WHERE m."isActive"
@@ -83,7 +83,7 @@ export class CatalogService {
   async bySlug(slug: string) {
     const [row] = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
-             m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
+             m."pricePoisha", m."isRx", m."sourcingDays", m.description, m."imageUrl", m."categoryId",
              COALESCE(stock.qty, 0) AS stock, COALESCE(stock.loose, 0) AS loose
       FROM "Medicine" m
       LEFT JOIN LATERAL (
@@ -102,7 +102,7 @@ export class CatalogService {
     if (!base) throw notFound('Medicine not found');
     const rows = await this.prisma.$queryRaw<MedicineRow[]>`
       SELECT m.id, m.slug, m.name, m."genericName", m.manufacturer, m.form, m.strength, m."packSize",
-             m."pricePoisha", m."isRx", m.description, m."imageUrl", m."categoryId",
+             m."pricePoisha", m."isRx", m."sourcingDays", m.description, m."imageUrl", m."categoryId",
              COALESCE(stock.qty, 0) AS stock, COALESCE(stock.loose, 0) AS loose
       FROM "Medicine" m
       LEFT JOIN LATERAL (

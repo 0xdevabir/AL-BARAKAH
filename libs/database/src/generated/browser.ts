@@ -117,3 +117,18 @@ export type Setting = Prisma.SettingModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model MedicineRequest
+ * A customer asking for a medicine the store does not stock or has run out of. Feeds the admin demand list.
+ */
+export type MedicineRequest = Prisma.MedicineRequestModel
+/**
+ * Model Expense
+ * Money going out other than rider payouts: stock purchases, rent, salaries.
+ */
+export type Expense = Prisma.ExpenseModel
+/**
+ * Model Notification
+ * In-app inbox. A written prescription is copied here to the doctor, the patient and every admin.
+ */
+export type Notification = Prisma.NotificationModel

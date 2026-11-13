@@ -97,6 +97,32 @@ export const ConsultationStatus = {
 export type ConsultationStatus = (typeof ConsultationStatus)[keyof typeof ConsultationStatus]
 
 
+export const DoctorTier = {
+  SPECIALIST: 'SPECIALIST',
+  INTERN: 'INTERN'
+} as const
+
+export type DoctorTier = (typeof DoctorTier)[keyof typeof DoctorTier]
+
+
+export const ConsultationKind = {
+  SCHEDULED: 'SCHEDULED',
+  INSTANT: 'INSTANT'
+} as const
+
+export type ConsultationKind = (typeof ConsultationKind)[keyof typeof ConsultationKind]
+
+
+export const MedicineRequestStatus = {
+  OPEN: 'OPEN',
+  SOURCING: 'SOURCING',
+  FULFILLED: 'FULFILLED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type MedicineRequestStatus = (typeof MedicineRequestStatus)[keyof typeof MedicineRequestStatus]
+
+
 export const LedgerType = {
   EARNING: 'EARNING',
   COD_COLLECTED: 'COD_COLLECTED',

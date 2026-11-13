@@ -7,17 +7,18 @@ import {
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useDeferredValue, useState } from 'react';
 import { Icon } from '@/components/Icon';
+import { MedicineRequests, StockView } from '@/components/Stock';
 import { api, useGet } from '@/lib/api';
 import { downloadCsv, message, poishaToTk, tkToPoisha } from '@/lib/app';
 
 interface Batch { id: string; batchNo: string; expiresAt: string; qtyRemaining: number; looseQty: number }
 interface Med {
   id: string; slug: string; name: string; genericName: string; manufacturer: string; form: string; strength: string; packSize: string;
-  pricePoisha: number; isRx: boolean; isActive: boolean; categoryId: string; description: string; imageUrl: string; reorderLevel: number;
+  pricePoisha: number; isRx: boolean; isActive: boolean; categoryId: string; description: string; imageUrl: string; reorderLevel: number; sourcingDays: number;
   category: { name: string }; batches: Batch[]; stock: number; looseStock: number; lowStock: boolean; expiringSoon: boolean; expiredQty: number;
 }
 interface Category { id: string; name: string; count: number }
-type Filter = 'all' | 'low' | 'expiring' | 'inactive';
+type Filter = 'all' | 'low' | 'expiring' | 'inactive' | 'stock' | 'requests';
 
 export default function MedicinesPage() {
   return (
@@ -29,7 +30,8 @@ export default function MedicinesPage() {
 
 function Catalog() {
   const params = useSearchParams();
-  const [filter, setFilter] = useState<Filter>((params.get('filter') as Filter) ?? 'all');
+  const [filter, setFilter] = useState<Filter>((params.get('tab') ?? params.get('filter') ?? 'all') as Filter);
+  const special = filter === 'stock' || filter === 'requests';
   const [q, setQ] = useState('');
   const dq = useDeferredValue(q.trim());
   const [category, setCategory] = useState('');
@@ -39,7 +41,7 @@ function Catalog() {
   if (dq) qs.set('q', dq);
   if (filter !== 'all') qs.set('filter', filter);
   if (category) qs.set('category', category);
-  const { data: meds, pending, error } = useGet<Med[]>(`/admin/medicines?${qs}`);
+  const { data: meds, pending, error } = useGet<Med[]>(special ? null : `/admin/medicines?${qs}`);
   const { data: cats } = useGet<Category[]>('/categories', { staleMs: 300_000 });
 
   // Keep the open editor in sync after a save or batch change.
@@ -69,7 +71,7 @@ function Catalog() {
         Catalog
       </LargeTitle>
 
-      <div className="toolbar">
+      {special ? null : <div className="toolbar">
         <SearchField value={q} onChange={setQ} placeholder="Name, generic or maker" />
         <select className="input select" value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category">
           <option value="">All categories</option>
@@ -77,7 +79,7 @@ function Catalog() {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
-      </div>
+      </div>}
       <div className="toolbar">
         <Segmented<Filter>
           label="Filter"
@@ -88,9 +90,14 @@ function Catalog() {
             { value: 'low', label: 'Low stock' },
             { value: 'expiring', label: 'Expiring' },
             { value: 'inactive', label: 'Hidden' },
+            { value: 'stock', label: 'Stock' },
+            { value: 'requests', label: 'Requests' },
           ]}
         />
       </div>
+
+      {filter === 'stock' ? <StockView /> : null}
+      {filter === 'requests' ? <MedicineRequests /> : null}
 
       {error && !meds ? <p className="error">{error.message}</p> : null}
       {pending ? <SkeletonList rows={8} /> : null}
@@ -114,6 +121,7 @@ function Catalog() {
                 <span className="row" style={{ gap: 4 }}>
                   {!m.isActive ? <span className="chip off">Hidden</span> : null}
                   {m.isRx ? <span className="chip warn">Rx</span> : null}
+                  {m.sourcingDays ? <span className="chip">+{m.sourcingDays}d sourcing</span> : null}
                   <span className={`chip ${m.stock === 0 ? 'bad' : m.lowStock ? 'warn' : ''}`}>{m.stock} in stock{m.looseStock ? ` + ${m.looseStock} loose` : ''}</span>
                   {m.expiredQty ? <span className="chip bad">{m.expiredQty} expired</span> : null}
                 </span>
@@ -135,7 +143,7 @@ function Editor({ med, cats, onSaved }: { med: Med | null; cats: Category[]; onS
     name: med?.name ?? '', genericName: med?.genericName ?? '', manufacturer: med?.manufacturer ?? '', form: med?.form ?? 'Tablet',
     strength: med?.strength ?? '', packSize: med?.packSize ?? '', price: med ? poishaToTk(med.pricePoisha) : '', isRx: med?.isRx ?? false,
     isActive: med?.isActive ?? true, categoryId: med?.categoryId ?? cats[0]?.id ?? '', description: med?.description ?? '',
-    imageUrl: med?.imageUrl ?? '', reorderLevel: String(med?.reorderLevel ?? 10),
+    imageUrl: med?.imageUrl ?? '', reorderLevel: String(med?.reorderLevel ?? 10), sourcingDays: String(med?.sourcingDays ?? 0),
   });
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -168,7 +176,7 @@ function Editor({ med, cats, onSaved }: { med: Med | null; cats: Category[]; onS
     if (pricePoisha === null) return toast('Enter a price like 12 or 12.50', 'bad');
     setBusy(true);
     try {
-      const body = { ...f, pricePoisha, reorderLevel: Number(f.reorderLevel) || 0, price: undefined };
+      const body = { ...f, pricePoisha, reorderLevel: Number(f.reorderLevel) || 0, sourcingDays: Number(f.sourcingDays) || 0, price: undefined };
       const saved = med ? await api.patch<Med>(`/admin/medicines/${med.id}`, body) : await api.post<Med>('/admin/medicines', body);
       toast(med ? 'Saved' : 'Medicine added');
       invalidate('/admin/medicines');
@@ -199,6 +207,13 @@ function Editor({ med, cats, onSaved }: { med: Med | null; cats: Category[]; onS
         <label className="field">Manufacturer<input className="input" value={f.manufacturer} onChange={set('manufacturer')} /></label>
         <label className="field">Price (Tk)<input className="input" inputMode="decimal" required value={f.price} onChange={set('price')} /></label>
         <label className="field">Reorder at<input className="input" inputMode="numeric" value={f.reorderLevel} onChange={set('reorderLevel')} /></label>
+        <label className="field">Availability
+          <select className="input" value={f.sourcingDays} onChange={set('sourcingDays')}>
+            <option value="0">Kept in the pharmacy</option>
+            <option value="1">Rare — sourced on order, +1 day</option>
+            <option value="2">Rare — sourced on order, +2 days</option>
+          </select>
+        </label>
         <label className="field span">Category
           <select className="input" value={f.categoryId} onChange={set('categoryId')} required>
             {cats.map((c) => (
