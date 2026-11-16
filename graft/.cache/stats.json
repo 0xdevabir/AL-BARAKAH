@@ -10,8 +10,8 @@
   "totalCount": 3933,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": true,
+  "dirty": false,
   "syncing": false,
-  "syncedAt": "2026-11-13T17:52:46.047Z",
+  "syncedAt": "2026-11-13T17:53:05.128Z",
   "lastFile": "canvas.json"
 }
