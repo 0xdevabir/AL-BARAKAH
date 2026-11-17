@@ -1,27 +1,51 @@
 # Stateful services. Ports bind to localhost only; on a VPS only nginx is public.
+# Production with Cloudflare R2 needs only postgres + redis.
+# Local SeaweedFS: `pnpm infra:up` (starts profile local-s3) or
+#   docker compose -f infra/compose.storage.yml --profile local-s3 up -d
 services:
   postgres:
     image: postgres:17.6-alpine
     restart: unless-stopped
+    mem_limit: 512m
     environment:
       POSTGRES_USER: albarakah
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
       POSTGRES_DB: albarakah
+      # Small VPS: enough shared buffers without eating the box.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command:
+      [
+        "postgres",
+        "-c", "shared_buffers=128MB",
+        "-c", "effective_cache_size=384MB",
+        "-c", "work_mem=4MB",
+        "-c", "maintenance_work_mem=64MB",
+        "-c", "max_connections=60",
+      ]
     ports: ["127.0.0.1:55432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U albarakah"], interval: 3s, timeout: 3s, retries: 20 }
   redis:
     image: redis:7.4-alpine
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    mem_limit: 128m
+    command:
+      [
+        "redis-server",
+        "--appendonly", "yes",
+        "--maxmemory", "96mb",
+        "--maxmemory-policy", "noeviction",
+      ]
     ports: ["127.0.0.1:56379:6379"]
     volumes: [redisdata:/data]
     healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 20 }
-  # S3-compatible object storage. The API only speaks S3, so this can be swapped for any S3 service.
+  # S3-compatible object storage for local/dev. Production uses Cloudflare R2 (S3_URL in .env).
   # The binary is called directly: the image's /entrypoint.sh fails on arm64 ("exec format error").
   objectstore:
+    profiles: ["local-s3"]
     image: chrislusf/seaweedfs:4.50
     restart: unless-stopped
+    mem_limit: 256m
     entrypoint: ["/usr/bin/weed"]
     command: ["server", "-dir=/data", "-s3", "-s3.port=8333", "-volume.max=100", "-master.volumeSizeLimitMB=1024"]
     environment:

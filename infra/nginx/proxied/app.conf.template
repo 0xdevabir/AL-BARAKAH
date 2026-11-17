@@ -15,13 +15,6 @@ map $http_x_forwarded_proto $fwd_proto {
   "" $scheme;
 }
 
-map $http_origin $files_cors_origin {
-  default "";
-  "https://${STORE_DOMAIN}" $http_origin;
-  "https://${STAFF_DOMAIN}" $http_origin;
-  "capacitor://localhost" $http_origin;
-  "https://localhost" $http_origin;
-}
 include /etc/nginx/shared/upstreams.conf;
 
 server {
@@ -33,9 +26,4 @@ server {
   listen 80;
   server_name ${STAFF_DOMAIN};
   include /etc/nginx/shared/staff-site.conf;
-}
-server {
-  listen 80;
-  server_name ${FILES_DOMAIN};
-  include /etc/nginx/shared/files-site.conf;
 }

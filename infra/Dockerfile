@@ -30,7 +30,7 @@ RUN for app in store staff; do \
       cp -r web/$app/.next/static $out/.next/static && cp -r web/$app/public $out/public; \
     done && rm -rf web/*/.next/cache
 ENV NODE_ENV=production
-# Each compose service picks its command: gateway, auth-service, core-service (SERVICE_ROLE api|worker), or a Next server.
+# Each compose service picks its command: gateway, auth-service, core-service (SERVICE_ROLE api|worker|all), or a Next server.
 CMD ["node", "apps/gateway/dist/main.js"]
 
 # Stock nginx plus the shared config. compose.app.yml mounts the same files, so editing them needs only a restart.
@@ -39,3 +39,4 @@ ARG EDGE_MODE=tls
 RUN rm /etc/nginx/conf.d/default.conf
 COPY infra/nginx/shared /etc/nginx/shared
 COPY infra/nginx/${EDGE_MODE}/ /etc/nginx/templates/
+

@@ -1,5 +1,6 @@
 #!/bin/sh
-# Backs up the database and prescription files. Schedule daily from cron (docs/runbook.md).
+# Backs up the database (and local SeaweedFS volume when present). Schedule daily from cron (docs/runbook.md).
+# With Cloudflare R2, prescription/files live off-box — only the DB dump is needed here.
 # Copy BACKUP_DIR off this server: a backup on the same disk does not survive losing the VPS.
 set -eu
 
@@ -12,10 +13,14 @@ mkdir -p "$BACKUP_DIR"
 db="$BACKUP_DIR/db-$stamp.dump"
 docker exec "$COMPOSE_PROJECT_NAME-postgres-1" pg_dump -U albarakah -d albarakah -Fc > "$db.partial"
 mv "$db.partial" "$db"
+echo "Backed up database to $db"
 
-files="$BACKUP_DIR/files-$stamp.tar.gz"
-docker run --rm -v "${COMPOSE_PROJECT_NAME}_objectdata:/data:ro" alpine:3.22 tar -czf - -C /data . > "$files.partial"
-mv "$files.partial" "$files"
+# Local objectstore volume only (profile local-s3). Skip quietly when using R2.
+if docker volume inspect "${COMPOSE_PROJECT_NAME}_objectdata" >/dev/null 2>&1; then
+  files="$BACKUP_DIR/files-$stamp.tar.gz"
+  docker run --rm -v "${COMPOSE_PROJECT_NAME}_objectdata:/data:ro" alpine:3.22 tar -czf - -C /data . > "$files.partial"
+  mv "$files.partial" "$files"
+  echo "Backed up local files to $files"
+fi
 
 find "$BACKUP_DIR" -type f \( -name 'db-*.dump' -o -name 'files-*.tar.gz' \) -mtime "+$KEEP_DAYS" -delete
-echo "Backed up to $db and $files"

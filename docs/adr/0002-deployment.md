@@ -1,11 +1,13 @@
 # 2. Deployment and client addresses
 
-**Status:** accepted, November 2026
+**Status:** accepted, November 2026 (revised)
 
 ## Decision
 - **Compose on one VPS:** storage and app run as separate compose files. Kubernetes isn't needed at this scale.
-- **Three domains:** store, staff and files. The files domain exists because signed upload URLs include the host, so it must reach storage unchanged. Using a path on the store domain would break the signature.
-- **One app image:** the API, worker, store and migration job share one image. It keeps deploys simple but is large (1.43 GB), because it includes the full workspace and the Prisma CLI. Slim it if pull times or disk become a problem.
+- **Lite by default:** 8 long-running containers (postgres, redis, auth, core-with-jobs, gateway, store, staff, edge). No SeaweedFS, no PgBouncer, no dedicated worker. Heavy split is `compose.full.yml`.
+- **Two domains + R2:** store and staff. Prescription/images live on Cloudflare R2; there is no files domain on the VPS. Local SeaweedFS still uses `pnpm infra:up` (`local-s3` profile).
+- **One app image:** the API, optional worker, store and migration job share one image. It keeps deploys simple but is large (1.43 GB), because it includes the full workspace and the Prisma CLI. Slim it if pull times or disk become a problem.
+- **Memory caps:** Node services set `NODE_OPTIONS=--max-old-space-size=…` and Compose `mem_limit` so a small VPS does not OOM under idle churn.
 
 ## Client addresses and rate limits
 - nginx overwrites `X-Forwarded-For`, and the API trusts exactly one proxy, so clients can't fake an address.
