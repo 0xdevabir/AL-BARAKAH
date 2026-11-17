@@ -7,6 +7,8 @@ import { SearchBox } from '@/components/SearchBox';
 import type { Doctor } from '@/lib/doctors';
 import { telHref } from '@/lib/tel';
 
+export const dynamic = "force-dynamic";
+
 const API = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 type Category = { id: string; name: string; slug: string; count?: number };
