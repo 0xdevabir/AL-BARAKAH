@@ -11,15 +11,17 @@ export function readRx(raw: unknown): EPrescription | null {
 
 /**
  * Matches each prescribed line to a catalogue medicine: the one the doctor picked, or — for lines typed
- * by hand — an active medicine with exactly that name. Returns one entry per line, in order.
+ * by hand — an active medicine with exactly that name. Only over-the-counter stock matches: a
+ * prescription-only line comes back with no medicine, and the patient buys it at a licensed pharmacy.
+ * Returns one entry per line, in order.
  */
 export async function resolveRx(prisma: PrismaClient, rx: EPrescription) {
   const ids = rx.items.map((i) => i.medicineId).filter((x): x is string => !!x);
   const names = rx.items.filter((i) => !i.medicineId).map((i) => i.medicine.trim()).filter(Boolean);
   const select = { id: true, slug: true, name: true, genericName: true, form: true, strength: true, packSize: true, pricePoisha: true, isRx: true, imageUrl: true } as const;
   const [byIdRows, byNameRows] = await Promise.all([
-    ids.length ? prisma.medicine.findMany({ where: { id: { in: ids }, isActive: true }, select }) : [],
-    names.length ? prisma.medicine.findMany({ where: { isActive: true, OR: names.map((n) => ({ name: { equals: n, mode: 'insensitive' as const } })) }, select, orderBy: { popularity: 'desc' } }) : [],
+    ids.length ? prisma.medicine.findMany({ where: { id: { in: ids }, isActive: true, isRx: false }, select }) : [],
+    names.length ? prisma.medicine.findMany({ where: { isActive: true, isRx: false, OR: names.map((n) => ({ name: { equals: n, mode: 'insensitive' as const } })) }, select, orderBy: { popularity: 'desc' } }) : [],
   ]);
   const byId = new Map(byIdRows.map((m) => [m.id, m]));
   const byName = new Map<string, (typeof byNameRows)[number]>();
@@ -60,7 +62,7 @@ export async function rxCart(prisma: PrismaClient, rx: EPrescription) {
 }
 
 /**
- * The prescription-only medicines a customer's consultation lets them buy now. Empty when the
+ * The catalogue medicines on a customer's still-valid prescription, used to link an order to it. Null when the
  * consultation is not theirs, has no prescription, or the prescription has expired.
  */
 export async function rxCoverage(prisma: PrismaClient, customerId: string, consultationId: string, now = new Date()) {

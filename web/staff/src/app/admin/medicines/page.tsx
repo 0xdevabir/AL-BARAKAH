@@ -50,7 +50,7 @@ function Catalog() {
   function exportCsv() {
     if (!meds) return;
     downloadCsv('catalog', [
-      ['Name', 'Strength', 'Generic', 'Form', 'Category', 'Price (Tk)', 'Stock', 'Reorder level', 'Rx', 'Active'],
+      ['Name', 'Strength', 'Generic', 'Form', 'Category', 'Price (Tk)', 'Stock', 'Reorder level', 'Restricted', 'Active'],
       ...meds.map((m) => [m.name, m.strength, m.genericName, m.form, m.category.name, poishaToTk(m.pricePoisha), m.stock, m.reorderLevel, m.isRx ? 'yes' : 'no', m.isActive ? 'yes' : 'no']),
     ]);
   }
@@ -120,7 +120,7 @@ function Catalog() {
                 <span className="small price">{formatTk(m.pricePoisha)}</span>
                 <span className="row" style={{ gap: 4 }}>
                   {!m.isActive ? <span className="chip off">Hidden</span> : null}
-                  {m.isRx ? <span className="chip warn">Rx</span> : null}
+                  {m.isRx ? <span className="chip bad" title="Prescription-only: never sold">Restricted</span> : null}
                   {m.sourcingDays ? <span className="chip">+{m.sourcingDays}d sourcing</span> : null}
                   <span className={`chip ${m.stock === 0 ? 'bad' : m.lowStock ? 'warn' : ''}`}>{m.stock} in stock{m.looseStock ? ` + ${m.looseStock} loose` : ''}</span>
                   {m.expiredQty ? <span className="chip bad">{m.expiredQty} expired</span> : null}
@@ -228,7 +228,7 @@ function Editor({ med, cats, onSaved }: { med: Med | null; cats: Category[]; onS
         </label>
         <label className="field span">Description<textarea className="input" value={f.description} onChange={set('description')} /></label>
         <div className="group span">
-          <div><span className="grow">Needs a prescription</span><Switch label="Needs a prescription" checked={f.isRx} onChange={(v) => setF({ ...f, isRx: v })} /></div>
+          <div><span className="grow muted small">Over-the-counter only: prescription medicines, injectables and controlled drugs are refused.</span></div>
           <div><span className="grow">Visible in the store</span><Switch label="Visible in the store" checked={f.isActive} onChange={(v) => setF({ ...f, isActive: v })} /></div>
         </div>
         <button className="btn primary block span" disabled={busy}>{busy ? 'Saving…' : med ? 'Save changes' : 'Add medicine'}</button>

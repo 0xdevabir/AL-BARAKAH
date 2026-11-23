@@ -26,6 +26,7 @@ const DEFAULTS: Settings = {
   instantConsultFeePoisha: 30000,
   instantResponseMinutes: 10,
   doctorCommissionPct: 20,
+  consultCancelHours: 2,
 };
 const CACHE_MS = 15_000;
 const RELEASE_FILE = join(dirname(fileURLToPath(import.meta.url)), '../../android-release.json');
@@ -87,6 +88,7 @@ export class SettingsController {
       doctorBookingFeePoisha: s.doctorBookingFeePoisha,
       instantConsultFeePoisha: s.instantConsultFeePoisha,
       instantResponseMinutes: s.instantResponseMinutes,
+      consultCancelHours: s.consultCancelHours,
       hotlines: s.hotlines,
       requireRxUpload: s.requireRxUpload,
       openHour: s.openHour,

@@ -205,12 +205,16 @@ export class ConsultationsController {
     const next = await Promise.all(rows.map((d) => this.service.slots(d.id, now).catch(() => [])));
     const completed = await this.prisma.consultation.groupBy({ by: ['doctorId'], where: { status: 'COMPLETED' }, _count: { _all: true } });
     const seen = new Map(completed.map((c) => [c.doctorId, c._count._all]));
+    const rated = await this.prisma.consultation.groupBy({ by: ['doctorId'], where: { ratedAt: { not: null } }, _avg: { rating: true }, _count: { rating: true } });
+    const stars = new Map(rated.map((r) => [r.doctorId, { rating: r._avg.rating ? Math.round(r._avg.rating * 10) / 10 : null, ratings: r._count.rating }]));
     return rows.map(({ user, ...d }, i) => ({
       ...d,
       name: user.name,
       nextSlot: next[i]?.[0] ?? null,
       openSlots: next[i]?.length ?? 0,
       consultations: seen.get(d.id) ?? 0,
+      rating: stars.get(d.id)?.rating ?? null,
+      ratings: stars.get(d.id)?.ratings ?? 0,
     }));
   }
 
@@ -375,7 +379,7 @@ export class ConsultationsController {
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(dayStart.getTime() + 86_400_000);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const [today, next, completedMonth, noShowMonth, patients, earned, pending] = await Promise.all([
+    const [today, next, completedMonth, noShowMonth, patients, earned, pending, rated] = await Promise.all([
       this.prisma.consultation.count({ where: { doctorId: d.id, status: { in: ['CONFIRMED', 'COMPLETED', 'NO_SHOW'] }, startsAt: { gte: dayStart, lt: dayEnd } } }),
       this.prisma.consultation.findFirst({
         where: { doctorId: d.id, status: 'CONFIRMED', endsAt: { gte: now } },
@@ -387,11 +391,14 @@ export class ConsultationsController {
       this.prisma.consultation.groupBy({ by: ['customerId'], where: { doctorId: d.id, status: 'COMPLETED' } }),
       this.prisma.consultation.aggregate({ where: { doctorId: d.id, status: 'COMPLETED', startsAt: { gte: monthStart } }, _sum: { feePoisha: true } }),
       this.prisma.consultation.count({ where: { doctorId: d.id, status: 'CONFIRMED', acceptedAt: null } }),
+      this.prisma.consultation.aggregate({ where: { doctorId: d.id, ratedAt: { not: null } }, _avg: { rating: true }, _count: { rating: true } }),
     ]);
     return {
       today, next, completedMonth, noShowMonth, patients: patients.length, pending,
       earnedMonthPoisha: earned._sum.feePoisha ?? 0,
       hasAvailability: d.availability.length > 0,
+      rating: rated._avg.rating ? Math.round(rated._avg.rating * 10) / 10 : null,
+      ratings: rated._count.rating,
     };
   }
 
@@ -655,17 +662,20 @@ export class ConsultationsController {
 
   @RequirePermission('consultation:manage')
   @Get('admin/consultations')
-  adminConsultations() {
-    return this.prisma.consultation.findMany({
-      where: { status: { not: 'CANCELLED' } },
+  async adminConsultations() {
+    const rows = await this.prisma.consultation.findMany({
+      // Cancelled bookings stay listed while their money is still with us, so they can be refunded.
+      where: { OR: [{ status: { not: 'CANCELLED' } }, { payments: { some: { status: 'PAID' } } }] },
       orderBy: { startsAt: 'desc' },
       take: 100,
       select: {
         id: true, code: true, startsAt: true, status: true, kind: true, acceptedAt: true, channel: true, feePoisha: true,
+        cancelledBy: true, cancelReason: true, rating: true, review: true,
         customer: { select: { name: true, phone: true } }, doctor: { select: { user: { select: { name: true } } } },
         payments: { where: { status: { in: ['PAID', 'REFUNDED'] } }, select: { id: true, status: true, trxId: true } },
       },
     });
+    return rows.map((r) => ({ ...r, refundDue: r.status === 'CANCELLED' && r.payments.some((p) => p.status === 'PAID') }));
   }
 }
 

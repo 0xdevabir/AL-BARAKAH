@@ -117,7 +117,7 @@ export default function DoctorToday() {
           <StatTile label="Left today" value={leftToday} hint={`${s.today} booked`} />
           <StatTile label="Seen this month" value={s.completedMonth} />
           <StatTile label="Earned this month" value={formatTk(s.earnedMonthPoisha)} />
-          <StatTile label="No-show rate" value={closed ? pct(s.noShowMonth / closed) : '—'} tone={closed && s.noShowMonth / closed > 0.2 ? 'warn' : undefined} hint={`${s.patients} patients`} />
+          <StatTile label="No-show rate" value={closed ? pct(s.noShowMonth / closed) : '—'} tone={closed && s.noShowMonth / closed > 0.2 ? 'warn' : undefined} hint={`${s.patients} patients${s.ratings && s.rating ? ` · ★ ${s.rating.toFixed(1)} (${s.ratings})` : ''}`} />
         </div>
       ) : null}
 

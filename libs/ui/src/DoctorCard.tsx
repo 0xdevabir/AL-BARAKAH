@@ -19,6 +19,9 @@ export interface DoctorPublic {
   workplace?: string | null;
   languages?: string[] | null;
   consultations?: number;
+  /** Average patient rating out of 5, and how many patients rated. */
+  rating?: number | null;
+  ratings?: number;
 }
 
 export const DOCTOR_CHANNEL: Record<DoctorChannel, { label: string; short: string; hint: string; icon: string }> = {
@@ -58,6 +61,7 @@ export function DoctorPhoto({ d, size = 56, ring = false }: { d: Pick<DoctorPubl
 
 function facts(d: DoctorPublic) {
   const out: string[] = [];
+  if (d.rating && d.ratings) out.push(`★ ${d.rating.toFixed(1)} (${d.ratings})`);
   if (d.experienceYears) out.push(`${d.experienceYears} yr${d.experienceYears === 1 ? '' : 's'} experience`);
   if (d.consultations) out.push(`${d.consultations} consult${d.consultations === 1 ? '' : 's'}`);
   if (d.languages?.length) out.push(d.languages.join(', '));
@@ -107,6 +111,7 @@ export function DoctorProfileView({ d, action }: { d: DoctorPublic; action?: Rea
   const stats = [
     { k: 'Experience', v: d.experienceYears ? `${d.experienceYears} yr${d.experienceYears === 1 ? '' : 's'}` : '—' },
     { k: 'Consults', v: d.consultations ? String(d.consultations) : 'New' },
+    ...(d.rating && d.ratings ? [{ k: 'Rating', v: `★ ${d.rating.toFixed(1)}` }] : []),
     { k: 'Speaks', v: d.languages?.length ? d.languages.slice(0, 2).join(', ') : '—' },
   ];
   return (

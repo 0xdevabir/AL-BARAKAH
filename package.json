@@ -15,7 +15,8 @@
     "db:migrate": "pnpm --filter @albarakah/database migrate:deploy",
     "db:seed": "pnpm --filter @albarakah/database seed",
     "catalog:crawl": "node libs/database/scripts/crawl-catalog.mjs",
-    "catalog:load": "node --env-file=.env libs/database/scripts/load-catalog.mjs"
+    "catalog:load": "node --env-file=.env libs/database/scripts/load-catalog.mjs",
+    "catalog:purge": "pnpm --filter @albarakah/domain build && node --env-file=.env libs/database/scripts/purge-restricted.mjs"
   },
   "devDependencies": { "turbo": "2.11.10", "typescript": "5.9.3" }
 }

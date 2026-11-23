@@ -1163,3 +1163,12 @@ html[data-scrolled='1'] .search-head {
 }
 /* Phones already have search pinned on top, so the section link is noise. */
 @media (max-width: 899px) { .meds-section .section a { display: none; } }
+
+/* Consultation care: shared reports and ratings */
+.care-files { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.care-files a { display: block; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stars { color: #e0a100; font-size: 1.25rem; letter-spacing: 2px; }
+.stars-pick { display: flex; gap: 6px; }
+.stars-pick button { font-size: 2rem; line-height: 1; background: none; border: 0; padding: 4px; color: var(--line); cursor: pointer; transition: transform .15s var(--ease), color .15s var(--ease); }
+.stars-pick button.on { color: #e0a100; }
+.stars-pick button:active { transform: scale(.88); }

@@ -118,6 +118,8 @@ model User {
   medicineRequests  MedicineRequest[]
   notifications     Notification[]
   expenses          Expense[]
+  healthProfile     PatientProfile?
+  consultationFiles ConsultationFile[]
 }
 
 model OtpCode {
@@ -444,16 +446,27 @@ model Consultation {
   prescription  Json?
   /// When the prescription was written; it can buy prescription medicines for RX_VALID_DAYS after.
   prescribedAt  DateTime?
+  /// How many times the patient moved this booking; capped so a slot is not held indefinitely.
+  rescheduledCount Int               @default(0)
+  /// Who cancelled and why, when the patient or doctor called it off.
+  cancelledBy   String?
+  cancelReason  String?
+  /// The patient's 1-5 star rating after a completed consultation, once.
+  rating        Int?
+  review        String?
+  ratedAt       DateTime?
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
   payments Payment[]
   orders   Order[]
+  files    ConsultationFile[]
 
   @@index([customerId, startsAt(sort: Desc)])
   @@index([doctorId, startsAt])
   @@index([status, holdExpiresAt])
   @@index([kind, status])
+  @@index([doctorId, ratedAt])
 }
 
 model RiderLedgerEntry {
@@ -536,4 +549,38 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+/// What the doctor should know before a consultation. One per patient, kept by the patient.
+model PatientProfile {
+  userId      String    @id
+  user        User      @relation(fields: [userId], references: [id])
+  dateOfBirth DateTime?
+  /// MALE, FEMALE or OTHER; free text keeps the enum out of a sensitive field.
+  sex         String    @default("")
+  weightKg    Float?
+  bloodGroup  String    @default("")
+  /// Drug and food allergies, shown to the doctor as a warning.
+  allergies   String    @default("")
+  /// Long-term conditions: diabetes, hypertension, asthma, pregnancy.
+  conditions  String    @default("")
+  /// Medicines currently taken.
+  medications String    @default("")
+  updatedAt   DateTime  @updatedAt
+}
+
+/// A report, photo or old prescription the patient shares with the doctor for one consultation.
+model ConsultationFile {
+  id             String       @id @default(cuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  uploadedById   String
+  uploadedBy     User         @relation(fields: [uploadedById], references: [id])
+  /// Private bucket key, consult/<consultationId>/<uuid>.<ext>; read through a short signed URL.
+  key            String       @unique
+  name           String
+  contentType    String
+  createdAt      DateTime     @default(now())
+
+  @@index([consultationId, createdAt])
 }

@@ -2,6 +2,7 @@
 
 import { formatTk } from '@albarakah/domain';
 import { DoctorPhoto, fmtTime, haptic, Skeleton } from '@albarakah/ui';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api, useGet } from '@/lib/api';
@@ -20,6 +21,7 @@ export function DoctorAvatar({ d, size = 52 }: { d: Pick<Doctor, 'id' | 'name' |
 export function BookDoctor({ doctor, fee, onDone }: { doctor: Doctor; fee: number; onDone?: () => void }) {
   const router = useRouter();
   const { data: slots, pending, error: slotErr } = useGet<Slot[]>(`/doctors/${doctor.id}/slots`, { staleMs: 30_000 });
+  const { data: health } = useGet<{ updatedAt: string | null; allergies: string }>(api.user ? '/me/health' : null, { staleMs: 300_000 });
   const days = useMemo(() => byDay(slots ?? []), [slots]);
   const [dayKey, setDayKey] = useState('');
   const [slot, setSlot] = useState<Slot | null>(null);
@@ -103,6 +105,11 @@ export function BookDoctor({ doctor, fee, onDone }: { doctor: Doctor; fee: numbe
           <li><b>2</b><span>{channel === 'GOOGLE_MEET' ? 'A Join button appears 10 minutes before the call.' : `The doctor calls ${api.user?.phone ?? 'your number'} on WhatsApp at the time.`}</span></li>
           <li><b>3</b><span>Your prescription arrives in the app right after, and you can order the medicines in one tap.</span></li>
         </ol>
+        {health && !health.updatedAt ? (
+          <p className="notice small" style={{ margin: 0 }}>
+            Tip: <Link href="/account/health">add your allergies and current medicines</Link> so the doctor can prescribe safely.
+          </p>
+        ) : null}
         {error ? <p className="error" role="alert">{error}</p> : null}
         <button className="btn primary block" type="button" disabled={busy} onClick={() => void book()}>
           {busy ? 'Booking…' : `Pay ${formatTk(fee)} with bKash`}

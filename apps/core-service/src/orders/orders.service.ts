@@ -90,6 +90,8 @@ export class OrdersService {
     const ids = [...new Set(keys.map((k) => qtyByKey.get(k)!.medicineId))];
     const medicines = await this.prisma.medicine.findMany({ where: { id: { in: ids }, isActive: true } });
     if (medicines.length !== ids.length) throw badRequest('ITEM_UNAVAILABLE', 'An item in your cart is no longer available');
+    const restricted = medicines.filter((m) => m.isRx);
+    if (restricted.length) throw badRequest('RX_NOT_SOLD', `${restricted.map((m) => m.name).join(', ')} needs a prescription and is not sold online. Please remove it from your cart.`);
 
     const sourcingDays = Math.max(0, ...medicines.map((m) => m.sourcingDays));
     let slotStart: Date | null = null;
@@ -110,20 +112,9 @@ export class OrdersService {
       slotEnd = slot.end;
       promisedBy = slot.end;
     }
-    // The customer's own e-prescription from a consultation here covers the Rx medicines the doctor wrote.
+    // Everything sold is over the counter, so a consultation only links the order to the doctor's
+    // prescription for the pharmacist; an old one never blocks buying.
     const coverage = input.consultationId ? await rxCoverage(this.prisma, customerId, input.consultationId, now) : null;
-    if (input.consultationId && !coverage) {
-      throw badRequest('PRESCRIPTION_EXPIRED', 'That prescription can no longer be used to order. Please upload a prescription or book a follow-up.');
-    }
-    const uncovered = medicines.filter((m) => m.isRx && !coverage?.medicineIds.has(m.id));
-    if (s.requireRxUpload && uncovered.length && !input.prescriptionKey) {
-      throw badRequest(
-        'PRESCRIPTION_REQUIRED',
-        coverage
-          ? `${uncovered.map((m) => m.name).join(', ')} ${uncovered.length === 1 ? 'is' : 'are'} not on your doctor's prescription. Please upload a prescription for ${uncovered.length === 1 ? 'it' : 'them'}.`
-          : 'Please upload a prescription for the prescription medicines in your cart',
-      );
-    }
     if (input.prescriptionKey && !input.prescriptionKey.startsWith(`rx/${customerId}/`)) throw forbidden();
 
     const lines = priceLines(keys.map((k) => qtyByKey.get(k)!), medicines);
@@ -212,6 +203,7 @@ export class OrdersService {
       const ids = [...new Set(keys.map((k) => merged.get(k)!.medicineId))];
       const medicines = await tx.medicine.findMany({ where: { id: { in: ids }, isActive: true } });
       if (medicines.length !== ids.length) throw badRequest('ITEM_UNAVAILABLE', 'One of these medicines is inactive or missing');
+      if (medicines.some((m) => m.isRx)) throw badRequest('RX_NOT_SOLD', 'Prescription-only medicines are not sold online');
       const lines = priceLines(keys.map((k) => merged.get(k)!), medicines);
       const s = await this.settings.get();
       const totals = computeTotals({ lines, zoneDeliveryFeePoisha: zone.deliveryFeePoisha, emergency: order.type === 'EMERGENCY', fees: s });

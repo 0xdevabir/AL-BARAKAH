@@ -53,6 +53,13 @@ export class StorageService implements OnModuleInit {
     return { key, url };
   }
 
+  /** A report or photo for one consultation; the key prefix ties it to that booking. */
+  async consultationFileUploadUrl(consultationId: string, contentType: string) {
+    const key = `consult/${consultationId}/${randomUUID()}.${EXT[contentType]}`;
+    const url = await getSignedUrl(this.signer, new PutObjectCommand({ Bucket: this.env.S3_BUCKET, Key: key, ContentType: contentType }), { expiresIn: 300 });
+    return { key, url };
+  }
+
   signedReadUrl(key: string) {
     return getSignedUrl(this.signer, new GetObjectCommand({ Bucket: this.env.S3_BUCKET, Key: key }), { expiresIn: 120 });
   }

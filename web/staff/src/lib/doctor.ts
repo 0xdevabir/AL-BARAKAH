@@ -23,7 +23,7 @@ export interface DoctorMe {
   user: { name: string; phone: string };
 }
 export interface DoctorSummary {
-  today: number; completedMonth: number; noShowMonth: number; patients: number; earnedMonthPoisha: number; hasAvailability: boolean; pending: number;
+  today: number; completedMonth: number; noShowMonth: number; patients: number; earnedMonthPoisha: number; hasAvailability: boolean; pending: number; rating: number | null; ratings: number;
   next: Pick<Booking, 'id' | 'code' | 'startsAt' | 'endsAt' | 'channel' | 'reason' | 'patientPhone' | 'customerId' | 'customer'> | null;
 }
 export interface PatientHistory {

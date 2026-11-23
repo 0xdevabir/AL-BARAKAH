@@ -132,3 +132,13 @@ export type Expense = Prisma.ExpenseModel
  * In-app inbox. A written prescription is copied here to the doctor, the patient and every admin.
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model PatientProfile
+ * What the doctor should know before a consultation. One per patient, kept by the patient.
+ */
+export type PatientProfile = Prisma.PatientProfileModel
+/**
+ * Model ConsultationFile
+ * A report, photo or old prescription the patient shares with the doctor for one consultation.
+ */
+export type ConsultationFile = Prisma.ConsultationFileModel

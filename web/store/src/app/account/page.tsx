@@ -63,6 +63,7 @@ export default function AccountPage() {
           {active?.length ? <span className="badge">{active.length}</span> : null}
         </Link>
         <Link href="/doctors/bookings" className="chev"><span className="grow">Consultations &amp; prescriptions</span></Link>
+        <Link href="/account/health" className="chev"><span className="grow">Health profile</span></Link>
         <Link href="/doctors" className="chev"><span className="grow">Book a doctor</span></Link>
       </div>
 

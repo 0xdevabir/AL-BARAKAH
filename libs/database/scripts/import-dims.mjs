@@ -17,6 +17,7 @@ import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { categorize } from './catalog-categories.mjs';
+import { otcCheck } from '../../domain/dist/otc.js';
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), '../data');
 const STATE_PATH = join(DATA, 'dims-state.json');
@@ -159,7 +160,8 @@ async function applyFill(client, row, brand) {
     const judged = categorize({ genericName: brand.genericName, form: brand.form || row.form });
     const cat = await client.query(`SELECT id FROM "Category" WHERE slug = $1`, [slugify(judged.category.name)]);
     categoryId = cat.rows[0]?.id ?? null;
-    isRx = judged.isRx;
+    // A restricted product is flagged so the store hides it; purge-restricted.mjs then removes it.
+    isRx = !otcCheck({ genericName: brand.genericName, form: brand.form || row.form, name: row.name }).ok;
   }
   await client.query(
     `UPDATE "Medicine" SET
@@ -193,7 +195,10 @@ async function applyFill(client, row, brand) {
 }
 
 async function insertBrand(client, indexes, slugs, brand) {
-  const { category, isRx } = categorize({ genericName: brand.genericName || 'Unspecified', form: brand.form });
+  const { category } = categorize({ genericName: brand.genericName || 'Unspecified', form: brand.form });
+  // Only over-the-counter products are sold; see libs/domain/src/otc.ts.
+  if (!otcCheck({ genericName: brand.genericName || '', form: brand.form || '', name: brand.name, device: category.name === 'Medical Devices & Care' }).ok) return false;
+  const isRx = false;
   const cat = await client.query(`SELECT id FROM "Category" WHERE slug = $1`, [slugify(category.name)]);
   if (!cat.rows[0]) return false;
   const key = productKey(brand);

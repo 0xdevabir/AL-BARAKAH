@@ -9,11 +9,14 @@ import { useGet } from '@/lib/api';
 import { useSignedIn } from '@/lib/auth';
 import { calendarLink, CHANNEL, countdown, dayName } from '@/lib/doctors';
 import { addRxToCart, announceRxAdded, type RxCartItem, rxLinePrice } from '@/lib/rxcart';
+import { BookingCare } from '@/components/BookingCare';
 
 interface RxItem { medicine: string; dose: string; frequency: string; days: number; instructions: string }
 interface Booking {
   id: string; code: string; startsAt: string; endsAt: string; status: string; channel: 'GOOGLE_MEET' | 'WHATSAPP' | 'IN_APP'; feePoisha: number;
   kind?: 'SCHEDULED' | 'INSTANT';
+  doctorId: string;
+  rating?: number | null; review?: string | null; cancelledBy?: string | null; rescheduledCount?: number;
   /** The in-app video room, once the doctor has accepted. */
   videoLink?: string | null;
   /** Set while a paid instant consult waits for a doctor to pick it up. */
@@ -21,7 +24,7 @@ interface Booking {
   responseMinutes?: number;
   reason?: string | null;
   prescription: { diagnosis: string; items: RxItem[]; advice: string; followUpDays: number } | null;
-  /** Until when this prescription can buy its prescription-only medicines. */
+  /** Until when the prescription is valid for the doctor's follow-up. */
   rxValidUntil: string | null;
   orders: { id: string; code: string; status: string; createdAt: string }[];
   doctor: { name: string; specialty: string; bmdcNo: string; qualifications: string; workplace: string; meetLink: string | null; whatsapp: string | null };
@@ -202,12 +205,11 @@ export default function BookingDetailPage() {
                           ) : <span className="muted">Out of stock</span>}
                         </span>
                       ) : null}
+                      {rxCart && !m ? (
+                        <span className="muted small" style={{ display: 'block' }}>Not sold online — show this prescription at any licensed pharmacy.</span>
+                      ) : null}
                     </span>
-                    {m ? (
-                      <Link className="btn small" href={`/medicine/${m.slug}`}>View</Link>
-                    ) : (
-                      <Link className="btn small" href={`/search?q=${encodeURIComponent(i.medicine)}`}>Find</Link>
-                    )}
+                    {m ? <Link className="btn small" href={`/medicine/${m.slug}`}>View</Link> : null}
                   </li>
                 );
               })}
@@ -220,12 +222,14 @@ export default function BookingDetailPage() {
               </button>
               <span className="muted small" style={{ textAlign: 'center' }}>
                 {rxValid
-                  ? `The full course, delivered. No upload needed until ${fmtDay(b.rxValidUntil!)}.`
-                  : 'This prescription is older than 30 days, so prescription-only medicines need a new prescription.'}
+                  ? `The full course, delivered. Prescription valid until ${fmtDay(b.rxValidUntil!)}.`
+                  : 'Over-the-counter medicines from your prescription, delivered. Book a follow-up if your symptoms continue.'}
               </span>
             </div>
           ) : rxCart && rxLines.length ? (
-            <p className="muted small" style={{ margin: 0 }}>None of these medicines are in stock right now. Tap Find to see alternatives.</p>
+            <p className="muted small" style={{ margin: 0 }}>
+              {rxLines.some((l) => l.medicine) ? 'These medicines are out of stock right now. Please check back soon.' : 'We only sell over-the-counter medicines online. Take this prescription to any licensed pharmacy.'}
+            </p>
           ) : null}
           {b.orders.length ? (
             <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
@@ -246,6 +250,8 @@ export default function BookingDetailPage() {
       ) : b.status === 'COMPLETED' ? (
         <p className="muted small">The doctor has not added a prescription for this call.</p>
       ) : null}
+
+      <BookingCare id={b.id} doctorId={b.doctorId} status={b.status} kind={b.kind} rating={b.rating} review={b.review} cancelledBy={b.cancelledBy} />
     </div>
   );
 }

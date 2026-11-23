@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Header, Inject, Injectable, Module, Param, Patch, Post, Query } from '@nestjs/common';
 import { batchSchema, medicineSchema, productImageUploadSchema, writeOffSchema, zoneSchema } from '@albarakah/contracts';
 import type { PrismaClient } from '@albarakah/database';
-import { piecePricePoisha, piecesPerPack } from '@albarakah/domain';
+import { otcCheck, piecePricePoisha, piecesPerPack } from '@albarakah/domain';
 import type { z } from 'zod';
 import { type AuthUser, CurrentUser, Public, RequirePermission } from '@albarakah/nest-common';
-import { conflict, notFound, ZodPipe } from '@albarakah/nest-common';
+import { badRequest, conflict, notFound, ZodPipe } from '@albarakah/nest-common';
 import { PRISMA } from '@albarakah/nest-common';
 import { StorageModule, StorageService } from '../storage/storage.module.js';
 
@@ -51,7 +51,7 @@ export class CatalogService {
                m."pricePoisha", m."isRx", m."sourcingDays", m.description, m."imageUrl", m."categoryId"
         FROM "Medicine" m
         JOIN "Category" c ON c.id = m."categoryId"
-        WHERE m."isActive"
+        WHERE m."isActive" AND NOT m."isRx"
           AND (${categorySlug ?? null}::text IS NULL OR c.slug = ${categorySlug ?? null})
           AND (${term}::text IS NULL
                OR m.name ILIKE '%' || ${like} || '%' OR m."genericName" ILIKE '%' || ${like} || '%'
@@ -91,7 +91,7 @@ export class CatalogService {
         FROM "Batch" b
         WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE
       ) stock ON true
-      WHERE m.slug = ${slug} AND m."isActive" LIMIT 1`;
+      WHERE m.slug = ${slug} AND m."isActive" AND NOT m."isRx" LIMIT 1`;
     if (!row) throw notFound('Medicine not found');
     return toDto(row);
   }
@@ -109,7 +109,7 @@ export class CatalogService {
         SELECT COALESCE(SUM(b."qtyRemaining"), 0) AS qty, COALESCE(SUM(b."looseQty"), 0) AS loose FROM "Batch" b
         WHERE b."medicineId" = m.id AND b."expiresAt" >= CURRENT_DATE
       ) stock ON true
-      WHERE m."isActive" AND m.id <> ${base.id}
+      WHERE m."isActive" AND NOT m."isRx" AND m.id <> ${base.id}
         AND lower(m."genericName") = lower(${base.genericName})
         AND lower(m.strength) = lower(${base.strength})
       ORDER BY (COALESCE(stock.qty, 0) + COALESCE(stock.loose, 0) > 0) DESC, m."pricePoisha" ASC
@@ -155,7 +155,7 @@ export class CatalogController {
   async categories() {
     const rows = await this.prisma.category.findMany({
       orderBy: { sortOrder: 'asc' },
-      select: { id: true, name: true, slug: true, _count: { select: { medicines: { where: { isActive: true } } } } },
+      select: { id: true, name: true, slug: true, _count: { select: { medicines: { where: { isActive: true, isRx: false } } } } },
     });
     return rows.map(({ _count, ...c }) => ({ ...c, count: _count.medicines }));
   }
@@ -209,12 +209,24 @@ export class CatalogController {
     return { ok: true };
   }
 
+  /** The store sells over-the-counter products only; see libs/domain/src/otc.ts. */
+  private async assertSellable(body: { name: string; genericName: string; form: string; categoryId: string }) {
+    const category = await this.prisma.category.findUnique({ where: { id: body.categoryId }, select: { name: true } });
+    const res = otcCheck({
+      genericName: body.genericName, form: body.form, name: body.name,
+      herbal: category?.name === 'Herbal & Natural',
+      device: category?.name === 'Medical Devices & Care',
+    });
+    if (!res.ok) throw badRequest('RESTRICTED_MEDICINE', `We only sell over-the-counter medicines. ${res.reason}.`);
+  }
+
   @RequirePermission('catalog:manage')
   @Post('admin/medicines')
   async create(@Body(new ZodPipe(medicineSchema)) body: z.output<typeof medicineSchema>, @CurrentUser() user: AuthUser) {
+    await this.assertSellable(body);
     const slug = slugify(`${body.name} ${body.strength} ${body.form}`);
     if (await this.prisma.medicine.findUnique({ where: { slug } })) throw conflict('DUPLICATE_MEDICINE', 'This medicine already exists');
-    const med = await this.prisma.medicine.create({ data: { ...body, slug } });
+    const med = await this.prisma.medicine.create({ data: { ...body, isRx: false, slug } });
     await this.prisma.auditLog.create({ data: { actorId: user.id, action: 'medicine.create', entity: 'Medicine', entityId: med.id } });
     return med;
   }
@@ -230,7 +242,8 @@ export class CatalogController {
   async update(@Param('id') id: string, @Body(new ZodPipe(medicineSchema)) body: z.output<typeof medicineSchema>, @CurrentUser() user: AuthUser) {
     const before = await this.prisma.medicine.findUnique({ where: { id } });
     if (!before) throw notFound('Medicine not found');
-    const med = await this.prisma.medicine.update({ where: { id }, data: body });
+    await this.assertSellable(body);
+    const med = await this.prisma.medicine.update({ where: { id }, data: { ...body, isRx: false } });
     await this.prisma.auditLog.create({
       data: { actorId: user.id, action: 'medicine.update', entity: 'Medicine', entityId: id, data: { priceBefore: before.pricePoisha, priceAfter: med.pricePoisha } },
     });

@@ -145,6 +145,8 @@ export const zoneSchema = z.object({
    instantResponseMinutes: z.number().int().min(1).max(60).default(10),
    /** The platform's share of each consultation fee, in whole percent. */
    doctorCommissionPct: z.number().int().min(0).max(100).default(20),
+   /** A patient may cancel or move a confirmed booking until this many hours before it starts. */
+   consultCancelHours: z.number().int().min(0).max(72).default(2),
  }).refine((s) => s.openHour < s.closeHour, { message: 'Opening must be before closing', path: ['closeHour'] })
    .refine((s) => s.emergencyStartHour < s.emergencyEndHour, { message: 'Emergency start must be before its end', path: ['emergencyEndHour'] });
  export type Settings = z.infer<typeof settingsSchema>;
@@ -285,6 +287,33 @@ export const paymentStartSchema = z.object({
   refId: z.string().min(1),
 });
 export const prescriptionUploadSchema = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
+});
+/** Before the visit: what the doctor should know. Every field is optional; blanks clear it. */
+export const healthProfileSchema = z.object({
+  dateOfBirth: z.union([z.literal(''), z.iso.date()]).default(''),
+  sex: z.enum(['', 'MALE', 'FEMALE', 'OTHER']).default(''),
+  weightKg: z.number().min(0.5).max(400).nullable().default(null),
+  bloodGroup: z.enum(['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).default(''),
+  allergies: z.string().trim().max(500).default(''),
+  conditions: z.string().trim().max(500).default(''),
+  medications: z.string().trim().max(500).default(''),
+});
+export type HealthProfile = z.infer<typeof healthProfileSchema>;
+export const consultationCancelSchema = z.object({ reason: z.string().trim().max(300).optional() });
+export const consultationRescheduleSchema = z.object({ startsAt: z.iso.datetime() });
+export const consultationRateSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  review: z.string().trim().max(500).optional(),
+});
+/** A report or photo the patient shares with the doctor. */
+export const consultationFileUploadSchema = z.object({
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
+  name: z.string().trim().min(1).max(120),
+});
+export const consultationFileConfirmSchema = z.object({
+  key: z.string().min(1).max(200),
+  name: z.string().trim().min(1).max(120),
   contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
 });
 export const productImageUploadSchema = z.object({

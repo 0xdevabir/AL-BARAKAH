@@ -10,8 +10,8 @@
   "totalCount": 3934,
   "readyCount": 0,
   "staleCount": 0,
-  "dirty": false,
+  "dirty": true,
   "syncing": false,
   "syncedAt": "2026-11-21T09:21:38.962Z",
-  "lastFile": "tmp-strip-vaxigrip-state.mjs"
+  "lastFile": "e-medicine-plan.md"
 }

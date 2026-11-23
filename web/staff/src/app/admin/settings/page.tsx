@@ -11,7 +11,7 @@ interface Settings {
   emergencyStartHour: number; emergencyEndHour: number; emergencyMinutes: number;
   androidLatestVersionCode: number; androidLatestVersionName: string; androidApkUrl: string; androidForceUpdate: boolean; androidUpdateNotes: string;
   pharmacyLat: number; pharmacyLng: number; pharmacyAddress: string;
-  hotlines: string[]; instantConsultFeePoisha: number; instantResponseMinutes: number; doctorCommissionPct: number;
+  hotlines: string[]; instantConsultFeePoisha: number; instantResponseMinutes: number; doctorCommissionPct: number; consultCancelHours: number;
 }
 
 const MONEY = [
@@ -117,6 +117,10 @@ export default function SettingsPage() {
         <label className="setting-row">
           <span className="cell-main"><strong>Platform commission (%)</strong><span className="cell-sub">BarakaBari's share of each consultation fee</span></span>
           <input className="input num" type="number" min={0} max={100} value={cur.doctorCommissionPct} onChange={num('doctorCommissionPct')} />
+        </label>
+        <label className="setting-row">
+          <span className="cell-main"><strong>Patient cancel window (hours)</strong><span className="cell-sub">Patients can cancel or move a confirmed booking until this long before it starts</span></span>
+          <input className="input num" type="number" min={0} max={72} value={cur.consultCancelHours} onChange={num('consultCancelHours')} />
         </label>
       </div>
 

@@ -12,6 +12,9 @@
  *
  * Opening stock is the source quantity when above zero, otherwise 24, in a batch named CATALOG
  * with a placeholder expiry, so the catalog can be browsed before real inventory is counted.
+ *
+ * Only over-the-counter products are imported (libs/domain/src/otc.ts; build that package first).
+ * Rows already in the DB that fail it are removed by purge-restricted.mjs.
  */
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream, readFileSync } from 'node:fs';
@@ -20,6 +23,7 @@ import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { CATEGORIES, categorize } from './catalog-categories.mjs';
+import { otcCheck } from '../../domain/dist/otc.js';
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), '../data');
 const IMAGE_BASE = 'https://api.mediwholebd.com/api/v1/';
@@ -57,7 +61,9 @@ export function toProduct(raw) {
   const form = clip(raw.dosageForm?.name || 'Unit', 60);
   const strength = clip(raw.strength, 80).replace(/^\.+$/, '');
   const taka = Number(raw.salePrice);
-  const { category, isRx } = categorize({ genericName, form, type: raw.type });
+  const { category } = categorize({ genericName, form, type: raw.type });
+  // Only over-the-counter products are sold; see libs/domain/src/otc.ts.
+  const otc = otcCheck({ genericName, form, name: raw.name, herbal: category.name === 'Herbal & Natural', device: category.name === 'Medical Devices & Care' });
   return {
     name: clip(raw.name, 160), genericName, form, strength,
     manufacturer: clip(raw.manufacturer?.name, 160),
@@ -66,12 +72,12 @@ export function toProduct(raw) {
     imageUrl: typeof raw.image === 'string' && raw.image ? new URL(raw.image.replace(/^\//, ''), IMAGE_BASE).href : '',
     popularity: (Number(raw.views) || 0) + 50 * (Number(raw.purchaseCount) || 0),
     stock: Number(raw.stockQuantity) > 0 ? Math.floor(Number(raw.stockQuantity)) : 0,
-    category, isRx,
+    category, isRx: false, otc: otc.ok,
   };
 }
 
 async function readProducts() {
-  const stats = { rows: 0, rejectedInconsistent: 0, rejectedNoPrice: 0, duplicates: 0 };
+  const stats = { rows: 0, rejectedInconsistent: 0, rejectedNoPrice: 0, rejectedRestricted: 0, duplicates: 0 };
   const byKey = new Map();
   const rejectedKeys = new Set();
   const lines = createInterface({ input: createReadStream(join(DATA, 'mediwhole.jsonl')) });
@@ -82,6 +88,7 @@ async function readProducts() {
     const p = toProduct(raw);
     if (!isConsistent(raw)) { stats.rejectedInconsistent++; rejectedKeys.add(productKey(p)); continue; }
     if (!p.pricePoisha) { stats.rejectedNoPrice++; continue; }
+    if (!p.otc) { stats.rejectedRestricted++; continue; }
     const key = productKey(p);
     const seen = byKey.get(key);
     if (!seen) { byKey.set(key, p); continue; }
@@ -182,8 +189,8 @@ async function main() {
     [DEMO_MAKER, curated, catIds.get('Other Medicines')],
   );
   for (const row of stale.rows) {
-    const { category, isRx } = categorize(row);
-    await client.query(`UPDATE "Medicine" SET "categoryId" = $2, "isRx" = "isRx" OR $3, "updatedAt" = NOW() WHERE id = $1`, [row.id, catIds.get(category.name), isRx]);
+    const { category } = categorize(row);
+    await client.query(`UPDATE "Medicine" SET "categoryId" = $2, "updatedAt" = NOW() WHERE id = $1`, [row.id, catIds.get(category.name)]);
   }
 
   // Square publishes no prices, so it only supplies photos, for Square's own products.

@@ -72,6 +72,7 @@ function BookingBody({ b, onDone }: { b: Booking; onDone: () => void }) {
         <span className={`chip ${live ? 'live' : statusTone(b.status)}`}>{live ? 'Live' : statusLabel(b.status)}</span>
       </div>
       {b.reason ? <div className="notice"><span className="muted small" style={{ display: 'block' }}>Patient says</span>“{b.reason}”</div> : null}
+      <PatientContext id={b.id} />
 
       {b.status === 'CONFIRMED' ? (
         <ol className="guide" aria-label="Steps">
@@ -356,6 +357,7 @@ function Composer({ b, me, lastRx, onDone }: { b: Booking; me?: DoctorMe; lastRx
         <strong>Medicines</strong>
         <span className="muted small">{filled.length} of 20</span>
       </div>
+      <p className="muted small" style={{ margin: 0 }}>Our pharmacy sells over-the-counter medicines only. Prescription-only medicines print on the ℞ for the patient to buy at a licensed pharmacy.</p>
       {rx.items.map((it, n) => (
         <div key={n} className="rx-item">
           <div className="rx-item-head span">
@@ -432,6 +434,50 @@ function Composer({ b, me, lastRx, onDone }: { b: Booking; me?: DoctorMe; lastRx
         <button className="btn primary" disabled={busy} onClick={() => void close('COMPLETED')}>
           {busy ? 'Saving…' : blank ? 'Complete visit' : `Send ℞ & complete${filled.length ? ` · ${filled.length}` : ''}`}
         </button>
+      </div>
+    </div>
+  );
+}
+
+interface CareContext {
+  health: { dateOfBirth: string | null; sex: string; weightKg: number | null; bloodGroup: string; allergies: string; conditions: string; medications: string; updatedAt: string | null };
+  files: { id: string; name: string; contentType: string; url: string }[];
+  previousVisits: number;
+}
+
+const ageOf = (dob: string) => {
+  const d = new Date(dob);
+  const n = new Date();
+  return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+};
+
+/** The patient's own health profile and shared reports: what the doctor should read before prescribing. */
+function PatientContext({ id }: { id: string }) {
+  const { data } = useGet<CareContext>(`/doctor/bookings/${id}/context`, { staleMs: 30_000 });
+  if (!data) return null;
+  const h = data.health;
+  const facts = [
+    h.dateOfBirth ? `${ageOf(h.dateOfBirth)} yrs` : '',
+    h.sex ? h.sex[0] + h.sex.slice(1).toLowerCase() : '',
+    h.weightKg ? `${h.weightKg} kg` : '',
+    h.bloodGroup,
+  ].filter(Boolean);
+  if (!facts.length && !h.allergies && !h.conditions && !h.medications && !data.files.length) {
+    return <p className="muted small" style={{ margin: 0 }}>The patient has not filled in a health profile. Ask about allergies and current medicines.</p>;
+  }
+  return (
+    <div className="stack" style={{ gap: 8 }}>
+      {h.allergies ? <div className="error small" role="note"><strong>Allergies:</strong> {h.allergies}</div> : null}
+      <div className="group">
+        {facts.length ? <div className="row between"><span className="muted small">Patient</span><span className="small">{facts.join(' · ')}</span></div> : null}
+        {h.conditions ? <div className="row between" style={{ gap: 12 }}><span className="muted small">Conditions</span><span className="small" style={{ textAlign: 'right' }}>{h.conditions}</span></div> : null}
+        {h.medications ? <div className="row between" style={{ gap: 12 }}><span className="muted small">Takes</span><span className="small" style={{ textAlign: 'right' }}>{h.medications}</span></div> : null}
+        {data.files.map((f) => (
+          <a key={f.id} className="row between" href={f.url} target="_blank" rel="noreferrer">
+            <span className="small ellipsis">{f.contentType === 'application/pdf' ? '📄' : '🖼️'} {f.name}</span>
+            <span className="muted small">Open ›</span>
+          </a>
+        ))}
       </div>
     </div>
   );

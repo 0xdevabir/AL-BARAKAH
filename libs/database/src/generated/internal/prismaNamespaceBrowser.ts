@@ -73,7 +73,9 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   MedicineRequest: 'MedicineRequest',
   Expense: 'Expense',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  PatientProfile: 'PatientProfile',
+  ConsultationFile: 'ConsultationFile'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -376,6 +378,12 @@ export const ConsultationScalarFieldEnum = {
   notes: 'notes',
   prescription: 'prescription',
   prescribedAt: 'prescribedAt',
+  rescheduledCount: 'rescheduledCount',
+  cancelledBy: 'cancelledBy',
+  cancelReason: 'cancelReason',
+  rating: 'rating',
+  review: 'review',
+  ratedAt: 'ratedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -458,6 +466,34 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const PatientProfileScalarFieldEnum = {
+  userId: 'userId',
+  dateOfBirth: 'dateOfBirth',
+  sex: 'sex',
+  weightKg: 'weightKg',
+  bloodGroup: 'bloodGroup',
+  allergies: 'allergies',
+  conditions: 'conditions',
+  medications: 'medications',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PatientProfileScalarFieldEnum = (typeof PatientProfileScalarFieldEnum)[keyof typeof PatientProfileScalarFieldEnum]
+
+
+export const ConsultationFileScalarFieldEnum = {
+  id: 'id',
+  consultationId: 'consultationId',
+  uploadedById: 'uploadedById',
+  key: 'key',
+  name: 'name',
+  contentType: 'contentType',
+  createdAt: 'createdAt'
+} as const
+
+export type ConsultationFileScalarFieldEnum = (typeof ConsultationFileScalarFieldEnum)[keyof typeof ConsultationFileScalarFieldEnum]
 
 
 export const SortOrder = {

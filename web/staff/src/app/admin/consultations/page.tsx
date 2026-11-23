@@ -11,6 +11,7 @@ interface Row {
   id: string; code: string; startsAt: string; status: string; channel: CallChannel; feePoisha: number;
   customer: { name: string; phone: string }; doctor: { user: { name: string } };
   payments: { id: string; status: 'PAID' | 'REFUNDED'; trxId: string | null }[];
+  refundDue?: boolean; cancelledBy?: string | null; cancelReason?: string | null; rating?: number | null; review?: string | null;
 }
 type View = 'upcoming' | 'past' | 'refund';
 
@@ -22,7 +23,7 @@ export default function ConsultationsPage() {
   const now = Date.now();
 
   // A paid booking the doctor never held (no-show by doctor, or a hold that lapsed) should be refunded.
-  const needsRefund = (c: Row) => c.payments.some((p) => p.status === 'PAID') && (c.status === 'HOLD' || (c.status === 'CONFIRMED' && new Date(c.startsAt).getTime() < now - 2 * 3_600_000));
+  const needsRefund = (c: Row) => !!c.refundDue || (c.payments.some((p) => p.status === 'PAID') && (c.status === 'HOLD' || (c.status === 'CONFIRMED' && new Date(c.startsAt).getTime() < now - 2 * 3_600_000)));
   const all = (data ?? []).filter((c) => !dq || c.code.toLowerCase().includes(dq) || c.customer.name.toLowerCase().includes(dq) || c.doctor.user.name.toLowerCase().includes(dq) || c.customer.phone.includes(dq));
   const rows =
     view === 'refund'
@@ -77,6 +78,8 @@ export default function ConsultationsPage() {
                   <span className="cell-sub">
                     {fmtWhen(c.startsAt)} · {CHANNEL[c.channel]} · <span className="mono">{c.code}</span>
                     {paid?.trxId ? ` · bKash ${paid.trxId}` : ''}
+                    {c.cancelledBy ? ` · cancelled by ${c.cancelledBy.toLowerCase()}${c.cancelReason ? `: “${c.cancelReason}”` : ''}` : ''}
+                    {c.rating ? ` · ${'★'.repeat(c.rating)}${c.review ? ` “${c.review}”` : ''}` : ''}
                   </span>
                 </span>
                 <span className="cell-end">

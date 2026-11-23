@@ -20,20 +20,18 @@ const catalog: Record<string, [string, string, string, string, string, number, b
   'Cold & Allergy': [
     ['Fexo', 'Fexofenadine', 'Tablet', '120 mg', '10 tablets', 9000, false],
     ['Alatrol', 'Cetirizine', 'Tablet', '10 mg', '10 tablets', 3000, false],
-    ['Tusca Syrup', 'Herbal cough syrup', 'Syrup', '', '100 ml', 8500, false],
   ],
+  // Over-the-counter only: the store sells nothing that needs a prescription (libs/domain/src/otc.ts).
   Stomach: [
-    ['Seclo', 'Omeprazole', 'Capsule', '20 mg', '10 capsules', 5000, false],
-    ['Sergel', 'Esomeprazole', 'Capsule', '20 mg', '10 capsules', 7000, false],
+    ['Antacid Plus', 'Aluminium Hydroxide + Magnesium Hydroxide + Simethicone', 'Chewable Tablet', '', '10 tablets', 1500, false],
     ['Orsaline-N', 'Oral rehydration salts', 'Sachet', '', '5 sachets', 3000, false],
   ],
-  'Antibiotics': [
-    ['Azithrocin', 'Azithromycin', 'Tablet', '500 mg', '3 tablets', 12000, true],
-    ['Moxacil', 'Amoxicillin', 'Capsule', '500 mg', '10 capsules', 9000, true],
+  'Vitamins & Supplements': [
+    ['Calbo D', 'Calcium Carbonate + Vitamin D3', 'Tablet', '500 mg + 200 IU', '10 tablets', 4000, false],
+    ['Ceevit', 'Vitamin C', 'Chewable Tablet', '250 mg', '10 tablets', 2500, false],
   ],
-  'Diabetes & Heart': [
-    ['Comet', 'Metformin', 'Tablet', '500 mg', '10 tablets', 4000, true],
-    ['Osartil', 'Losartan', 'Tablet', '50 mg', '10 tablets', 8000, true],
+  'Herbal & Natural': [
+    ['Tusca Syrup', 'Herbal cough syrup', 'Syrup', '', '100 ml', 8500, false],
   ],
 };
 
